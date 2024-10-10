@@ -1,5 +1,5 @@
 // controllers/contentController.js
-const Content = require('../../models/preferencesModel/preferencesModel');
+const Preferences = require('../../models/preferencesModel/preferencesModel');
 
 // Create new content
 exports.createContent = async (req, res) => {
@@ -10,7 +10,7 @@ exports.createContent = async (req, res) => {
         // You can add additional validation as needed here
 
         // Create new content instance
-        const content = new Content({
+        const content = new Preferences({
             contentType,
             customCheckbox,
             gender,

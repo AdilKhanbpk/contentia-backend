@@ -1,7 +1,6 @@
-// models/Content.js
 const mongoose = require('mongoose');
 
-const contentSchema = new mongoose.Schema({
+const preferencesSchema = new mongoose.Schema({
     contentType: { type: String, required: false },
     customCheckbox: { type: [String], required: false }, // Array of strings
     gender: { type: String, required: false },
@@ -12,4 +11,6 @@ const contentSchema = new mongoose.Schema({
     state: { type: String, default: '' },
 }, { timestamps: true });
 
-const Content = mongoose.model('Preferences', contentSchema);
+// Export the model
+const Preferences = mongoose.model('Preferences', preferencesSchema);
+module.exports = Preferences;
