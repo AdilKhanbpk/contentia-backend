@@ -23,6 +23,10 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false, // For "Ticari Elektronik İleti"
   },
+  ordersProfile: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'OrdersProfile', // Reference to OrdersProfile model
+  }
 }, {
   timestamps: true, // Automatically manage createdAt and updatedAt fields
 });
