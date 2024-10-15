@@ -12,11 +12,15 @@ const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
 const userAuthRoutes = require('./routes/userAuthRoutes/userAuthRoutes');
 const videoOptionRoutes = require('./routes/videoOptionRoutes/videoOptionRoutes');
-const sipayPaymentRoute = require( './routes/sipayPaymentRoute/sipayPaymentRoute');
+const sipayPaymentRoute = require('./routes/sipayPaymentRoute/sipayPaymentRoute');
 const ugcBriefRoute = require('./routes/ugcBriefRoute/ugcBriefRoute');
 const preferencesRoute = require('./routes/preferencesRoute/preferencesRoute');
 const ordersProfileRoute = require('./routes/ordersProfileRoute/ordersProfileRoute');
+
 const cashoutToBankRoute = require('./routes/cashoutToBankRoute/cashoutToBankRoute');
+
+const becomeCreatorRoute = require('./routes/becomeCreatorRoute/becomeCreatorRoute');
+
 
 const cors = require('cors');
 const { cashoutToBank } = require('./utils/cashoutService');
@@ -26,10 +30,10 @@ const app = express();
 // Middleware
 
 const corsOptions = {
-  origin: 'http://localhost:3000',
-  methods: 'GET,POST,PUT,DELETE,OPTIONS,PATCH',
-  allowedHeaders: 'X-Requested-With, Content-Type, Authorization',
-  credentials: true
+    origin: 'http://localhost:3000',
+    methods: 'GET,POST,PUT,DELETE,OPTIONS,PATCH',
+    allowedHeaders: 'X-Requested-With, Content-Type, Authorization',
+    credentials: true
 };
 
 app.use(cors(corsOptions));
@@ -96,8 +100,12 @@ app.use('/api/v1/videos', videoOptionRoutes);
 app.use('/api/v1/ugc', ugcBriefRoute);
 app.use('/api/v1/preferences', preferencesRoute);
 app.use('/api/v1/profile', ordersProfileRoute);
+
 app.use('/api/v1/sipay', sipayPaymentRoute);
 app.use('/api/v1/cashout', cashoutToBankRoute);
+
+
+app.use('/api/v1/become-creator', becomeCreatorRoute);
 
 
 // Catch-all error handling middleware for unknown routes
