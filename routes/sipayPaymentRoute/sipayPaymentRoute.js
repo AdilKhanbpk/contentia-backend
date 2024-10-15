@@ -5,6 +5,7 @@ const { protect } = require('../../controllers/userAuthControllers/authControlle
 
 const router = express.Router();
 
-router.post('/payment',protect, sipayPaymentController.processPayment); // Use the controller function
+// Route to process payment
+router.post('/payment', protect, sipayPaymentController.processPayment); // Use the controller function
 
 module.exports = router;

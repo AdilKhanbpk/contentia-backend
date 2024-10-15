@@ -8,7 +8,7 @@ const ordersProfileSchema = new mongoose.Schema({
   email: String,
   invoiceType: {
     type: String,
-    enum: ['Bireysel', 'Kurumsal'], // Define the types here
+    enum: ['Bireysel', 'Kurumsal'],
   },
   name: String,
   newPassword: String,

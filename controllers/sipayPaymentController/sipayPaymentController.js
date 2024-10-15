@@ -1,23 +1,30 @@
-// controllers/sipayPaymentController/sipayPaymentController.js
 const { processSipayPayment } = require('../../utils/sipayPayment');
 const SipayPayment = require('../../models/sipayPaymentModel/sipayPaymentModel'); // Import the model
 
 // Save Payment function
-const savePayment = async (paymentData, transactionId, userId) => {
+const savePayment = async (paymentData, userId) => {
   const newPayment = new SipayPayment({
     userId: userId,
-    transactionId: transactionId,
     merchantId: process.env.SIPAY_MERCHANT_ID,
     amount: paymentData.amount,
     currency: paymentData.currency || 'TRY',
-    cardNumber: paymentData.cardNumber, // Masked version should be used in real scenarios
+    cardNumber: paymentData.cardNumber,
     expireMonth: paymentData.expireMonth,
     expireYear: paymentData.expireYear,
     cvv: paymentData.cvv,
-    buyer: paymentData.buyer,
-    billingAddress: paymentData.billing_address,
+    buyerName: paymentData.nameOnCard,
+    buyerEmail: paymentData.buyerEmail,
+    billingAddress: paymentData.billingAddress,
+    billingCity: paymentData.billingCity,
+    billingCountry: paymentData.billingCountry,
+    billingZipCode: paymentData.billingZipCode,
     status: 'pending',
+    phoneNumber: paymentData.phoneNumber,
+    companyName: paymentData.companyName,
+    whereDidYouHear: paymentData.whereDidYouHear,
   });
+
+  console.log('New Payment Object:', newPayment); // Log the new payment object
 
   await newPayment.save();
   return newPayment;
@@ -27,26 +34,44 @@ const savePayment = async (paymentData, transactionId, userId) => {
 exports.processPayment = async (req, res) => {
   try {
     const paymentData = req.body;
+    console.log('Payment Data Received:', paymentData); // Log the incoming payment data
 
-    // Obtain userId from the request (adjust this based on your authentication method)
-    const userId = req.user ? req.user._id : null; // Assuming user ID is in req.user, adapt as needed
+    const userId = req.user ? req.user._id : null;
+    console.log('User ID:', userId); // Log the user ID
 
     // Call the processSipayPayment function
-    const paymentResult = await processSipayPayment(paymentData);
+    const paymentResult = await processSipayPayment({
+      ...paymentData,
+      expireMonth: Number(paymentData.expireMonth),
+      expireYear: Number(paymentData.expireYear),
+    });
 
-    // Save payment details to the database
-    const savedPayment = await savePayment(paymentData, paymentResult.transactionId, userId);
+    console.log('Payment Result from Sipay:', paymentResult); // Log the payment result
+
+    // Check if payment processing was successful
+    if (paymentResult.status_code !== 100) {
+      console.error('Payment Processing Failed:', paymentResult); // Log the failure reason
+      return res.status(400).json({
+        status: 'failure',
+        message: 'Payment processing failed.',
+        paymentResult, // Include payment result in the response for debugging
+      });
+    }
+
+    // Save payment details to the database without transactionId
+    const savedPayment = await savePayment(paymentData, userId);
+    console.log('Saved Payment:', savedPayment); // Log the saved payment
 
     res.status(200).json({
       status: 'success',
       message: 'Payment processed successfully',
       data: {
         paymentResult,
-        savedPayment // Optionally return the saved payment object
-      }
+        savedPayment,
+      },
     });
   } catch (error) {
-    console.error('Payment processing error:', error);
+    console.error('Payment Processing Error:', error); // Log the error stack
     res.status(500).json({ status: 'failure', message: 'Payment failed', error: error.message });
   }
 };
