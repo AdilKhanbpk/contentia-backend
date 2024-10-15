@@ -16,9 +16,14 @@ const sipayPaymentRoute = require('./routes/sipayPaymentRoute/sipayPaymentRoute'
 const ugcBriefRoute = require('./routes/ugcBriefRoute/ugcBriefRoute');
 const preferencesRoute = require('./routes/preferencesRoute/preferencesRoute');
 const ordersProfileRoute = require('./routes/ordersProfileRoute/ordersProfileRoute');
+
+const cashoutToBankRoute = require('./routes/cashoutToBankRoute/cashoutToBankRoute');
+
 const becomeCreatorRoute = require('./routes/becomeCreatorRoute/becomeCreatorRoute');
 
+
 const cors = require('cors');
+const { cashoutToBank } = require('./utils/cashoutService');
 
 const app = express();
 
@@ -92,11 +97,16 @@ app.use((req, res, next) => {
 
 app.use('/api/v1/users', userAuthRoutes); // Ensure this points to your API routes
 app.use('/api/v1/videos', videoOptionRoutes);
-app.use('/api/v1/sipay', sipayPaymentRoute);
 app.use('/api/v1/ugc', ugcBriefRoute);
 app.use('/api/v1/preferences', preferencesRoute);
 app.use('/api/v1/profile', ordersProfileRoute);
+
+app.use('/api/v1/sipay', sipayPaymentRoute);
+app.use('/api/v1/cashout', cashoutToBankRoute);
+
+
 app.use('/api/v1/become-creator', becomeCreatorRoute);
+
 
 // Catch-all error handling middleware for unknown routes
 app.all('*', (req, res, next) => {
