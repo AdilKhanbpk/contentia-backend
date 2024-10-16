@@ -1,7 +1,7 @@
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
-const { submitForm } = require('../../controllers/ugcBriefController/ugcBriefController'); // Adjust the path as necessary
+const { createForm, getAllForms, deleteForm, getFormById, updateForm } = require('../controllers/ugcBrief.controller'); // Adjust the path as necessary
 
 const router = express.Router();
 
@@ -22,6 +22,6 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // POST route to handle form submission
-router.post('/ugcBrief', upload.single('file'), submitForm); // 'file' should match the field name in the frontend
+router.post('/ugcBrief', upload.single('file'), createForm); // 'file' should match the field name in the frontend
 
 module.exports = router;

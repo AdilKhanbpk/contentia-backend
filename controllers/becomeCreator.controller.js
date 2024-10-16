@@ -1,6 +1,6 @@
-const catchAsync = require('./../../utils/catchAsync');
-const AppError = require('./../../utils/appError');
-const CreatorForm = require('../../models/becomeCreatorModel/becomeCreatorModel');
+const catchAsync = require('../utils/catchAsync');
+const AppError = require('../utils/appError');
+const CreatorForm = require('../models/becomeCreator.model');
 
 // Create or update OrdersProfile
 exports.addBecomeCreator = catchAsync(async (req, res) => {

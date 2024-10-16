@@ -1,5 +1,5 @@
 // controllers/videoOptionsController.js
-const VideoOption = require('../../models/videoOptionModel/videoOptionModel');
+const VideoOption = require('../models/videoOption.model');
 
 // Controller function to create a new video option
 const createVideoOption = async (req, res) => {

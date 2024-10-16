@@ -1,5 +1,5 @@
-const { processSipayPayment } = require('../../utils/sipayPayment');
-const SipayPayment = require('../../models/sipayPaymentModel/sipayPaymentModel'); // Import the model
+const { processSipayPayment } = require('../utils/sipayPayment');
+const SipayPayment = require('../models/sipayPayment.model'); // Import the model
 
 // Save Payment function
 const savePayment = async (paymentData, userId) => {
