@@ -1,5 +1,5 @@
 // controllers/contentController.js
-const Preferences = require('../../models/preferencesModel/preferencesModel');
+const Preferences = require('../models/preferences.model');
 
 // Create new content
 exports.createContent = async (req, res) => {

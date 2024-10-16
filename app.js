@@ -9,25 +9,23 @@ const hpp = require('hpp');
 const cookieParser = require('cookie-parser');
 
 const AppError = require('./utils/appError');
-const globalErrorHandler = require('./controllers/errorController');
-const userAuthRoutes = require('./routes/userAuthRoutes/userAuthRoutes');
-const videoOptionRoutes = require('./routes/videoOptionRoutes/videoOptionRoutes');
-const sipayPaymentRoute = require('./routes/sipayPaymentRoute/sipayPaymentRoute');
-const ugcBriefRoute = require('./routes/ugcBriefRoute/ugcBriefRoute');
-const preferencesRoute = require('./routes/preferencesRoute/preferencesRoute');
-const ordersProfileRoute = require('./routes/ordersProfileRoute/ordersProfileRoute');
+const { cashoutToBank } = require('./utils/cashoutService');
 
-const cashoutToBankRoute = require('./routes/cashoutToBankRoute/cashoutToBankRoute');
+const globalErrorHandler = require('./controllers/error.controller')
+const userAuthRoutes = require('./routes/userAuth.routes')
+const videoOptionRoutes = require('./routes/videoOption.routes')
+const sipayPaymentRoute = require('./routes/sipayPayment.routes')
+const ugcBriefRoute = require('./routes/ugcBrief.routes')
+const preferencesRoute = require('./routes/preferences.routes')
+const ordersProfileRoute = require('./routes/ordersProfile.routes')
+const cashoutToBankRoute = require('./routes/cashoutToBank.routes')
+const becomeCreatorRoute = require('./routes/becomeCreator.routes')
 
-const becomeCreatorRoute = require('./routes/becomeCreatorRoute/becomeCreatorRoute');
+
 
 
 const cors = require('cors');
-const { cashoutToBank } = require('./utils/cashoutService');
-
 const app = express();
-
-// Middleware
 
 const corsOptions = {
     origin: 'http://localhost:3000',
@@ -38,42 +36,23 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
-
-
-app.use(cookieParser()); // Ensure you can parse cookies
-
-// 1) GLOBAL MIDDLEWARES
-// Serving static files (if needed)
+app.use(cookieParser());
 app.use(express.static(path.join(__dirname, '')));
-
-// Set security HTTP headers
 app.use(helmet());
-
-// Development logging
 if (process.env.NODE_ENV === 'development') {
     app.use(morgan('dev'));
 }
-
-// Limit requests from the same API
 const limiter = rateLimit({
     max: 100,
     windowMs: 60 * 60 * 1000,
     message: 'Too many requests from this IP, please try again in an hour!',
 });
 app.use('/api', limiter);
-
-// Body parser, reading data from body into req.body
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 app.use(cookieParser());
-
-// Data sanitization against NoSQL query injection
 app.use(mongoSanitize());
-
-// Data sanitization against XSS
 app.use(xss());
-
-// Prevent parameter pollution
 app.use(
     hpp({
         whitelist: [
@@ -86,35 +65,25 @@ app.use(
         ],
     })
 );
-
-// Test middleware for request time
 app.use((req, res, next) => {
     req.requestTime = new Date().toISOString();
     next();
 });
 
-// 3) ROUTES
-
-app.use('/api/v1/users', userAuthRoutes); // Ensure this points to your API routes
+app.use('/api/v1/users', userAuthRoutes);
 app.use('/api/v1/videos', videoOptionRoutes);
 app.use('/api/v1/ugc', ugcBriefRoute);
 app.use('/api/v1/preferences', preferencesRoute);
 app.use('/api/v1/profile', ordersProfileRoute);
-
 app.use('/api/v1/sipay', sipayPaymentRoute);
 app.use('/api/v1/cashout', cashoutToBankRoute);
-
-
 app.use('/api/v1/become-creator', becomeCreatorRoute);
 
 
-// Catch-all error handling middleware for unknown routes
 app.all('*', (req, res, next) => {
     const message = `Can't find ${req.originalUrl} on this server!`;
     next(new AppError(message, 404));
 });
-
-// Error handling middleware
 app.use(globalErrorHandler);
 
 module.exports = app;

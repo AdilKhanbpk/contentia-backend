@@ -1,7 +1,7 @@
 // backend/routes/paymentRoutes.js
 const express = require('express');
-const sipayPaymentController = require('../../controllers/sipayPaymentController/sipayPaymentController'); // Import the controller
-const { protect } = require('../../controllers/userAuthControllers/authController');
+const sipayPaymentController = require('../controllers/sipayPayment.controller'); // Import the controller
+const { protect } = require('../controllers/auth.controller');
 
 const router = express.Router();
 

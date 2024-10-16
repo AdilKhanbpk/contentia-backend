@@ -1,6 +1,6 @@
 const express = require('express');
-const ordersProfileController = require('../../controllers/ordersProfileController/ordersProfileController');
-const { protect } = require('../../controllers/userAuthControllers/authController');
+const ordersProfileController = require('../controllers/ordersProfile.controller');
+const { protect } = require('../controllers/auth.controller');
 
 const router = express.Router();
 

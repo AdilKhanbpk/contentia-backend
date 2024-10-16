@@ -8,6 +8,9 @@ const FormSchema = new mongoose.Schema({
     scenario: String,
     description: String,
     sampleWork: String,
+    country: String,
+    website: String,
+    category: String,
     files: { type: String }, // Add file field to store the file path or name
 }, { timestamps: true });
 

@@ -1,6 +1,6 @@
 const express = require('express');
-const becomeCreatorController = require('../../controllers/becomeCreatorController/becomeCreatorController')
-const { protect } = require('../../controllers/userAuthControllers/authController');
+const becomeCreatorController = require('../controllers/becomeCreator.controller')
+const { protect } = require('../controllers/auth.controller');
 
 const router = express.Router();
 

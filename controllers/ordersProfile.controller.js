@@ -1,7 +1,7 @@
-const User = require('../../models/authModel/userModel');
-const OrdersProfile = require('../../models/ordersProfileModel/ordersProfileModel');
-const catchAsync = require('./../../utils/catchAsync');
-const AppError = require('./../../utils/appError');
+const User = require('../models/user.model');
+const OrdersProfile = require('../models/ordersProfile.model');
+const catchAsync = require('../utils/catchAsync');
+const AppError = require('../utils/appError');
 const bcrypt = require('bcryptjs');
 
 // Create or update OrdersProfile

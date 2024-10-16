@@ -1,5 +1,5 @@
-const { cashoutToBank } = require('../../utils/cashoutService');
-const CashoutModel = require('../../models/cashoutToBankModel/cashoutToBankModel');
+const { cashoutToBank } = require('../utils/cashoutService');
+const CashoutModel = require('../models/cashoutToBank.model');
 
 exports.cashoutToBankController = async (req, res) => {
   try {
