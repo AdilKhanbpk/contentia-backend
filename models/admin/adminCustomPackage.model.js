@@ -1,91 +1,120 @@
+// models/packageModel.js
 const mongoose = require("mongoose");
-const Schema = mongoose.Schema;
 
-const customPackageSchema = new Schema(
-  {
-    customer: {
-      type: String,
-      required: true,
-    },
-    status: {
-      type: String,
-      enum: ["active", "completed", "refunded"],
-      default: "active",
-    },
-    packageType: {
-      type: String,
-      enum: ["custom", "standard"],
-    },
-    packageContentDelivered: {
-      type: String,
-    },
-    packageContentLeft: {
-      type: String,
-    },
-    creatorType: {
-      type: String,
-    },
-    creatorGender: {
-      type: String,
-    },
-    creatorMinAge: {
-      type: Number,
-    },
-    creatorMaxAge: {
-      type: Number,
-    },
-    noOfUgc: {
-      type: Number,
-      required: true,
-    },
-    price: {
-      type: Number,
-      required: true,
-    },
-    totalPrice: {
-      type: Number,
-      required: true,
-    },
+const packageSchema = new mongoose.Schema({
+  status: {
+    type: String,
+    enum: ["Active", "Completed", "Refunded"],
+    required: true,
+  },
+  packageType: {
+    type: String,
+    required: true,
+  },
+  packageContentOrders: {
+    type: Number,
+    required: true,
+  },
+  packageContentsDelivered: {
+    type: Number,
+    required: true,
+  },
+  packageContentsLeft: {
+    type: Number,
+    required: true,
+  },
+  packageDetails: {
     platform: {
       type: String,
+      enum: ["Meta", "TikTok", "Other"],
       required: true,
     },
     duration: {
       type: String,
       required: true,
     },
-    isEditRequired: {
+    edit: {
       type: Boolean,
-      required: false,
+      required: true,
     },
     aspectRatio: {
       type: String,
-      required: false,
+      required: true,
     },
     share: {
-      type: String,
-      required: false,
+      type: Boolean,
+      required: true,
     },
-    coverImage: {
-      type: String,
-      required: false,
+    coverPicture: {
+      type: Boolean,
+      required: true,
     },
     creatorType: {
       type: String,
-      required: false,
+      required: true,
     },
-    shipping: {
+    creatorGender: {
       type: String,
-      required: false,
+    },
+    minimumCreatorAge: {
+      type: Number,
+    },
+    maximumCreatorAge: {
+      type: Number,
+    },
+    interests: {
+      type: [String],
+    },
+    contentType: {
+      type: String,
+      enum: ["Product", "Service", "Location"],
+      required: true,
+    },
+    locationAddress: {
+      type: String,
+      required: true,
+    },
+    showCreatorAddress: {
+      type: Boolean,
+      required: function () {
+        return this.contentType === "Product";
+      },
+    },
+    productShipping: {
+      type: Boolean,
+      required: function () {
+        return this.contentType === "Product";
+      },
+    },
+    productName: {
+      type: String,
+      required: function () {
+        return this.contentType === "Product";
+      },
+    },
+    brandName: {
+      type: String,
+      required: function () {
+        return this.contentType === "Product";
+      },
+    },
+    brief: {
+      type: String,
+      required: true,
+    },
+    scenario: {
+      type: String,
+      required: true,
+    },
+    example: {
+      type: String,
+      required: true,
+    },
+    fileUpload: {
+      type: String,
+      required: true,
     },
   },
-  {
-    timestamps: true,
-  }
-);
+});
 
-const CustomPackageModel =
-  mongoose.models.customPackageModel ||
-  mongoose.model("customPackageModel", customPackageSchema);
-
-module.exports = CustomPackageModel;
+module.exports = mongoose.model("Package", packageSchema);

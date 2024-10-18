@@ -7,7 +7,7 @@ const createFaq = asyncHandler(async (req, res, next) => {
   const { question, answer } = req.body;
 
   if (!question || !answer) {
-    return next(new ApiError(400, "Question and Answer are required."));
+    throw new ApiError(400, "Question and Answer are required.");
   }
 
   const newFaq = await FaqModel.create({ question, answer });
@@ -29,7 +29,7 @@ const getFaqById = asyncHandler(async (req, res, next) => {
   const faq = await FaqModel.findById(id);
 
   if (!faq) {
-    return next(new ApiError(404, `FAQ not found with id: ${id}`));
+    throw new ApiError(404, `FAQ not found with id: ${id}`);
   }
 
   return res
@@ -43,7 +43,7 @@ const updateFaq = asyncHandler(async (req, res, next) => {
   const faq = await FaqModel.findById(id);
 
   if (!faq) {
-    return next(new ApiError(404, `FAQ not found with id: ${id}`));
+    throw new ApiError(404, `FAQ not found with id: ${id}`);
   }
 
   faq.question = question || faq.question;
@@ -61,7 +61,7 @@ const deleteFaq = asyncHandler(async (req, res, next) => {
   const faq = await FaqModel.findById(id);
 
   if (!faq) {
-    return next(new ApiError(404, `FAQ not found with id: ${id}`));
+    throw new ApiError(404, `FAQ not found with id: ${id}`);
   }
 
   await faq.remove();

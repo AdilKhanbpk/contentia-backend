@@ -1,13 +1,14 @@
+// controllers/adminHowItWorksController.js
 const HowItWorksModel = require("../../models/admin/adminHowItWorks.model");
 const ApiError = require("../../utils/ApiError");
 const ApiResponse = require("../../utils/ApiResponse");
 const asyncHandler = require("../../utils/asyncHandler");
 
-const createHowItWorks = asyncHandler(async (req, res, next) => {
+const createHowItWorks = asyncHandler(async (req, res) => {
   const { title, description } = req.body;
 
   if (!title || !description) {
-    return next(new ApiError(400, "Title and Description are required."));
+    throw new ApiError(400, "Title and Description are required.");
   }
 
   const newHowItWorks = await HowItWorksModel.create({ title, description });
@@ -25,7 +26,6 @@ const createHowItWorks = asyncHandler(async (req, res, next) => {
 
 const getHowItWorks = asyncHandler(async (req, res) => {
   const howItWorks = await HowItWorksModel.find();
-
   return res
     .status(200)
     .json(
@@ -37,14 +37,12 @@ const getHowItWorks = asyncHandler(async (req, res) => {
     );
 });
 
-const getHowItWorksById = asyncHandler(async (req, res, next) => {
+const getHowItWorksById = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const howItWorks = await HowItWorksModel.findById(id);
 
   if (!howItWorks) {
-    return next(
-      new ApiError(404, `How It Works section not found with id: ${id}`)
-    );
+    throw new ApiError(404, `How It Works section not found with id: ${id}`);
   }
 
   return res
@@ -58,15 +56,13 @@ const getHowItWorksById = asyncHandler(async (req, res, next) => {
     );
 });
 
-const updateHowItWorks = asyncHandler(async (req, res, next) => {
+const updateHowItWorks = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { title, description } = req.body;
   const howItWorks = await HowItWorksModel.findById(id);
 
   if (!howItWorks) {
-    return next(
-      new ApiError(404, `How It Works section not found with id: ${id}`)
-    );
+    throw new ApiError(404, `How It Works section not found with id: ${id}`);
   }
 
   howItWorks.title = title || howItWorks.title;
@@ -85,14 +81,12 @@ const updateHowItWorks = asyncHandler(async (req, res, next) => {
     );
 });
 
-const deleteHowItWorks = asyncHandler(async (req, res, next) => {
+const deleteHowItWorks = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const howItWorks = await HowItWorksModel.findById(id);
 
   if (!howItWorks) {
-    return next(
-      new ApiError(404, `How It Works section not found with id: ${id}`)
-    );
+    throw new ApiError(404, `How It Works section not found with id: ${id}`);
   }
 
   await howItWorks.remove();

@@ -1,13 +1,14 @@
+// controllers/adminAboutController.js
 const AboutModel = require("../../models/admin/adminAbout.model");
 const ApiError = require("../../utils/ApiError");
 const ApiResponse = require("../../utils/ApiResponse");
 const asyncHandler = require("../../utils/asyncHandler");
 
-const createOrUpdateAbout = asyncHandler(async (req, res, next) => {
+const createOrUpdateAbout = asyncHandler(async (req, res) => {
   const { content } = req.body;
 
   if (!content) {
-    return next(new ApiError(400, "Content is required."));
+    throw new ApiError(400, "Content is required.");
   }
 
   let about = await AboutModel.findOne();
@@ -27,11 +28,11 @@ const createOrUpdateAbout = asyncHandler(async (req, res, next) => {
     .json(new ApiResponse(201, about, "About content created successfully"));
 });
 
-const getAbout = asyncHandler(async (req, res, next) => {
+const getAbout = asyncHandler(async (req, res) => {
   const about = await AboutModel.findOne();
 
   if (!about) {
-    return next(new ApiError(404, "About content not found"));
+    throw new ApiError(404, "About content not found");
   }
 
   return res

@@ -1,15 +1,14 @@
+// controllers/adminHelpSupportController.js
 const HelpSupportModel = require("../../models/admin/adminHelpSupport.model");
 const ApiError = require("../../utils/ApiError");
 const ApiResponse = require("../../utils/ApiResponse");
 const asyncHandler = require("../../utils/asyncHandler");
 
-const createHelpSupport = asyncHandler(async (req, res, next) => {
+const createHelpSupport = asyncHandler(async (req, res) => {
   const { title, category, content } = req.body;
 
   if (!title || !category || !content) {
-    return next(
-      new ApiError(400, "Title, Category, and Content are required.")
-    );
+    throw new ApiError(400, "Title, Category, and Content are required.");
   }
 
   const newHelpSupport = await HelpSupportModel.create({
@@ -34,12 +33,12 @@ const getHelpSupports = asyncHandler(async (req, res) => {
     );
 });
 
-const getHelpSupportById = asyncHandler(async (req, res, next) => {
+const getHelpSupportById = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const helpSupport = await HelpSupportModel.findById(id);
 
   if (!helpSupport) {
-    return next(new ApiError(404, `Help support not found with id: ${id}`));
+    throw new ApiError(404, `Help support not found with id: ${id}`);
   }
 
   return res
@@ -49,13 +48,13 @@ const getHelpSupportById = asyncHandler(async (req, res, next) => {
     );
 });
 
-const updateHelpSupport = asyncHandler(async (req, res, next) => {
+const updateHelpSupport = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { title, category, content } = req.body;
   const helpSupport = await HelpSupportModel.findById(id);
 
   if (!helpSupport) {
-    return next(new ApiError(404, `Help support not found with id: ${id}`));
+    throw new ApiError(404, `Help support not found with id: ${id}`);
   }
 
   helpSupport.title = title || helpSupport.title;
@@ -71,12 +70,12 @@ const updateHelpSupport = asyncHandler(async (req, res, next) => {
     );
 });
 
-const deleteHelpSupport = asyncHandler(async (req, res, next) => {
+const deleteHelpSupport = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const helpSupport = await HelpSupportModel.findById(id);
 
   if (!helpSupport) {
-    return next(new ApiError(404, `Help support not found with id: ${id}`));
+    throw new ApiError(404, `Help support not found with id: ${id}`);
   }
 
   await helpSupport.remove();

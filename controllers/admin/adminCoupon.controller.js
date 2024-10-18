@@ -1,19 +1,20 @@
+// controllers/adminCouponController.js
 const CouponModel = require("../../models/admin/adminCoupon.model");
 const ApiError = require("../../utils/ApiError");
 const ApiResponse = require("../../utils/ApiResponse");
 const asyncHandler = require("../../utils/asyncHandler");
 
-const createCoupon = asyncHandler(async (req, res, next) => {
+const createCoupon = asyncHandler(async (req, res) => {
   const { code, discountType, discountValue, expiryDate, usageLimit } =
     req.body;
 
   if (!code || !discountType || !discountValue || !expiryDate) {
-    return next(new ApiError(400, "All fields are required."));
+    throw new ApiError(400, "All fields are required.");
   }
 
   const existingCoupon = await CouponModel.findOne({ code });
   if (existingCoupon) {
-    return next(new ApiError(400, "Coupon code already exists."));
+    throw new ApiError(400, "Coupon code already exists.");
   }
 
   const coupon = await CouponModel.create({
@@ -36,12 +37,12 @@ const getCoupons = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, coupons, "Coupons retrieved successfully"));
 });
 
-const getCouponById = asyncHandler(async (req, res, next) => {
+const getCouponById = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const coupon = await CouponModel.findById(id);
 
   if (!coupon) {
-    return next(new ApiError(404, "Coupon not found"));
+    throw new ApiError(404, "Coupon not found");
   }
 
   return res
@@ -49,7 +50,7 @@ const getCouponById = asyncHandler(async (req, res, next) => {
     .json(new ApiResponse(200, coupon, "Coupon retrieved successfully"));
 });
 
-const updateCoupon = asyncHandler(async (req, res, next) => {
+const updateCoupon = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const {
     code,
@@ -62,7 +63,7 @@ const updateCoupon = asyncHandler(async (req, res, next) => {
   const coupon = await CouponModel.findById(id);
 
   if (!coupon) {
-    return next(new ApiError(404, "Coupon not found"));
+    throw new ApiError(404, "Coupon not found");
   }
 
   coupon.code = code || coupon.code;
@@ -79,12 +80,12 @@ const updateCoupon = asyncHandler(async (req, res, next) => {
     .json(new ApiResponse(200, coupon, "Coupon updated successfully"));
 });
 
-const deleteCoupon = asyncHandler(async (req, res, next) => {
+const deleteCoupon = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const coupon = await CouponModel.findById(id);
 
   if (!coupon) {
-    return next(new ApiError(404, "Coupon not found"));
+    throw new ApiError(404, "Coupon not found");
   }
 
   await coupon.remove();
@@ -94,24 +95,23 @@ const deleteCoupon = asyncHandler(async (req, res, next) => {
     .json(new ApiResponse(200, null, "Coupon deleted successfully"));
 });
 
-const validateCoupon = asyncHandler(async (req, res, next) => {
+const validateCoupon = asyncHandler(async (req, res) => {
   const { code } = req.body;
 
   const coupon = await CouponModel.findOne({ code });
 
   if (!coupon) {
-    return next(new ApiError(404, "Invalid coupon code"));
+    throw new ApiError(404, "Invalid coupon code");
   }
 
   if (!coupon.isActive || coupon.expiryDate < new Date()) {
-    return next(new ApiError(400, "Coupon is expired or inactive"));
+    throw new ApiError(400, "Coupon is expired or inactive");
   }
 
   if (coupon.usageLimit !== null && coupon.usedCount >= coupon.usageLimit) {
-    return next(new ApiError(400, "Coupon usage limit exceeded"));
+    throw new ApiError(400, "Coupon usage limit exceeded");
   }
 
-  // Apply the coupon
   coupon.usedCount += 1;
   await coupon.save();
 
