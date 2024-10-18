@@ -47,6 +47,10 @@ const customerSchema = new Schema(
       //     message: 'Invalid SMS OTP format. Must be a 6-digit number.'
       // }
     },
+    age: {
+      type: Number,
+      required: [true, "Age is required."],
+    },
     customerStatus: {
       type: String,
       enum: {

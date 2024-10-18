@@ -9,14 +9,12 @@ const couponSchema = new Schema(
       unique: true,
       trim: true,
     },
-    discountType: {
+    discountTl: {
       type: String,
-      enum: ["fixed", "percentage"], // e.g., fixed discount or percentage
       required: true,
     },
-    discountValue: {
+    discountPercentage: {
       type: Number,
-      required: true,
     },
     expiryDate: {
       type: Date,
@@ -28,11 +26,7 @@ const couponSchema = new Schema(
     },
     usageLimit: {
       type: Number,
-      default: null, // null means no limit
-    },
-    usedCount: {
-      type: Number,
-      default: 0, // How many times the coupon has been used
+      default: null,
     },
   },
   {

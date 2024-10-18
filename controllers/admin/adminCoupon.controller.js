@@ -1,15 +1,24 @@
-// controllers/adminCouponController.js
 const CouponModel = require("../../models/admin/adminCoupon.model");
 const ApiError = require("../../utils/ApiError");
 const ApiResponse = require("../../utils/ApiResponse");
 const asyncHandler = require("../../utils/asyncHandler");
 
 const createCoupon = asyncHandler(async (req, res) => {
-  const { code, discountType, discountValue, expiryDate, usageLimit } =
+  const { code, discountTl, discountPercentage, expiryDate, usageLimit } =
     req.body;
 
-  if (!code || !discountType || !discountValue || !expiryDate) {
-    throw new ApiError(400, "All fields are required.");
+  if (!code || !expiryDate) {
+    throw new ApiError(400, "Coupon code and expiry date are required.");
+  }
+
+  if (
+    (discountTl && discountPercentage) ||
+    (!discountTl && !discountPercentage)
+  ) {
+    throw new ApiError(
+      400,
+      "You must provide either a discount in TL or a discount percentage, but not both."
+    );
   }
 
   const existingCoupon = await CouponModel.findOne({ code });
@@ -19,8 +28,8 @@ const createCoupon = asyncHandler(async (req, res) => {
 
   const coupon = await CouponModel.create({
     code,
-    discountType,
-    discountValue,
+    discountTl,
+    discountPercentage,
     expiryDate,
     usageLimit,
   });
@@ -54,8 +63,8 @@ const updateCoupon = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const {
     code,
-    discountType,
-    discountValue,
+    discountTl,
+    discountPercentage,
     expiryDate,
     usageLimit,
     isActive,
@@ -66,9 +75,22 @@ const updateCoupon = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Coupon not found");
   }
 
+  if (
+    (discountTl && discountPercentage) ||
+    (!discountTl && !discountPercentage)
+  ) {
+    throw new ApiError(
+      400,
+      "You must provide either a discount in TL or a discount percentage, but not both."
+    );
+  }
+
   coupon.code = code || coupon.code;
-  coupon.discountType = discountType || coupon.discountType;
-  coupon.discountValue = discountValue || coupon.discountValue;
+  coupon.discountTl = discountTl !== undefined ? discountTl : coupon.discountTl;
+  coupon.discountPercentage =
+    discountPercentage !== undefined
+      ? discountPercentage
+      : coupon.discountPercentage;
   coupon.expiryDate = expiryDate || coupon.expiryDate;
   coupon.usageLimit = usageLimit !== undefined ? usageLimit : coupon.usageLimit;
   coupon.isActive = isActive !== undefined ? isActive : coupon.isActive;

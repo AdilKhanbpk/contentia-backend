@@ -33,6 +33,7 @@ const adminHelpSupportRoute = require("./routes/admin/adminHelpSupport.routes");
 const adminHowItWorksRoute = require("./routes/admin/adminHowItWorks.routes");
 const adminOrderRoute = require("./routes/admin/adminOrder.routes");
 const adminPricingRoute = require("./routes/admin/adminPricing.routes");
+const adminAdditionalServiceRoute = require("./routes/admin/adminAdditionalService.routes");
 
 const cors = require("cors");
 const app = express();
@@ -101,6 +102,7 @@ app.use("/api/v1/admin/coupon", adminCouponRoute);
 app.use("/api/v1/admin/helpSupport", adminHelpSupportRoute);
 app.use("/api/v1/admin/order", adminOrderRoute);
 app.use("/api/v1/admin/pricing", adminPricingRoute);
+app.use("/api/v1/admin/additionalServices", adminAdditionalServiceRoute);
 
 app.all("*", (req, res, next) => {
   const message = `Can't find ${req.originalUrl} on this server!`;
