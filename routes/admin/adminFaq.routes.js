@@ -5,7 +5,7 @@ const FaqController = require("../../controllers/admin/adminFaq.controller");
 const router = express.Router();
 
 router.get("/", protect, FaqController.getFaqs);
-router.get("/:id", protect, FaqController.getFaq);
+router.get("/:id", protect, FaqController.getFaqs);
 router.post("/", protect, FaqController.createFaq);
 router.put("/:id", protect, FaqController.updateFaq);
 router.delete("/:id", protect, FaqController.deleteFaq);

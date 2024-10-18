@@ -5,7 +5,7 @@ const asyncHandler = require("../../utils/asyncHandler");
 
 const createOrder = asyncHandler(async (req, res) => {});
 
-const getOrder = asyncHandler(async (req, res) => {});
+const getOrders = asyncHandler(async (req, res) => {});
 
 const getOrderById = asyncHandler(async (req, res) => {});
 
@@ -15,7 +15,7 @@ const deleteOrder = asyncHandler(async (req, res) => {});
 
 module.exports = {
   createOrder,
-  getOrder,
+  getOrders,
   getOrderById,
   updateOrder,
   deleteOrder,

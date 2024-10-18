@@ -20,8 +20,19 @@ const preferencesRoute = require("./routes/preferences.routes");
 const ordersProfileRoute = require("./routes/ordersProfile.routes");
 const cashoutToBankRoute = require("./routes/cashoutToBank.routes");
 const becomeCreatorRoute = require("./routes/becomeCreator.routes");
+
+// ADMIN ROUTES
 const adminUserRoutes = require("./routes/admin/adminUser.routes");
 const adminCustomPackage = require("./routes/admin/adminCustomPackage.routes");
+const adminBannerRoute = require("./routes/admin/adminBanner.routes");
+const adminAboutRoute = require("./routes/admin/adminAbout.routes");
+const adminBlogRoute = require("./routes/admin/adminBlog.routes");
+const adminCouponRoute = require("./routes/admin/adminCoupon.routes");
+const adminFaqRoute = require("./routes/admin/adminFaq.routes");
+const adminHelpSupportRoute = require("./routes/admin/adminHelpSupport.routes");
+const adminHowItWorksRoute = require("./routes/admin/adminHowItWorks.routes");
+const adminOrderRoute = require("./routes/admin/adminOrder.routes");
+const adminPricingRoute = require("./routes/admin/adminPricing.routes");
 
 const cors = require("cors");
 const app = express();
@@ -77,8 +88,19 @@ app.use("/api/v1/profile", ordersProfileRoute);
 app.use("/api/v1/sipay", sipayPaymentRoute);
 app.use("/api/v1/cashout", cashoutToBankRoute);
 app.use("/api/v1/become-creator", becomeCreatorRoute);
+
+// ADMIN ROUTES
 app.use("/api/v1/admin/users", adminUserRoutes);
 app.use("/api/v1/admin/packages", adminCustomPackage);
+app.use("/api/v1/admin/faq", adminFaqRoute);
+app.use("/api/v1/admin/banner", adminBannerRoute);
+app.use("/api/v1/admin/howItWorks", adminHowItWorksRoute);
+app.use("/api/v1/admin/about", adminAboutRoute);
+app.use("/api/v1/admin/blog", adminBlogRoute);
+app.use("/api/v1/admin/coupon", adminCouponRoute);
+app.use("/api/v1/admin/helpSupport", adminHelpSupportRoute);
+app.use("/api/v1/admin/order", adminOrderRoute);
+app.use("/api/v1/admin/pricing", adminPricingRoute);
 
 app.all("*", (req, res, next) => {
   const message = `Can't find ${req.originalUrl} on this server!`;

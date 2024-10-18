@@ -1,4 +1,4 @@
-const AboutModel = require("../../models/about.model");
+const AboutModel = require("../../models/admin/adminAbout.model");
 const ApiError = require("../../utils/ApiError");
 const ApiResponse = require("../../utils/ApiResponse");
 const asyncHandler = require("../../utils/asyncHandler");

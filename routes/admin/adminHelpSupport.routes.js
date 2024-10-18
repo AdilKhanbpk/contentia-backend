@@ -5,7 +5,7 @@ const HelpSupportController = require("../../controllers/admin/adminHelpSupport.
 const router = express.Router();
 
 router.get("/", protect, HelpSupportController.getHelpSupports);
-router.get("/:id", protect, HelpSupportController.getHelpSupport);
+router.get("/:id", protect, HelpSupportController.getHelpSupportById);
 router.post("/", protect, HelpSupportController.createHelpSupport);
 router.put("/:id", protect, HelpSupportController.updateHelpSupport);
 router.delete("/:id", protect, HelpSupportController.deleteHelpSupport);

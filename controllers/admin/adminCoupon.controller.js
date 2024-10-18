@@ -1,4 +1,4 @@
-const CouponModel = require("../../models/coupon.model");
+const CouponModel = require("../../models/admin/adminCoupon.model");
 const ApiError = require("../../utils/ApiError");
 const ApiResponse = require("../../utils/ApiResponse");
 const asyncHandler = require("../../utils/asyncHandler");
