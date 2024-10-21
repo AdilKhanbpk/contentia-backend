@@ -1,43 +1,57 @@
-const mongoose = require('mongoose');
-const dotenv = require('dotenv');
-
-// Handle uncaught exceptions
-process.on('uncaughtException', err => {
-    console.log('UNCAUGHT EXCEPTION! 💥 Shutting down...');
-    console.error(err.name, err.message);
-    process.exit(1);
-});
+import mongoose from "mongoose";
+import dotenv from "dotenv";
 
 // Load environment variables from config.env file
-dotenv.config({ path: './config.env' });
+dotenv.config({ path: "./.env" });
 
-const app = require('./app');
-
-// Connect to the database
-const DB = process.env.DATABASE.replace('<password>', process.env.DATABASE_PASSWORD);
-
-mongoose
-    .connect(DB, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true, // Added for better compatibility with MongoDB
-    })
-    .then(() => console.log('DB connection successful!'))
-    .catch(err => {
-        console.error('DB connection error:', err);
-        process.exit(1); // Exit if connection fails
-    });
-
-// Start the server
-const PORT = process.env.PORT || 3000;
-const server = app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}/`);
+import app from "./app.js";
+process.on("uncaughtException", (err) => {
+  console.error("UNCAUGHT EXCEPTION! 💥 Shutting down...");
+  console.error(err.name, err.message);
+  process.exit(1);
 });
 
-// Handle unhandled promise rejections
-process.on('unhandledRejection', err => {
-    console.log('UNHANDLED REJECTION! 💥 Shutting down...');
-    console.error(err.name, err.message);
-    server.close(() => {
+const connectDB = async () => {
+  try {
+    const DB = process.env.DATABASE.replace(
+      "<password>",
+      process.env.DATABASE_PASSWORD
+    );
+    const connection = await mongoose.connect(process.env.DATABASE_LOCAL);
+    console.log(
+      `Database connection successful with ==> '${connection.connection.name}'`
+    );
+  } catch (err) {
+    console.error("DB connection error:", err);
+    process.exit(1);
+  }
+};
+
+const startServer = async () => {
+  try {
+    const PORT = process.env.PORT || 3000;
+    const server = app.listen(PORT, () => {
+      console.log(`Server running on http://localhost:${PORT}/`);
+    });
+
+    // Handle unhandled promise rejections
+    process.on("unhandledRejection", (err) => {
+      console.error("UNHANDLED REJECTION! 💥 Shutting down...");
+      console.error(err.name, err.message);
+      server.close(() => {
         process.exit(1);
+      });
     });
-});
+  } catch (err) {
+    console.error("Error starting the server:", err);
+    process.exit(1);
+  }
+};
+
+// Execute database connection and server start
+const initializeApp = async () => {
+  await connectDB();
+  await startServer();
+};
+
+initializeApp();

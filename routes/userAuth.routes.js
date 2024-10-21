@@ -1,28 +1,10 @@
-const express = require('express');
-const userController = require('../controllers/user.controller');
-const authController = require('../controllers/auth.controller');
+import express from "express";
+import { login, logout, signup } from "../controllers/auth.controller.js";
 
 const router = express.Router();
 
-// Route for signup
-router.get('/signup', (req, res) => {
-  res.status(200).json({
-    message: 'Signup endpoint',
-    title: 'Sign Up',
-  });
-});
+router.post("/signup", signup);
+router.post("/login", login);
+router.get("/logout", logout);
 
-// Route for login
-router.get('/login', (req, res) => {
-  res.status(200).json({
-    message: 'Login endpoint',
-    title: 'Log into your account',
-  });
-});
-
-// Route for handling signup form submission
-router.post('/signup', authController.signup);
-router.post('/login', authController.login);
-router.get('/logout', authController.logout);
-
-module.exports = router;
+export default router;

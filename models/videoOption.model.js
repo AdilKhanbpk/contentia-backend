@@ -1,5 +1,4 @@
-// models/VideoOption.js
-const mongoose = require('mongoose');
+import mongoose from "mongoose";
 
 const videoOptionSchema = new mongoose.Schema({
   duration: {
@@ -32,5 +31,5 @@ const videoOptionSchema = new mongoose.Schema({
   },
 });
 
-const VideoOption = mongoose.model('VideoOption', videoOptionSchema);
-module.exports = VideoOption;
+const VideoOption = mongoose.model("VideoOption", videoOptionSchema);
+export default VideoOption;

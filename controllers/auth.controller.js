@@ -1,111 +1,97 @@
-const crypto = require('crypto');
-const { promisify } = require('util');
-const jwt = require('jsonwebtoken');
-const User = require('../models/user.model');
-const catchAsync = require('../utils/catchAsync');
-const AppError = require('../utils/appError');
-const bcrypt = require('bcryptjs');
+import User from "../models/user.model.js";
+import bcrypt from "bcryptjs";
+import ApiError from "../utils/ApiError.js";
+import ApiResponse from "../utils/ApiResponse.js";
+import asyncHandler from "../utils/asyncHandler.js";
 
-const signToken = id => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN
-  });
+const cookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "strict", // Prevent CSRF attacks
 };
 
-const createSendToken = (user, statusCode, res) => {
-  const token = signToken(user._id);
-  const cookieOptions = {
-    expires: new Date(
-      Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
-    ),
-    httpOnly: true
-  };
-  if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
+const generateTokens = async (userId) => {
+  const user = await User.findById(userId);
+  if (!user) throw new ApiError(404, "User not found");
 
-  res.cookie('jwt', token, cookieOptions);
+  const accessToken = user.AccessToken();
+  await user.save({ validateBeforeSave: false });
 
-  // Remove password from output
-  user.password = undefined;
-
-  res.status(statusCode).json({
-    status: 'success',
-    token, // Include the JWT token in the response
-    data: {
-      user // Send user data (except the password)
-    }
-  });
+  return { accessToken };
 };
 
-exports.signup = catchAsync(async (req, res, next) => {
-  // Check if email already exists
-  const existingUser = await User.findOne({ email: req.body.email });
-
-  if (existingUser) {
-    return res.status(400).json({
-      status: 'error',
-      message: 'Email address is already in use.'
-    });
-  }
-
-  // Hash the password before saving
-  const hashedPassword = await bcrypt.hash(req.body.password, 12);
-
-  // Create new user
-  const newUser = await User.create({
-    name: req.body.name,
-    email: req.body.email,
-    password: hashedPassword,
-    passwordConfirm: hashedPassword
-  });
-
-  // Send JWT token
-  createSendToken(newUser, 201, res);
-});
-
-exports.login = catchAsync(async (req, res, next) => {
+export const signup = asyncHandler(async (req, res, next) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-    return next(new AppError('Please provide email and password!', 400));
+    throw new ApiError(400, "Please provide email and password");
   }
 
-  const user = await User.findOne({ email }).select('+password');
-  if (!user || !(await user.correctPassword(password, user.password))) {
-    return next(new AppError('Incorrect email or password', 401));
+  const existingUser = await User.findOne({ email });
+
+  if (existingUser) {
+    throw new ApiError(400, "Email address is already in use.");
   }
 
-  createSendToken(user, 200, res);
-});
-
-exports.logout = (req, res) => {
-  res.cookie('jwt', 'loggedout', {
-    expires: new Date(Date.now() + 10 * 1000),
-    httpOnly: true
+  const newUser = await User.create({
+    email,
+    password,
   });
-  res.status(200).json({ status: 'success' });
-};
 
-exports.protect = catchAsync(async (req, res, next) => {
-  let token;
-  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-    token = req.headers.authorization.split(' ')[1];
-  } else if (req.cookies.jwt) {
-    token = req.cookies.jwt;
-  }
+  const user = await User.findById(newUser._id).select("-password");
 
-  if (!token) {
-    return next(new AppError('You are not logged in! Please log in to get access.', 401));
-  }
+  const { accessToken } = await generateTokens(newUser._id);
 
-  const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
-
-  const currentUser = await User.findById(decoded.id);
-  if (!currentUser) {
-    return next(new AppError('The user belonging to this token does no longer exist.', 401));
-  }
-
-  // Removed the check for changedPasswordAfter
-  req.user = currentUser;
-  res.locals.user = currentUser;
-  next();
+  return res
+    .status(200)
+    .cookie("accessToken", accessToken, cookieOptions)
+    .json(
+      new ApiResponse(
+        200,
+        { user, accessToken },
+        "User registered successfully"
+      )
+    );
 });
+
+export const login = asyncHandler(async (req, res, next) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    throw new ApiError(400, "Please provide email and password");
+  }
+
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    throw new ApiError(400, "User not found");
+  }
+
+  const isPasswordCorrect = await user.ComparePassword(password);
+
+  if (!isPasswordCorrect) {
+    throw new ApiError(401, "Invalid credentials");
+  }
+
+  const { accessToken } = await generateTokens(user._id);
+
+  const userWithoutPassword = await User.findById(user._id).select("-password");
+
+  return res
+    .status(200)
+    .cookie("accessToken", accessToken, cookieOptions)
+    .json(
+      new ApiResponse(
+        200,
+        { userWithoutPassword, accessToken },
+        "User logged in successfully"
+      )
+    );
+});
+
+export const logout = (req, res) => {
+  return res
+    .status(200)
+    .clearCookie("accessToken", cookieOptions)
+    .json(new ApiResponse(200, null, "User logged out successfully"));
+};
