@@ -7,6 +7,7 @@ import {
   updateCoupon,
   validateCoupon,
 } from "../../controllers/admin/adminCoupon.controller.js";
+import { isAuthenticated } from "../../middlewares/authentication.middleware.js";
 
 const router = express.Router();
 

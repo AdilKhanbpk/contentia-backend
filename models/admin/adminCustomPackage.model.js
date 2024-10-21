@@ -7,6 +7,14 @@ const packageSchema = new mongoose.Schema({
     enum: ["Active", "Completed", "Refunded"],
     required: true,
   },
+  packageCreator: {
+    type: mongoose.Types.ObjectId,
+    ref: "user",
+  },
+  packageCustomer: {
+    type: mongoose.Types.ObjectId,
+    ref: "customer",
+  },
   packageType: {
     type: String,
     required: true,

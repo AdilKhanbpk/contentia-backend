@@ -1,5 +1,5 @@
 import express from "express";
-import { protect } from "../../controllers/auth.controller.js";
+import { isAuthenticated } from "../../middlewares/authentication.middleware.js";
 import {
   createFaq,
   deleteFaq,
@@ -9,10 +9,10 @@ import {
 
 const router = express.Router();
 
-router.get("/", protect, getFaqs);
-router.get("/:id", protect, getFaqs); // Consider updating to getFaqById
-router.post("/", protect, createFaq);
-router.put("/:id", protect, updateFaq);
-router.delete("/:id", protect, deleteFaq);
+router.get("/", isAuthenticated, getFaqs);
+router.get("/:id", isAuthenticated, getFaqs); // Consider updating to getFaqById
+router.post("/", isAuthenticated, createFaq);
+router.put("/:id", isAuthenticated, updateFaq);
+router.delete("/:id", isAuthenticated, deleteFaq);
 
 export default router;

@@ -10,9 +10,6 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import { fileURLToPath } from "url";
 
-import AppError from "./utils/appError.js";
-
-import globalErrorHandler from "./controllers/error.controller.js";
 import userAuthRoutes from "./routes/userAuth.routes.js";
 import videoOptionRoutes from "./routes/videoOption.routes.js";
 import ugcBriefRoute from "./routes/ugcBrief.routes.js";
@@ -33,6 +30,7 @@ import adminHowItWorksRoute from "./routes/admin/adminHowItWorks.routes.js";
 import adminOrderRoute from "./routes/admin/adminOrder.routes.js";
 import adminPricingRoute from "./routes/admin/adminPricing.routes.js";
 import adminAdditionalServiceRoute from "./routes/admin/adminAdditionalService.routes.js";
+import ApiError from "./utils/ApiError.js";
 
 const app = express();
 
@@ -111,11 +109,9 @@ app.use("/api/v1/admin/order", adminOrderRoute);
 app.use("/api/v1/admin/pricing", adminPricingRoute);
 app.use("/api/v1/admin/additionalServices", adminAdditionalServiceRoute);
 
-app.all("*", (req, res, next) => {
+app.all("*", (req, res) => {
   const message = `Can't find ${req.originalUrl} on this server!`;
-  next(new AppError(message, 404));
+  throw new ApiError(404, message);
 });
-
-app.use(globalErrorHandler);
 
 export default app;

@@ -1,5 +1,5 @@
 import express from "express";
-import { protect } from "../../controllers/auth.controller.js";
+import { isAuthenticated } from "../../middlewares/authentication.middleware.js";
 import {
   createCustomPackage,
   deleteCustomPackage,
@@ -11,7 +11,7 @@ import {
 const router = express.Router();
 
 // Protect all routes
-router.use(protect);
+router.use(isAuthenticated);
 
 router.post("/custom-packages", createCustomPackage);
 router.get("/custom-packages", getAllCustomPackages);

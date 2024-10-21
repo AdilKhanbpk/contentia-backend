@@ -6,6 +6,7 @@ import {
   updateAdditionalService,
   deleteAdditionalService,
 } from "../../controllers/admin/adminAdditionalService.controller.js";
+import { isAuthenticated } from "../../middlewares/authentication.middleware.js";
 
 const router = express.Router();
 

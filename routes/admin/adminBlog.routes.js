@@ -1,5 +1,5 @@
 import express from "express";
-import { protect } from "../../controllers/auth.controller.js";
+import { isAuthenticated } from "../../middlewares/authentication.middleware.js";
 import {
   createBlog,
   deleteBlog,
@@ -10,10 +10,10 @@ import {
 
 const router = express.Router();
 
-router.get("/", protect, getBlogs);
-router.get("/:id", protect, getBlogById);
-router.post("/", protect, createBlog);
-router.put("/:id", protect, updateBlog);
-router.delete("/:id", protect, deleteBlog);
+router.get("/", isAuthenticated, getBlogs);
+router.get("/:id", isAuthenticated, getBlogById);
+router.post("/", isAuthenticated, createBlog);
+router.put("/:id", isAuthenticated, updateBlog);
+router.delete("/:id", isAuthenticated, deleteBlog);
 
 export default router;

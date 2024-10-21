@@ -8,6 +8,7 @@ import {
   getFormById,
   updateForm,
 } from "../controllers/ugcBrief.controller.js"; // Adjust the path as necessary
+import { isAuthenticated } from "../middlewares/authentication.middleware.js";
 
 const router = express.Router();
 

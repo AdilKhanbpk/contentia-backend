@@ -1,9 +1,8 @@
-import catchAsync from "../utils/catchAsync.js";
-import AppError from "../utils/appError.js";
+import asyncHandler from "../utils/asyncHandler.js";
 import CreatorForm from "../models/becomeCreator.model.js";
 
 // Create or update OrdersProfile
-export const addBecomeCreator = catchAsync(async (req, res) => {
+export const addBecomeCreator = asyncHandler(async (req, res) => {
   // Validate incoming data (this can be expanded with more validation)
   const {
     profile_information,
@@ -24,11 +23,9 @@ export const addBecomeCreator = catchAsync(async (req, res) => {
 
   // Save the document to the database
   const savedCreatorForm = await creatorForm.save();
-  res
-    .status(201)
-    .json({
-      status: 201,
-      message: "Form submitted successfully",
-      data: savedCreatorForm,
-    });
+  res.status(201).json({
+    status: 201,
+    message: "Form submitted successfully",
+    data: savedCreatorForm,
+  });
 });

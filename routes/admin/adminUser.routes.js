@@ -11,12 +11,12 @@ import {
   updateCreator,
   updateCustomer,
 } from "../../controllers/admin/adminUser.controller.js";
-import { protect } from "../../controllers/auth.controller.js";
+import { isAuthenticated } from "../../middlewares/authentication.middleware.js";
 
 const router = express.Router();
 
 // Protect all routes
-router.use(protect);
+router.use(isAuthenticated);
 
 // Customer routes
 router.post("/customers", createCustomer);

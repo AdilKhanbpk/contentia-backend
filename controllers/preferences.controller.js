@@ -1,7 +1,8 @@
 import Preferences from "../models/preferences.model.js";
+import asyncHandler from "../utils/asyncHandler.js";
 
 // Create new content
-export const createContent = async (req, res) => {
+export const createContent = asyncHandler(async (req, res) => {
   try {
     // Validate request body
     const { contentType, customCheckbox, gender, address } = req.body;
@@ -31,4 +32,4 @@ export const createContent = async (req, res) => {
       .status(400)
       .json({ message: "Error creating content", error: error.message });
   }
-};
+});

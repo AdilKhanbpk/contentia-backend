@@ -1,7 +1,8 @@
 import Form from "../models/ugcBrief.model.js"; // Adjust the path as necessary
+import asyncHandler from "../utils/asyncHandler.js";
 
 // Create a new form
-export const createForm = async (req, res) => {
+export const createForm = asyncHandler(async (req, res) => {
   try {
     const {
       brand,
@@ -39,10 +40,10 @@ export const createForm = async (req, res) => {
       .status(500)
       .json({ message: "Error creating form", error: error.message });
   }
-};
+});
 
 // Get all forms
-export const getAllForms = async (req, res) => {
+export const getAllForms = asyncHandler(async (req, res) => {
   try {
     const forms = await Form.find();
     res
@@ -54,10 +55,10 @@ export const getAllForms = async (req, res) => {
       .status(500)
       .json({ message: "Error fetching forms", error: error.message });
   }
-};
+});
 
 // Get a specific form by ID
-export const getFormById = async (req, res) => {
+export const getFormById = asyncHandler(async (req, res) => {
   try {
     const { id } = req.params;
     const form = await Form.findById(id);
@@ -73,10 +74,10 @@ export const getFormById = async (req, res) => {
       .status(500)
       .json({ message: "Error fetching form", error: error.message });
   }
-};
+});
 
 // Update an existing form
-export const updateForm = async (req, res) => {
+export const updateForm = asyncHandler(async (req, res) => {
   try {
     const { id } = req.params;
     const {
@@ -122,10 +123,10 @@ export const updateForm = async (req, res) => {
       .status(500)
       .json({ message: "Error updating form", error: error.message });
   }
-};
+});
 
 // Delete a form by ID
-export const deleteForm = async (req, res) => {
+export const deleteForm = asyncHandler(async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -144,4 +145,4 @@ export const deleteForm = async (req, res) => {
       .status(500)
       .json({ message: "Error deleting form", error: error.message });
   }
-};
+});

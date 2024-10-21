@@ -1,9 +1,9 @@
-import catchAsync from "../utils/catchAsync.js";
+import asyncHandler from "../utils/asyncHandler.js";
 import AppError from "../utils/appError.js";
 import APIFeatures from "../utils/apiFeatures.js";
 
 const deleteOne = (Model) =>
-  catchAsync(async (req, res, next) => {
+  asyncHandler(async (req, res, next) => {
     const doc = await Model.findByIdAndDelete(req.params.id);
 
     if (!doc) {
@@ -17,7 +17,7 @@ const deleteOne = (Model) =>
   });
 
 const updateOne = (Model) =>
-  catchAsync(async (req, res, next) => {
+  asyncHandler(async (req, res, next) => {
     const doc = await Model.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
       runValidators: true,
@@ -36,7 +36,7 @@ const updateOne = (Model) =>
   });
 
 const createOne = (Model) =>
-  catchAsync(async (req, res, next) => {
+  asyncHandler(async (req, res, next) => {
     const doc = await Model.create(req.body);
 
     res.status(201).json({
@@ -48,7 +48,7 @@ const createOne = (Model) =>
   });
 
 const getOne = (Model, popOptions) =>
-  catchAsync(async (req, res, next) => {
+  asyncHandler(async (req, res, next) => {
     let query = Model.findById(req.params.id);
     if (popOptions) query = query.populate(popOptions);
     const doc = await query;
@@ -66,7 +66,7 @@ const getOne = (Model, popOptions) =>
   });
 
 const getAll = (Model) =>
-  catchAsync(async (req, res, next) => {
+  asyncHandler(async (req, res, next) => {
     // To allow for nested GET reviews on tour (hack)
     let filter = {};
     if (req.params.tourId) filter = { tour: req.params.tourId };

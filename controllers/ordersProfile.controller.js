@@ -1,11 +1,10 @@
 import User from "../models/user.model.js";
 import OrdersProfile from "../models/ordersProfile.model.js";
-import catchAsync from "../utils/catchAsync.js";
-import AppError from "../utils/appError.js";
+import asyncHandler from "../utils/asyncHandler.js";
 import bcrypt from "bcryptjs";
 
 // Create or update OrdersProfile
-export const updateOrdersProfile = catchAsync(async (req, res) => {
+export const updateOrdersProfile = asyncHandler(async (req, res) => {
   const { ordersProfileData } = req.body;
   console.log("ordersprofiledata from the backend: ", ordersProfileData);
 
@@ -61,7 +60,7 @@ export const updateOrdersProfile = catchAsync(async (req, res) => {
 });
 
 // Fetch the currently authenticated user along with OrdersProfile
-export const getUserWithProfile = catchAsync(async (req, res) => {
+export const getUserWithProfile = asyncHandler(async (req, res) => {
   const userId = req.user.id; // Use the ID from the authenticated user
 
   // Fetch user by ID and populate their ordersProfile

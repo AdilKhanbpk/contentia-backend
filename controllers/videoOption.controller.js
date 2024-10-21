@@ -1,7 +1,8 @@
 import VideoOption from "../models/videoOption.model.js";
+import asyncHandler from "../utils/asyncHandler.js";
 
 // Controller function to create a new video option
-export const createVideoOption = async (req, res) => {
+export const createVideoOption = asyncHandler(async (req, res) => {
   try {
     const {
       duration,
@@ -33,4 +34,4 @@ export const createVideoOption = async (req, res) => {
       .status(500)
       .json({ message: "Error creating video option", error });
   }
-};
+});

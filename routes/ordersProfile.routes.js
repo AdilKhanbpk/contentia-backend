@@ -3,11 +3,9 @@ import {
   getUserWithProfile,
   updateOrdersProfile,
 } from "../controllers/ordersProfile.controller.js";
-import { protect } from "../controllers/auth.controller.js";
+import { isAuthenticated } from "../middlewares/authentication.middleware.js";
 
 const router = express.Router();
-
-router.use(protect); // Protect all routes
 
 // Route to create or update OrdersProfile
 router.patch("/update", updateOrdersProfile);

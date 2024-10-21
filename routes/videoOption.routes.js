@@ -1,5 +1,6 @@
 import express from "express";
 import { createVideoOption } from "../controllers/videoOption.controller.js";
+import { isAuthenticated } from "../middlewares/authentication.middleware.js";
 
 const router = express.Router();
 

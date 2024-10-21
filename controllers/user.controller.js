@@ -1,7 +1,7 @@
 import multer from "multer";
 // import sharp from 'sharp'; // Uncomment if needed
 import User from "../models/user.model.js";
-import catchAsync from "../utils/catchAsync.js";
+import asyncHandler from "../utils/asyncHandler.js";
 import AppError from "../utils/appError.js";
 import {
   deleteOne,
@@ -36,7 +36,7 @@ const upload = multer({
 
 export const uploadUserPhoto = upload.single("photo");
 
-export const resizeUserPhoto = catchAsync(async (req, res, next) => {
+export const resizeUserPhoto = asyncHandler(async (req, res, next) => {
   if (!req.file) return next();
 
   req.file.filename = `user-${req.user.id}-${Date.now()}.jpeg`;
@@ -63,7 +63,7 @@ export const getMe = (req, res, next) => {
   next();
 };
 
-export const updateMe = catchAsync(async (req, res, next) => {
+export const updateMe = asyncHandler(async (req, res, next) => {
   // 1) Create error if user POSTs password data
   if (req.body.password || req.body.passwordConfirm) {
     return next(
@@ -92,7 +92,7 @@ export const updateMe = catchAsync(async (req, res, next) => {
   });
 });
 
-export const deleteMe = catchAsync(async (req, res, next) => {
+export const deleteMe = asyncHandler(async (req, res, next) => {
   await User.findByIdAndUpdate(req.user.id, { active: false });
 
   res.status(204).json({

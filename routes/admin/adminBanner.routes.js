@@ -6,14 +6,14 @@ import {
   getBanners,
   updateBanner,
 } from "../../controllers/admin/adminBanner.controller.js";
-import { protect } from "../../controllers/auth.controller.js";
+import { isAuthenticated } from "../../middlewares/authentication.middleware.js";
 
 const router = express.Router();
 
-router.get("/", protect, getBanners);
-router.post("/", protect, createBanner);
-router.put("/:id", protect, updateBanner);
-router.delete("/:id", protect, deleteBanner);
-router.get("/:id", protect, getBannerById);
+router.get("/", isAuthenticated, getBanners);
+router.post("/", isAuthenticated, createBanner);
+router.put("/:id", isAuthenticated, updateBanner);
+router.delete("/:id", isAuthenticated, deleteBanner);
+router.get("/:id", isAuthenticated, getBannerById);
 
 export default router;

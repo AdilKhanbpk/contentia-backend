@@ -1,5 +1,5 @@
 import express from "express";
-import { protect } from "../../controllers/auth.controller.js";
+import { isAuthenticated } from "../../middlewares/authentication.middleware.js";
 import {
   createHowItWorks,
   deleteHowItWorks,
@@ -10,10 +10,10 @@ import {
 
 const router = express.Router();
 
-router.get("/", protect, getHowItWorks);
-router.get("/:id", protect, getHowItWorksById);
-router.post("/", protect, createHowItWorks);
-router.put("/:id", protect, updateHowItWorks);
-router.delete("/:id", protect, deleteHowItWorks);
+router.get("/", isAuthenticated, getHowItWorks);
+router.get("/:id", isAuthenticated, getHowItWorksById);
+router.post("/", isAuthenticated, createHowItWorks);
+router.put("/:id", isAuthenticated, updateHowItWorks);
+router.delete("/:id", isAuthenticated, deleteHowItWorks);
 
 export default router;
