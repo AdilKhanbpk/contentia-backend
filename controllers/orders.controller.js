@@ -1,4 +1,3 @@
-import User from "../models/user.model.js";
 import Orders from "../models/orders.model.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import ApiResponse from "../utils/ApiResponse.js";
@@ -6,7 +5,6 @@ import ApiError from "../utils/ApiError.js";
 
 const createOrder = asyncHandler(async (req, res, next) => {
   const {
-    orderOwner,
     orderStatus,
     paymentStatus,
     contentsDelivered,
