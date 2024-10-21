@@ -33,14 +33,12 @@ export const signup = asyncHandler(async (req, res, next) => {
     throw new ApiError(400, "Email address is already in use.");
   }
 
-  const hashedPassword = await bcrypt.hash(password, 12);
-
   const newUser = await User.create({
     email,
-    password: hashedPassword,
+    password,
   });
 
-  const user = newUser.select("-password");
+  const user = await User.findById(newUser._id).select("-password");
 
   const { accessToken } = await generateTokens(newUser._id);
 
@@ -63,7 +61,7 @@ export const login = asyncHandler(async (req, res, next) => {
     throw new ApiError(400, "Please provide email and password");
   }
 
-  const user = await User.findOne({ email }).select("-password");
+  const user = await User.findOne({ email });
 
   if (!user) {
     throw new ApiError(400, "User not found");
@@ -77,11 +75,17 @@ export const login = asyncHandler(async (req, res, next) => {
 
   const { accessToken } = await generateTokens(user._id);
 
+  const userWithoutPassword = await User.findById(user._id).select("-password");
+
   return res
     .status(200)
     .cookie("accessToken", accessToken, cookieOptions)
     .json(
-      new ApiResponse(200, { user, accessToken }, "User logged in successfully")
+      new ApiResponse(
+        200,
+        { userWithoutPassword, accessToken },
+        "User logged in successfully"
+      )
     );
 });
 

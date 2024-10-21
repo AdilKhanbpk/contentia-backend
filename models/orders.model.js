@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const orderSchema = new mongoose.Schema(
+const ordersProfileSchema = new mongoose.Schema(
   {
     orderOwner: {
       type: mongoose.Types.ObjectId,
@@ -12,18 +12,17 @@ const orderSchema = new mongoose.Schema(
     },
     orderStatus: {
       type: String,
-      enum: ["Active", "Completed", "Cancelled", "Revision"],
+      enum: ["active", "completed", "cancelled", "revision"],
       required: true,
+      default: "active",
     },
     paymentStatus: {
       type: String,
-      enum: ["Paid", "Pending", "Refunded", "Cancelled"],
-      default: "Pending",
+      enum: ["paid", "pending", "refunded", "cancelled"],
+      default: "pending",
     },
     contentsDelivered: {
       type: Number,
-      required: true,
-      default: 0,
     },
     additionalServices: {
       platform: {
@@ -45,13 +44,9 @@ const orderSchema = new mongoose.Schema(
       },
       share: {
         type: Boolean,
-        required: true,
-        default: false,
       },
       coverPicture: {
         type: Boolean,
-        required: true,
-        default: false,
       },
       creatorType: {
         type: String,
@@ -61,52 +56,53 @@ const orderSchema = new mongoose.Schema(
       },
       showCreatorAddress: {
         type: Boolean,
-        required: function () {
-          return this.contentType === "Product";
-        },
-        default: false,
       },
       productShipping: {
         type: Boolean,
-        default: false,
       },
     },
     preferences: {
       creatorGender: {
         type: String,
-        required: true,
       },
       minCreatorAge: {
         type: Number,
-        required: true,
       },
       maxCreatorAge: {
         type: Number,
-        required: true,
       },
       interests: {
         type: [String],
       },
       contentType: {
         type: String,
-        enum: ["Product", "Service", "Location"],
-        required: true,
+      },
+      locationAddress: {
+        country: { type: String },
+        city: { type: String },
+        district: { type: String },
+        street: { type: String },
+        fullAddress: { type: String },
       },
     },
     briefContent: {
       brandName: {
         type: String,
+        required: true,
       },
       brief: {
         type: String,
-      },
-      scenario: {
-        type: String,
+        required: true,
       },
       productServiceName: {
         type: String,
+        required: true,
       },
       productServiceDesc: {
+        type: String,
+        required: true,
+      },
+      scenario: {
         type: String,
       },
       caseStudy: {
@@ -115,28 +111,23 @@ const orderSchema = new mongoose.Schema(
       uploadFiles: {
         type: String,
       },
+      uploadFileDate: {
+        type: String,
+      },
     },
     orderQuota: {
       type: Number,
-      required: true,
     },
     numberOfRequests: {
       type: Number,
-      required: true,
-      default: 0,
     },
     quotaLeft: {
       type: Number,
-      required: true,
-      default: function () {
-        return this.orderQuota - this.numberOfRequests;
-      },
     },
   },
   { timestamps: true }
 );
 
-const OrderModel =
-  mongoose.models.orderModel || mongoose.model("order", orderSchema);
+const OrdersProfile = mongoose.model("Order", ordersProfileSchema);
 
-export default OrderModel;
+export default OrdersProfile;

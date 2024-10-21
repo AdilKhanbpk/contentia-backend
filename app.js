@@ -14,7 +14,7 @@ import userAuthRoutes from "./routes/userAuth.routes.js";
 import videoOptionRoutes from "./routes/videoOption.routes.js";
 import ugcBriefRoute from "./routes/ugcBrief.routes.js";
 import preferencesRoute from "./routes/preferences.routes.js";
-import ordersProfileRoute from "./routes/ordersProfile.routes.js";
+import ordersRoute from "./routes/orders.routes.js";
 import becomeCreatorRoute from "./routes/becomeCreator.routes.js";
 
 // ADMIN ROUTES
@@ -92,7 +92,7 @@ app.use("/api/v1/users", userAuthRoutes);
 app.use("/api/v1/videos", videoOptionRoutes);
 app.use("/api/v1/ugc", ugcBriefRoute);
 app.use("/api/v1/preferences", preferencesRoute);
-app.use("/api/v1/profile", ordersProfileRoute);
+app.use("/api/v1/orders", ordersRoute);
 app.use("/api/v1/become-creator", becomeCreatorRoute);
 
 // ADMIN ROUTES

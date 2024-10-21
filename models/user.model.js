@@ -8,6 +8,10 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: "user",
     },
+    userType: {
+      type: String,
+      default: "customer",
+    },
     email: {
       type: String,
       required: true,
@@ -39,6 +43,15 @@ const userSchema = new mongoose.Schema(
   }
 );
 
+userSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) return next();
+  // if the password is modified then allow the hashed password otherwise do nothing
+
+  const hashedPassword = await bcrypt.hash(this.password, 10);
+  this.password = hashedPassword;
+  next();
+});
+
 userSchema.pre("save", function (next) {
   const adminEmail = process.env.ADMIN_EMAIL;
 
@@ -48,13 +61,6 @@ userSchema.pre("save", function (next) {
 
   next();
 });
-
-userSchema.methods.correctPassword = async function (
-  candidatePassword,
-  userPassword
-) {
-  return await bcrypt.compare(candidatePassword, userPassword);
-};
 
 userSchema.methods.AccessToken = function () {
   const accessToken = jwt.sign(
@@ -84,8 +90,7 @@ userSchema.methods.RefreshToken = function () {
 };
 
 userSchema.methods.ComparePassword = async function (password) {
-  const comparedPassword = await bcrypt.compare(password, this.password);
-  return comparedPassword;
+  return await bcrypt.compare(password, this.password);
 };
 
 const User = mongoose.model("User", userSchema);
