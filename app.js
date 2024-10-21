@@ -1,11 +1,5 @@
 import path from "path";
 import express from "express";
-import morgan from "morgan";
-import rateLimit from "express-rate-limit";
-import helmet from "helmet";
-import mongoSanitize from "express-mongo-sanitize";
-import xss from "xss-clean";
-import hpp from "hpp";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import { fileURLToPath } from "url";
@@ -48,45 +42,11 @@ app.use(cookieParser());
 // Get the current directory
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-// Use __dirname as needed
 app.use(express.static(path.join(__dirname, "")));
-app.use(helmet());
 
-if (process.env.NODE_ENV === "development") {
-  app.use(morgan("dev"));
-}
-
-const limiter = rateLimit({
-  max: 100,
-  windowMs: 60 * 60 * 1000,
-  message: "Too many requests from this IP, please try again in an hour!",
-});
-
-app.use("/api", limiter);
 app.use(express.json({ limit: "10kb" }));
 app.use(express.urlencoded({ extended: true, limit: "10kb" }));
 app.use(cookieParser());
-app.use(mongoSanitize());
-app.use(xss());
-
-app.use(
-  hpp({
-    whitelist: [
-      "duration",
-      "ratingsQuantity",
-      "ratingsAverage",
-      "maxGroupSize",
-      "difficulty",
-      "price",
-    ],
-  })
-);
-
-app.use((req, res, next) => {
-  req.requestTime = new Date().toISOString();
-  next();
-});
 
 app.use("/api/v1/users", userAuthRoutes);
 app.use("/api/v1/videos", videoOptionRoutes);
