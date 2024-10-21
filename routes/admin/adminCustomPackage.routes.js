@@ -1,22 +1,22 @@
-const express = require("express");
-const { protect } = require("../../controllers/auth.controller");
-const CustomPackageController = require("../../controllers/admin/adminCustomPackage.controller");
+import express from "express";
+import { protect } from "../../controllers/auth.controller.js";
+import {
+  createCustomPackage,
+  deleteCustomPackage,
+  getAllCustomPackages,
+  getCustomPackageById,
+  updateCustomPackage,
+} from "../../controllers/admin/adminCustomPackage.controller.js";
 
 const router = express.Router();
 
 // Protect all routes
 router.use(protect);
 
-router.post("/custom-packages", CustomPackageController.createCustomPackage);
-router.get("/custom-packages", CustomPackageController.getAllCustomPackages);
-router.get(
-  "/custom-packages/:id",
-  CustomPackageController.getCustomPackageById
-);
-router.put("/custom-packages/:id", CustomPackageController.updateCustomPackage);
-router.delete(
-  "/custom-packages/:id",
-  CustomPackageController.deleteCustomPackage
-);
+router.post("/custom-packages", createCustomPackage);
+router.get("/custom-packages", getAllCustomPackages);
+router.get("/custom-packages/:id", getCustomPackageById);
+router.put("/custom-packages/:id", updateCustomPackage);
+router.delete("/custom-packages/:id", deleteCustomPackage);
 
-module.exports = router;
+export default router;

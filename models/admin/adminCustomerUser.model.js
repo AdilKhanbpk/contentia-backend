@@ -1,12 +1,12 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 const Schema = mongoose.Schema;
 
 const customerSchema = new Schema(
   {
     role: {
       type: String,
-      enum: ["Admin", "User"], // Corrected enum declaration
-      default: "User",
+      enum: ["admin", "user"], // Corrected enum declaration
+      default: "user",
     },
     fullName: {
       type: String,
@@ -120,8 +120,18 @@ const customerSchema = new Schema(
   }
 );
 
+customerSchema.pre("save", function (next) {
+  const adminEmail = process.env.ADMIN_EMAIL;
+
+  if (this.email === adminEmail) {
+    this.role = "admin";
+  }
+
+  next();
+});
+
 const CustomerUserModel =
   mongoose.models.customerUserModel ||
-  mongoose.model("customerUserModel", customerSchema);
+  mongoose.model("customer", customerSchema);
 
-module.exports = CustomerUserModel;
+export default CustomerUserModel;

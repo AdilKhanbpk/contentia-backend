@@ -1,7 +1,7 @@
-const BannerModel = require("../../models/admin/adminBanner.model");
-const ApiError = require("../../utils/ApiError");
-const ApiResponse = require("../../utils/ApiResponse");
-const asyncHandler = require("../../utils/asyncHandler");
+import BannerModel from "../../models/admin/adminBanner.model.js";
+import ApiError from "../../utils/ApiError.js";
+import ApiResponse from "../../utils/ApiResponse.js";
+import asyncHandler from "../../utils/asyncHandler.js";
 
 const createBanner = asyncHandler(async (req, res) => {});
 
@@ -13,10 +13,4 @@ const updateBanner = asyncHandler(async (req, res) => {});
 
 const deleteBanner = asyncHandler(async (req, res) => {});
 
-module.exports = {
-  createBanner,
-  getBanners,
-  getBannerById,
-  updateBanner,
-  deleteBanner,
-};
+export { createBanner, getBanners, getBannerById, updateBanner, deleteBanner };

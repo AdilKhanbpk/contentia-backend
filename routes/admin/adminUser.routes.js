@@ -1,6 +1,17 @@
-const express = require("express");
-const adminUserController = require("../../controllers/admin/adminUser.controller");
-const { protect } = require("../../controllers/auth.controller");
+import express from "express";
+import {
+  createCreator,
+  createCustomer,
+  deleteCreator,
+  deleteCustomer,
+  getAllCreators,
+  getAllCustomers,
+  getSingleCreator,
+  getSingleCustomer,
+  updateCreator,
+  updateCustomer,
+} from "../../controllers/admin/adminUser.controller.js";
+import { protect } from "../../controllers/auth.controller.js";
 
 const router = express.Router();
 
@@ -8,17 +19,17 @@ const router = express.Router();
 router.use(protect);
 
 // Customer routes
-router.post("/customers", adminUserController.createCustomer);
-router.get("/customers", adminUserController.getAllCustomers);
-router.get("/customers/:id", adminUserController.getSingleCustomer);
-router.put("/customers/:id", adminUserController.updateCustomer);
-router.delete("/customers/:id", adminUserController.deleteCustomer);
+router.post("/customers", createCustomer);
+router.get("/customers", getAllCustomers);
+router.get("/customers/:id", getSingleCustomer);
+router.put("/customers/:id", updateCustomer);
+router.delete("/customers/:id", deleteCustomer);
 
 // Creator routes
-router.post("/creators", adminUserController.createCreator);
-router.get("/creators", adminUserController.getAllCreators);
-router.get("/creators/:id", adminUserController.getSingleCreator);
-router.put("/creators/:id", adminUserController.updateCreator);
-router.delete("/creators/:id", adminUserController.deleteCreator);
+router.post("/creators", createCreator);
+router.get("/creators", getAllCreators);
+router.get("/creators/:id", getSingleCreator);
+router.put("/creators/:id", updateCreator);
+router.delete("/creators/:id", deleteCreator);
 
-module.exports = router;
+export default router;

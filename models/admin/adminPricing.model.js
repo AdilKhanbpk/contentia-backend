@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 const Schema = mongoose.Schema;
 
 const pricePlanSchema = new Schema(
@@ -24,4 +24,4 @@ const pricePlanSchema = new Schema(
 const PricePlanModel =
   mongoose.models.PricePlan || mongoose.model("PricePlan", pricePlanSchema);
 
-module.exports = PricePlanModel;
+export default PricePlanModel;

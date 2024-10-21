@@ -1,7 +1,7 @@
-const CouponModel = require("../../models/admin/adminCoupon.model");
-const ApiError = require("../../utils/ApiError");
-const ApiResponse = require("../../utils/ApiResponse");
-const asyncHandler = require("../../utils/asyncHandler");
+import CouponModel from "../../models/admin/adminCoupon.model.js";
+import ApiError from "../../utils/ApiError.js";
+import ApiResponse from "../../utils/ApiResponse.js";
+import asyncHandler from "../../utils/asyncHandler.js";
 
 const createCoupon = asyncHandler(async (req, res) => {
   const { code, discountTl, discountPercentage, expiryDate, usageLimit } =
@@ -142,7 +142,7 @@ const validateCoupon = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, coupon, "Coupon applied successfully"));
 });
 
-module.exports = {
+export {
   createCoupon,
   getCoupons,
   getCouponById,

@@ -1,13 +1,19 @@
-const express = require("express");
-const { protect } = require("../../controllers/auth.controller");
-const HelpSupportController = require("../../controllers/admin/adminHelpSupport.controller");
+import express from "express";
+import { protect } from "../../controllers/auth.controller.js";
+import {
+  createHelpSupport,
+  deleteHelpSupport,
+  getHelpSupportById,
+  getHelpSupports,
+  updateHelpSupport,
+} from "../../controllers/admin/adminHelpSupport.controller.js";
 
 const router = express.Router();
 
-router.get("/", protect, HelpSupportController.getHelpSupports);
-router.get("/:id", protect, HelpSupportController.getHelpSupportById);
-router.post("/", protect, HelpSupportController.createHelpSupport);
-router.put("/:id", protect, HelpSupportController.updateHelpSupport);
-router.delete("/:id", protect, HelpSupportController.deleteHelpSupport);
+router.get("/", protect, getHelpSupports);
+router.get("/:id", protect, getHelpSupportById);
+router.post("/", protect, createHelpSupport);
+router.put("/:id", protect, updateHelpSupport);
+router.delete("/:id", protect, deleteHelpSupport);
 
-module.exports = router;
+export default router;

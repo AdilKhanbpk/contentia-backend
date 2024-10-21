@@ -1,10 +1,9 @@
-// routes/videoOptions.js
-const express = require('express');
-const videoOptionsController = require('../controllers/videoOption.controller');
+import express from "express";
+import { createVideoOption } from "../controllers/videoOption.controller.js";
 
 const router = express.Router();
 
 // POST request to create a new video option
-router.post('/videoOptions', videoOptionsController.createVideoOption);
+router.post("/videoOptions", createVideoOption);
 
-module.exports = router;
+export default router;

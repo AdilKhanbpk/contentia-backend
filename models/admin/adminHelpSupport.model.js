@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 const Schema = mongoose.Schema;
 
 const helpSupportSchema = new Schema(
@@ -25,6 +25,6 @@ const helpSupportSchema = new Schema(
 
 const HelpSupportModel =
   mongoose.models.helpSupportModel ||
-  mongoose.model("helpSupportModel", helpSupportSchema);
+  mongoose.model("helpSupport", helpSupportSchema);
 
-module.exports = HelpSupportModel;
+export default HelpSupportModel;

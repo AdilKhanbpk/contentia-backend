@@ -1,13 +1,19 @@
-const express = require("express");
-const { protect } = require("../../controllers/auth.controller");
-const BlogController = require("../../controllers/admin/adminBlog.controller");
+import express from "express";
+import { protect } from "../../controllers/auth.controller.js";
+import {
+  createBlog,
+  deleteBlog,
+  getBlogById,
+  getBlogs,
+  updateBlog,
+} from "../../controllers/admin/adminBlog.controller.js";
 
 const router = express.Router();
 
-router.get("/", protect, BlogController.getBlogs);
-router.get("/:id", protect, BlogController.getBlogById);
-router.post("/", protect, BlogController.createBlog);
-router.put("/:id", protect, BlogController.updateBlog);
-router.delete("/:id", protect, BlogController.deleteBlog);
+router.get("/", protect, getBlogs);
+router.get("/:id", protect, getBlogById);
+router.post("/", protect, createBlog);
+router.put("/:id", protect, updateBlog);
+router.delete("/:id", protect, deleteBlog);
 
-module.exports = router;
+export default router;

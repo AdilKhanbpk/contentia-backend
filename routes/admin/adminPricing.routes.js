@@ -1,13 +1,19 @@
-const express = require("express");
-const { protect } = require("../../controllers/auth.controller");
-const PricingController = require("../../controllers/admin/adminPricing.controller");
+import express from "express";
+import { protect } from "../../controllers/auth.controller.js";
+import {
+  createPricePlan,
+  deletePricePlan,
+  getPricePlanById,
+  getPricePlans,
+  updatePricePlan,
+} from "../../controllers/admin/adminPricing.controller.js";
 
 const router = express.Router();
 
-router.get("/", protect, PricingController.getPricePlans);
-router.get("/:id", protect, PricingController.getPricePlanById);
-router.post("/", protect, PricingController.createPricePlan);
-router.put("/:id", protect, PricingController.updatePricePlan);
-router.delete("/:id", protect, PricingController.deletePricePlan);
+router.get("/", protect, getPricePlans);
+router.get("/:id", protect, getPricePlanById);
+router.post("/", protect, createPricePlan);
+router.put("/:id", protect, updatePricePlan);
+router.delete("/:id", protect, deletePricePlan);
 
-module.exports = router;
+export default router;

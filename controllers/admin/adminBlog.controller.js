@@ -1,7 +1,7 @@
-const BlogModel = require("../../models/admin/adminBlog.model");
-const ApiError = require("../../utils/ApiError");
-const ApiResponse = require("../../utils/ApiResponse");
-const asyncHandler = require("../../utils/asyncHandler");
+import BlogModel from "../../models/admin/adminBlog.model.js";
+import ApiError from "../../utils/ApiError.js";
+import ApiResponse from "../../utils/ApiResponse.js";
+import asyncHandler from "../../utils/asyncHandler.js";
 
 const createBlog = asyncHandler(async (req, res) => {});
 
@@ -13,10 +13,4 @@ const updateBlog = asyncHandler(async (req, res) => {});
 
 const deleteBlog = asyncHandler(async (req, res) => {});
 
-module.exports = {
-  createBlog,
-  getBlogs,
-  getBlogById,
-  updateBlog,
-  deleteBlog,
-};
+export { createBlog, getBlogs, getBlogById, updateBlog, deleteBlog };

@@ -1,12 +1,10 @@
-const mongoose = require("mongoose");
-const dotenv = require("dotenv");
+import mongoose from "mongoose";
+import dotenv from "dotenv";
 
 // Load environment variables from config.env file
-dotenv.config({ path: "./config.env" });
+dotenv.config({ path: "./.env" });
 
-const app = require("./app");
-
-// Handle uncaught exceptions
+import app from "./app.js";
 process.on("uncaughtException", (err) => {
   console.error("UNCAUGHT EXCEPTION! 💥 Shutting down...");
   console.error(err.name, err.message);
@@ -19,7 +17,7 @@ const connectDB = async () => {
       "<password>",
       process.env.DATABASE_PASSWORD
     );
-    const connection = await mongoose.connect(DB);
+    const connection = await mongoose.connect(process.env.DATABASE_LOCAL);
     console.log(
       `Database connection successful with ==> '${connection.connection.name}'`
     );

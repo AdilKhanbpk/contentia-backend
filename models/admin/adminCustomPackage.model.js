@@ -1,5 +1,5 @@
 // models/packageModel.js
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const packageSchema = new mongoose.Schema({
   status: {
@@ -117,4 +117,6 @@ const packageSchema = new mongoose.Schema({
   },
 });
 
-module.exports = mongoose.model("Package", packageSchema);
+const PackageModel = mongoose.model("Package", packageSchema);
+
+export default PackageModel;

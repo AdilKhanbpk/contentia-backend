@@ -1,8 +1,8 @@
 // controllers/adminHelpSupportController.js
-const HelpSupportModel = require("../../models/admin/adminHelpSupport.model");
-const ApiError = require("../../utils/ApiError");
-const ApiResponse = require("../../utils/ApiResponse");
-const asyncHandler = require("../../utils/asyncHandler");
+import HelpSupportModel from "../../models/admin/adminHelpSupport.model.js";
+import ApiError from "../../utils/ApiError.js";
+import ApiResponse from "../../utils/ApiResponse.js";
+import asyncHandler from "../../utils/asyncHandler.js";
 
 const createHelpSupport = asyncHandler(async (req, res) => {
   const { title, category, content } = req.body;
@@ -85,7 +85,7 @@ const deleteHelpSupport = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, null, "Help support deleted successfully"));
 });
 
-module.exports = {
+export {
   createHelpSupport,
   getHelpSupports,
   getHelpSupportById,

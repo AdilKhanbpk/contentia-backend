@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 const Schema = mongoose.Schema;
 
 const howItWorksSchema = new Schema(
@@ -21,6 +21,6 @@ const howItWorksSchema = new Schema(
 
 const HowItWorkModel =
   mongoose.models.howItWorkModel ||
-  mongoose.model("howItWorkModel", howItWorksSchema);
+  mongoose.model("howItWork", howItWorksSchema);
 
-module.exports = HowItWorkModel;
+export default HowItWorkModel;

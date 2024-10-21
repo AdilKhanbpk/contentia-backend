@@ -1,7 +1,7 @@
-const FaqModel = require("../../models/admin/adminFaq.model");
-const ApiError = require("../../utils/ApiError");
-const ApiResponse = require("../../utils/ApiResponse");
-const asyncHandler = require("../../utils/asyncHandler");
+import FaqModel from "../../models/admin/adminFaq.model.js";
+import ApiError from "../../utils/ApiError.js";
+import ApiResponse from "../../utils/ApiResponse.js";
+import asyncHandler from "../../utils/asyncHandler.js";
 
 const createFaq = asyncHandler(async (req, res, next) => {
   const { question, answer } = req.body;
@@ -71,10 +71,4 @@ const deleteFaq = asyncHandler(async (req, res, next) => {
     .json(new ApiResponse(200, null, "FAQ deleted successfully"));
 });
 
-module.exports = {
-  createFaq,
-  getFaqs,
-  getFaqById,
-  updateFaq,
-  deleteFaq,
-};
+export { createFaq, getFaqs, getFaqById, updateFaq, deleteFaq };

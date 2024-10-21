@@ -1,10 +1,10 @@
-// routes/contentRoutes.js
-const express = require('express');
+import express from "express";
+import { createContent } from "../controllers/preferences.controller.js";
+
 const router = express.Router();
-const contentController = require('../controllers/preferences.controller');
 
 // Create new content
-router.post('/preferencesRoute', contentController.createContent);
+router.post("/preferencesRoute", createContent);
 
 // Export the router
-module.exports = router;
+export default router;

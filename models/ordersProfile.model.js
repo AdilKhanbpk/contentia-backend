@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from "mongoose";
 
 const ordersProfileSchema = new mongoose.Schema({
   address: String,
@@ -8,7 +8,7 @@ const ordersProfileSchema = new mongoose.Schema({
   email: String,
   invoiceType: {
     type: String,
-    enum: ['Bireysel', 'Kurumsal'],
+    enum: ["Bireysel", "Kurumsal"],
   },
   name: String,
   newPassword: String,
@@ -18,6 +18,6 @@ const ordersProfileSchema = new mongoose.Schema({
   tcNumber: String,
 });
 
-const OrdersProfile = mongoose.model('OrdersProfile', ordersProfileSchema);
+const OrdersProfile = mongoose.model("OrdersProfile", ordersProfileSchema);
 
-module.exports = OrdersProfile;
+export default OrdersProfile;

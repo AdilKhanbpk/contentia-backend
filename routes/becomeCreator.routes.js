@@ -1,12 +1,12 @@
-const express = require('express');
-const becomeCreatorController = require('../controllers/becomeCreator.controller')
-const { protect } = require('../controllers/auth.controller');
+import express from "express";
+import { addBecomeCreator } from "../controllers/becomeCreator.controller.js";
+import { protect } from "../controllers/auth.controller.js";
 
 const router = express.Router();
 
-// router.use(protect); 
+// router.use(protect);
 
 // Route to create or update OrdersProfile
-router.post('/create', becomeCreatorController.addBecomeCreator);
+router.post("/create", addBecomeCreator);
 
-module.exports = router;
+export default router;

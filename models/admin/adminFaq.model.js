@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 const Schema = mongoose.Schema;
 
 const faqSchema = new Schema(
@@ -19,7 +19,6 @@ const faqSchema = new Schema(
   }
 );
 
-const FaqModel =
-  mongoose.models.faqModel || mongoose.model("faqModel", faqSchema);
+const FaqModel = mongoose.models.faqModel || mongoose.model("faq", faqSchema);
 
-module.exports = FaqModel;
+export default FaqModel;

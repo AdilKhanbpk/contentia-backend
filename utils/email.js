@@ -1,4 +1,4 @@
-const nodemailer = require("nodemailer");
+import nodemailer from "nodemailer";
 
 const sendEmail = ({ email, subject, text }) => {
   return new Promise((resolve, reject) => {
@@ -32,4 +32,4 @@ const sendEmail = ({ email, subject, text }) => {
   });
 };
 
-module.exports = sendEmail; // Corrected export statement
+export default sendEmail;

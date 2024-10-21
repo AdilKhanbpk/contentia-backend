@@ -1,7 +1,7 @@
-const adminOrderModel = require("../../models/admin/adminOrder.model");
-const ApiError = require("../../utils/ApiError");
-const ApiResponse = require("../../utils/ApiResponse");
-const asyncHandler = require("../../utils/asyncHandler");
+import adminOrderModel from "../../models/admin/adminOrder.model.js";
+import ApiError from "../../utils/ApiError.js";
+import ApiResponse from "../../utils/ApiResponse.js";
+import asyncHandler from "../../utils/asyncHandler.js";
 
 const createOrder = asyncHandler(async (req, res) => {});
 
@@ -13,10 +13,4 @@ const updateOrder = asyncHandler(async (req, res) => {});
 
 const deleteOrder = asyncHandler(async (req, res) => {});
 
-module.exports = {
-  createOrder,
-  getOrders,
-  getOrderById,
-  updateOrder,
-  deleteOrder,
-};
+export { createOrder, getOrders, getOrderById, updateOrder, deleteOrder };

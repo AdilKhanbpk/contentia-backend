@@ -1,10 +1,17 @@
-// controllers/videoOptionsController.js
-const VideoOption = require('../models/videoOption.model');
+import VideoOption from "../models/videoOption.model.js";
 
 // Controller function to create a new video option
-const createVideoOption = async (req, res) => {
+export const createVideoOption = async (req, res) => {
   try {
-    const { duration, edit, platform, ratio, selectedCard, selectedQuantity, totalPrice } = req.body;
+    const {
+      duration,
+      edit,
+      platform,
+      ratio,
+      selectedCard,
+      selectedQuantity,
+      totalPrice,
+    } = req.body;
 
     const newVideoOption = new VideoOption({
       duration,
@@ -17,13 +24,13 @@ const createVideoOption = async (req, res) => {
     });
 
     await newVideoOption.save();
-    return res.status(201).json({ message: 'Video option created successfully!', newVideoOption });
+    return res
+      .status(201)
+      .json({ message: "Video option created successfully!", newVideoOption });
   } catch (error) {
-    console.error('Error creating video option:', error);
-    return res.status(500).json({ message: 'Error creating video option', error });
+    console.error("Error creating video option:", error);
+    return res
+      .status(500)
+      .json({ message: "Error creating video option", error });
   }
-};
-
-module.exports = {
-  createVideoOption,
 };

@@ -1,8 +1,12 @@
-const express = require("express");
+import express from "express";
+import {
+  createOrUpdateAbout,
+  getAbout,
+} from "../../controllers/admin/adminAbout.controller.js";
+
 const router = express.Router();
-const adminAboutController = require("../../controllers/admin/adminAbout.controller");
 
-router.get("/", adminAboutController.getAbout);
-router.post("/", adminAboutController.createOrUpdateAbout);
+router.get("/", getAbout);
+router.post("/", createOrUpdateAbout);
 
-module.exports = router;
+export default router;

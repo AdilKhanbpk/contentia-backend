@@ -1,12 +1,12 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 const Schema = mongoose.Schema;
 
 const creatorSchema = new Schema(
   {
     role: {
       type: String,
-      enum: ["Admin", "User"],
-      default: "User",
+      enum: ["admin", "user"],
+      default: "user",
     },
     fullName: {
       type: String,
@@ -316,8 +316,17 @@ const creatorSchema = new Schema(
   }
 );
 
-const CreatorUserModel =
-  mongoose.models.creatorUserModel ||
-  mongoose.model("creatorUserModel", creatorSchema);
+creatorSchema.pre("save", function (next) {
+  const adminEmail = process.env.ADMIN_EMAIL;
 
-module.exports = CreatorUserModel;
+  if (this.email === adminEmail) {
+    this.role = "admin";
+  }
+
+  next();
+});
+
+const CreatorUserModel =
+  mongoose.models.creatorUserModel || mongoose.model("creator", creatorSchema);
+
+export default CreatorUserModel;

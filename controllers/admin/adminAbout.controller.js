@@ -1,8 +1,8 @@
 // controllers/adminAboutController.js
-const AboutModel = require("../../models/admin/adminAbout.model");
-const ApiError = require("../../utils/ApiError");
-const ApiResponse = require("../../utils/ApiResponse");
-const asyncHandler = require("../../utils/asyncHandler");
+import AboutModel from "../../models/admin/adminAbout.model.js";
+import ApiError from "../../utils/ApiError.js";
+import ApiResponse from "../../utils/ApiResponse.js";
+import asyncHandler from "../../utils/asyncHandler.js";
 
 const createOrUpdateAbout = asyncHandler(async (req, res) => {
   const { content } = req.body;
@@ -40,7 +40,4 @@ const getAbout = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, about, "About content retrieved successfully"));
 });
 
-module.exports = {
-  createOrUpdateAbout,
-  getAbout,
-};
+export { createOrUpdateAbout, getAbout };

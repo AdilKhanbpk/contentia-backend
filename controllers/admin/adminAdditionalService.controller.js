@@ -1,7 +1,7 @@
-const AdditionalServiceModel = require("../../models/admin/adminAdditionalService.model");
-const ApiError = require("../../utils/ApiError");
-const ApiResponse = require("../../utils/ApiResponse");
-const asyncHandler = require("../../utils/asyncHandler");
+import AdditionalServiceModel from "../../models/admin/adminAdditionalService.model.js";
+import ApiError from "../../utils/ApiError.js";
+import ApiResponse from "../../utils/ApiResponse.js";
+import asyncHandler from "../../utils/asyncHandler.js";
 
 const createAdditionalService = asyncHandler(async (req, res) => {
   const {
@@ -146,7 +146,7 @@ const deleteAdditionalService = asyncHandler(async (req, res) => {
     );
 });
 
-module.exports = {
+export {
   createAdditionalService,
   getAdditionalServices,
   getAdditionalServiceById,

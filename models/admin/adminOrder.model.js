@@ -1,7 +1,11 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const orderSchema = new mongoose.Schema(
   {
+    orderOwner: {
+      type: mongoose.Types.ObjectId,
+      ref: "customer",
+    },
     orderStatus: {
       type: String,
       enum: ["Active", "Completed", "Cancelled", "Revision"],
@@ -132,6 +136,6 @@ const orderSchema = new mongoose.Schema(
 );
 
 const OrderModel =
-  mongoose.models.orderModel || mongoose.model("orderModel", orderSchema);
+  mongoose.models.orderModel || mongoose.model("order", orderSchema);
 
-module.exports = OrderModel;
+export default OrderModel;

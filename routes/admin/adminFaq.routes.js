@@ -1,13 +1,18 @@
-const express = require("express");
-const { protect } = require("../../controllers/auth.controller");
-const FaqController = require("../../controllers/admin/adminFaq.controller");
+import express from "express";
+import { protect } from "../../controllers/auth.controller.js";
+import {
+  createFaq,
+  deleteFaq,
+  getFaqs,
+  updateFaq,
+} from "../../controllers/admin/adminFaq.controller.js";
 
 const router = express.Router();
 
-router.get("/", protect, FaqController.getFaqs);
-router.get("/:id", protect, FaqController.getFaqs);
-router.post("/", protect, FaqController.createFaq);
-router.put("/:id", protect, FaqController.updateFaq);
-router.delete("/:id", protect, FaqController.deleteFaq);
+router.get("/", protect, getFaqs);
+router.get("/:id", protect, getFaqs); // Consider updating to getFaqById
+router.post("/", protect, createFaq);
+router.put("/:id", protect, updateFaq);
+router.delete("/:id", protect, deleteFaq);
 
-module.exports = router;
+export default router;

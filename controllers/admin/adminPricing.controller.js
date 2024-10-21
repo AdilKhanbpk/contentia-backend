@@ -1,8 +1,8 @@
 // controllers/adminPricingController.js
-const PricePlanModel = require("../../models/admin/adminPricing.model");
-const ApiError = require("../../utils/ApiError");
-const ApiResponse = require("../../utils/ApiResponse");
-const asyncHandler = require("../../utils/asyncHandler");
+import PricePlanModel from "../../models/admin/adminPricing.model.js";
+import ApiError from "../../utils/ApiError.js";
+import ApiResponse from "../../utils/ApiResponse.js";
+import asyncHandler from "../../utils/asyncHandler.js";
 
 const createPricePlan = asyncHandler(async (req, res) => {
   const { videoCount, strikeThroughPrice, finalPrice } = req.body;
@@ -82,7 +82,7 @@ const deletePricePlan = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, null, "Price plan deleted successfully"));
 });
 
-module.exports = {
+export {
   createPricePlan,
   getPricePlans,
   getPricePlanById,

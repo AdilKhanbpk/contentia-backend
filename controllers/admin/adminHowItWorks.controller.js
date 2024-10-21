@@ -1,8 +1,8 @@
 // controllers/adminHowItWorksController.js
-const HowItWorksModel = require("../../models/admin/adminHowItWorks.model");
-const ApiError = require("../../utils/ApiError");
-const ApiResponse = require("../../utils/ApiResponse");
-const asyncHandler = require("../../utils/asyncHandler");
+import HowItWorksModel from "../../models/admin/adminHowItWorks.model.js";
+import ApiError from "../../utils/ApiError.js";
+import ApiResponse from "../../utils/ApiResponse.js";
+import asyncHandler from "../../utils/asyncHandler.js";
 
 const createHowItWorks = asyncHandler(async (req, res) => {
   const { title, description } = req.body;
@@ -98,7 +98,7 @@ const deleteHowItWorks = asyncHandler(async (req, res) => {
     );
 });
 
-module.exports = {
+export {
   createHowItWorks,
   getHowItWorks,
   getHowItWorksById,

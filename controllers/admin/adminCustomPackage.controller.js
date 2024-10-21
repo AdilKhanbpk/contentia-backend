@@ -1,8 +1,8 @@
 // controllers/adminPackageController.js
-const PackageModel = require("../../models/admin/adminCustomPackage.model");
-const ApiError = require("../../utils/ApiError");
-const ApiResponse = require("../../utils/ApiResponse");
-const asyncHandler = require("../../utils/asyncHandler");
+import PackageModel from "../../models/admin/adminCustomPackage.model.js";
+import ApiError from "../../utils/ApiError.js";
+import ApiResponse from "../../utils/ApiResponse.js";
+import asyncHandler from "../../utils/asyncHandler.js";
 
 const createCustomPackage = asyncHandler(async (req, res) => {
   const newPackage = await PackageModel.create(req.body);
@@ -20,15 +20,15 @@ const getAllCustomPackages = asyncHandler(async (req, res) => {
 
 const getCustomPackageById = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const package = await PackageModel.findById(id);
+  const newPackage = await PackageModel.findById(id);
 
-  if (!package) {
+  if (!newPackage) {
     throw new ApiError(404, `Package not found with id: ${id}`);
   }
 
   return res
     .status(200)
-    .json(new ApiResponse(200, package, "Package retrieved successfully"));
+    .json(new ApiResponse(200, newPackage, "Package retrieved successfully"));
 });
 
 const updateCustomPackage = asyncHandler(async (req, res) => {
@@ -49,9 +49,9 @@ const updateCustomPackage = asyncHandler(async (req, res) => {
 
 const deleteCustomPackage = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const package = await PackageModel.findByIdAndDelete(id);
+  const newPackage = await PackageModel.findByIdAndDelete(id);
 
-  if (!package) {
+  if (!newPackage) {
     throw new ApiError(404, `Package not found with id: ${id}`);
   }
 
@@ -60,7 +60,7 @@ const deleteCustomPackage = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, null, "Package deleted successfully"));
 });
 
-module.exports = {
+export {
   createCustomPackage,
   getAllCustomPackages,
   getCustomPackageById,

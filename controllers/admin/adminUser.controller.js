@@ -1,8 +1,8 @@
-const CustomerUserModel = require("../../models/admin/adminCustomerUser.model");
-const CreatorUserModel = require("../../models/admin/adminCreatorUser.model");
-const ApiError = require("../../utils/ApiError");
-const ApiResponse = require("../../utils/ApiResponse");
-const asyncHandler = require("../../utils/asyncHandler");
+import CustomerUserModel from "../../models/admin/adminCustomerUser.model.js";
+import CreatorUserModel from "../../models/admin/adminCreatorUser.model.js";
+import ApiError from "../../utils/ApiError.js";
+import ApiResponse from "../../utils/ApiResponse.js";
+import asyncHandler from "../../utils/asyncHandler.js";
 
 // FOR CUSTOMERS
 
@@ -282,7 +282,7 @@ const getAllCreators = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, creators, "All creators fetched successfully"));
 });
 
-module.exports = {
+export {
   createCustomer,
   getSingleCustomer,
   updateCustomer,

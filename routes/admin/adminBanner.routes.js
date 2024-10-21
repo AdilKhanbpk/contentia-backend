@@ -1,12 +1,19 @@
-const express = require("express");
-const BannerController = require("../../controllers/admin/adminBanner.controller");
-const { protect } = require("../../controllers/auth.controller");
+import express from "express";
+import {
+  createBanner,
+  deleteBanner,
+  getBannerById,
+  getBanners,
+  updateBanner,
+} from "../../controllers/admin/adminBanner.controller.js";
+import { protect } from "../../controllers/auth.controller.js";
+
 const router = express.Router();
 
-router.get("/", protect, BannerController.getBanners);
-router.post("/", protect, BannerController.createBanner);
-router.put("/:id", protect, BannerController.updateBanner);
-router.delete("/:id", protect, BannerController.deleteBanner);
-router.get("/:id", protect, BannerController.getBannerById);
+router.get("/", protect, getBanners);
+router.post("/", protect, createBanner);
+router.put("/:id", protect, updateBanner);
+router.delete("/:id", protect, deleteBanner);
+router.get("/:id", protect, getBannerById);
 
-module.exports = router;
+export default router;

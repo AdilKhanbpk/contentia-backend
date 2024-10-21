@@ -1,13 +1,19 @@
-const express = require("express");
-const { protect } = require("../../controllers/auth.controller");
-const OrderController = require("../../controllers/admin/adminOrder.controller");
+import express from "express";
+import { protect } from "../../controllers/auth.controller.js";
+import {
+  createOrder,
+  deleteOrder,
+  getOrderById,
+  getOrders,
+  updateOrder,
+} from "../../controllers/admin/adminOrder.controller.js";
 
 const router = express.Router();
 
-router.post("/", protect, OrderController.createOrder);
-router.get("/", protect, OrderController.getOrders);
-router.get("/:id", protect, OrderController.getOrderById);
-router.put("/:id", protect, OrderController.updateOrder);
-router.delete("/:id", protect, OrderController.deleteOrder);
+router.post("/", protect, createOrder);
+router.get("/", protect, getOrders);
+router.get("/:id", protect, getOrderById);
+router.put("/:id", protect, updateOrder);
+router.delete("/:id", protect, deleteOrder);
 
-module.exports = router;
+export default router;
