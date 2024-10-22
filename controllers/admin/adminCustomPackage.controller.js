@@ -1,45 +1,86 @@
-// controllers/adminPackageController.js
 import PackageModel from "../../models/admin/adminCustomPackage.model.js";
 import ApiError from "../../utils/ApiError.js";
 import ApiResponse from "../../utils/ApiResponse.js";
 import asyncHandler from "../../utils/asyncHandler.js";
+import {
+  createADocument,
+  findByQuery,
+  updateById,
+  deleteById,
+  findById,
+} from "../../utils/dbHelpers.js";
 
 const createCustomPackage = asyncHandler(async (req, res) => {
-  const newPackage = await PackageModel.create(req.body);
+  const {
+    packageType,
+    packageTotalPrice,
+    packageAdditionalServices,
+    packageBriefContent,
+    packagePreferences,
+  } = req.body;
+
+  if (
+    !packageAdditionalServices ||
+    !packageAdditionalServices.platform ||
+    !packageAdditionalServices.duration ||
+    !packageAdditionalServices.edit ||
+    !packageAdditionalServices.aspectRatio
+  ) {
+    throw new ApiError(400, "Please provide all additional services");
+  }
+
+  const createdPackage = await createADocument(PackageModel, {
+    packageCreator: req.user._id,
+    packageType,
+    packageTotalPrice,
+    packageAdditionalServices,
+    packageBriefContent,
+    packagePreferences,
+  });
+
+  if (!createdPackage) {
+    throw new ApiError(500, "Failed to create package");
+  }
+
   return res
     .status(201)
-    .json(new ApiResponse(201, newPackage, "Package created successfully"));
+    .json(new ApiResponse(201, "Package created successfully", createdPackage));
 });
 
 const getAllCustomPackages = asyncHandler(async (req, res) => {
-  const packages = await PackageModel.find();
+  const packages = await findByQuery(PackageModel, {});
+  if (!packages || packages.length === 0) {
+    throw new ApiError(404, "No packages found");
+  }
   return res
     .status(200)
-    .json(new ApiResponse(200, packages, "Packages retrieved successfully"));
+    .json(
+      new ApiResponse(200, packages, "All packages retrieved successfully")
+    );
 });
 
 const getCustomPackageById = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const newPackage = await PackageModel.findById(id);
+  const { packageId } = req.params;
 
-  if (!newPackage) {
-    throw new ApiError(404, `Package not found with id: ${id}`);
+  const packageData = await findById(PackageModel, packageId);
+
+  if (!packageData) {
+    throw new ApiError(404, "Package not found");
   }
 
   return res
     .status(200)
-    .json(new ApiResponse(200, newPackage, "Package retrieved successfully"));
+    .json(new ApiResponse(200, packageData, "Package retrieved successfully"));
 });
 
 const updateCustomPackage = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const updatedPackage = await PackageModel.findByIdAndUpdate(id, req.body, {
-    new: true,
-    runValidators: true,
-  });
+  const { packageId } = req.params;
+  const updateData = req.body;
+
+  const updatedPackage = await updateById(PackageModel, packageId, updateData);
 
   if (!updatedPackage) {
-    throw new ApiError(404, `Package not found with id: ${id}`);
+    throw new ApiError(404, "Package not found or failed to update");
   }
 
   return res
@@ -48,16 +89,17 @@ const updateCustomPackage = asyncHandler(async (req, res) => {
 });
 
 const deleteCustomPackage = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const newPackage = await PackageModel.findByIdAndDelete(id);
+  const { packageId } = req.params;
 
-  if (!newPackage) {
-    throw new ApiError(404, `Package not found with id: ${id}`);
+  const deletedPackage = await deleteById(PackageModel, packageId);
+
+  if (!deletedPackage) {
+    throw new ApiError(404, "Package not found or failed to delete");
   }
 
   return res
     .status(200)
-    .json(new ApiResponse(200, null, "Package deleted successfully"));
+    .json(new ApiResponse(200, deletedPackage, "Package deleted successfully"));
 });
 
 export {

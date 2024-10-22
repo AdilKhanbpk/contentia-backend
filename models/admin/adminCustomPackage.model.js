@@ -4,8 +4,9 @@ import mongoose from "mongoose";
 const packageSchema = new mongoose.Schema({
   status: {
     type: String,
-    enum: ["Active", "Completed", "Refunded"],
+    enum: ["active", "completed", "refunded"],
     required: true,
+    default: "active",
   },
   packageCreator: {
     type: mongoose.Types.ObjectId,
@@ -19,22 +20,26 @@ const packageSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  packageContentOrders: {
+  packageStatus: {
+    type: String,
+    default: "active",
+  },
+  packageTotalPrice: {
     type: Number,
     required: true,
+  },
+  packageAssociatedOrders: {
+    type: Number,
   },
   packageContentsDelivered: {
     type: Number,
-    required: true,
   },
   packageContentsLeft: {
     type: Number,
-    required: true,
   },
-  packageDetails: {
+  packageAdditionalServices: {
     platform: {
       type: String,
-      enum: ["Meta", "TikTok", "Other"],
       required: true,
     },
     duration: {
@@ -51,23 +56,48 @@ const packageSchema = new mongoose.Schema({
     },
     share: {
       type: Boolean,
-      required: true,
     },
     coverPicture: {
       type: Boolean,
-      required: true,
     },
     creatorType: {
       type: String,
-      required: true,
     },
+    shipping: {
+      type: Boolean,
+    },
+  },
+  packageBriefContent: {
+    brandName: {
+      type: String,
+    },
+    brief: {
+      type: String,
+    },
+    scenario: {
+      type: String,
+    },
+    productServiceName: {
+      type: String,
+    },
+    productServiceDesc: {
+      type: String,
+    },
+    caseStudy: {
+      type: String,
+    },
+    uploadFiles: {
+      type: String,
+    },
+  },
+  packagePreferences: {
     creatorGender: {
       type: String,
     },
-    minimumCreatorAge: {
+    minCreatorAge: {
       type: Number,
     },
-    maximumCreatorAge: {
+    maxCreatorAge: {
       type: Number,
     },
     interests: {
@@ -75,52 +105,13 @@ const packageSchema = new mongoose.Schema({
     },
     contentType: {
       type: String,
-      enum: ["Product", "Service", "Location"],
-      required: true,
     },
     locationAddress: {
-      type: String,
-      required: true,
-    },
-    showCreatorAddress: {
-      type: Boolean,
-      required: function () {
-        return this.contentType === "Product";
-      },
-    },
-    productShipping: {
-      type: Boolean,
-      required: function () {
-        return this.contentType === "Product";
-      },
-    },
-    productName: {
-      type: String,
-      required: function () {
-        return this.contentType === "Product";
-      },
-    },
-    brandName: {
-      type: String,
-      required: function () {
-        return this.contentType === "Product";
-      },
-    },
-    brief: {
-      type: String,
-      required: true,
-    },
-    scenario: {
-      type: String,
-      required: true,
-    },
-    example: {
-      type: String,
-      required: true,
-    },
-    fileUpload: {
-      type: String,
-      required: true,
+      country: { type: String },
+      city: { type: String },
+      district: { type: String },
+      street: { type: String },
+      fullAddress: { type: String },
     },
   },
 });

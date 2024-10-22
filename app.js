@@ -5,9 +5,6 @@ import cors from "cors";
 import { fileURLToPath } from "url";
 
 import userAuthRoutes from "./routes/userAuth.routes.js";
-import videoOptionRoutes from "./routes/videoOption.routes.js";
-import ugcBriefRoute from "./routes/ugcBrief.routes.js";
-import preferencesRoute from "./routes/preferences.routes.js";
 import ordersRoute from "./routes/orders.routes.js";
 import becomeCreatorRoute from "./routes/becomeCreator.routes.js";
 
@@ -49,9 +46,6 @@ app.use(express.urlencoded({ extended: true, limit: "10kb" }));
 app.use(cookieParser());
 
 app.use("/api/v1/users", userAuthRoutes);
-app.use("/api/v1/videos", videoOptionRoutes);
-app.use("/api/v1/ugc", ugcBriefRoute);
-app.use("/api/v1/preferences", preferencesRoute);
 app.use("/api/v1/orders", ordersRoute);
 app.use("/api/v1/become-creator", becomeCreatorRoute);
 
@@ -62,7 +56,7 @@ app.use("/api/v1/admin/faq", adminFaqRoute);
 app.use("/api/v1/admin/banner", adminBannerRoute);
 app.use("/api/v1/admin/howItWorks", adminHowItWorksRoute);
 app.use("/api/v1/admin/about", adminAboutRoute);
-app.use("/api/v1/admin/blog", adminBlogRoute);
+app.use("/api/v1/admin/blogs", adminBlogRoute);
 app.use("/api/v1/admin/coupon", adminCouponRoute);
 app.use("/api/v1/admin/helpSupport", adminHelpSupportRoute);
 app.use("/api/v1/admin/order", adminOrderRoute);
