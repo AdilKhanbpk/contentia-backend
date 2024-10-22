@@ -18,7 +18,7 @@ const blogPostSchema = new Schema(
       required: true,
       trim: true,
     },
-    coverImage: {
+    bannerImage: {
       type: String,
       required: true,
     },
@@ -26,23 +26,13 @@ const blogPostSchema = new Schema(
       type: String,
       required: true,
     },
-    metaTitle: {
-      type: String,
-      required: true,
-      trim: true,
-    },
     metaDescription: {
       type: String,
       required: true,
-      trim: true,
     },
     metaKeywords: {
       type: [String],
       required: true,
-    },
-    createdAt: {
-      type: Date,
-      default: Date.now,
     },
   },
   {

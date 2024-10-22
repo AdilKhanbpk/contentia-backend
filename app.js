@@ -62,7 +62,7 @@ app.use("/api/v1/admin/faq", adminFaqRoute);
 app.use("/api/v1/admin/banner", adminBannerRoute);
 app.use("/api/v1/admin/howItWorks", adminHowItWorksRoute);
 app.use("/api/v1/admin/about", adminAboutRoute);
-app.use("/api/v1/admin/blog", adminBlogRoute);
+app.use("/api/v1/admin/blogs", adminBlogRoute);
 app.use("/api/v1/admin/coupon", adminCouponRoute);
 app.use("/api/v1/admin/helpSupport", adminHelpSupportRoute);
 app.use("/api/v1/admin/order", adminOrderRoute);

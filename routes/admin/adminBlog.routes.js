@@ -6,14 +6,29 @@ import {
   getBlogById,
   getBlogs,
   updateBlog,
+  updateBannerImageOfBlog,
 } from "../../controllers/admin/adminBlog.controller.js";
+import { uploadOnMulter } from "../../middlewares/multer.middleware.js";
 
 const router = express.Router();
 
 router.get("/", isAuthenticated, getBlogs);
-router.get("/:id", isAuthenticated, getBlogById);
-router.post("/", isAuthenticated, createBlog);
-router.put("/:id", isAuthenticated, updateBlog);
-router.delete("/:id", isAuthenticated, deleteBlog);
+router.get("/:blogId", isAuthenticated, getBlogById);
+router.post(
+  "/",
+  isAuthenticated,
+  uploadOnMulter.single("bannerImage"),
+  createBlog
+);
+router.patch("/:blogId", isAuthenticated, updateBlog);
+
+router.patch(
+  "/:blogId/bannerImage",
+  isAuthenticated,
+  uploadOnMulter.single("bannerImage"),
+  updateBannerImageOfBlog
+);
+
+router.delete("/:blogId", isAuthenticated, deleteBlog);
 
 export default router;
