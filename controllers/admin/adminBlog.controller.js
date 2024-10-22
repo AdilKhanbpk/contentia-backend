@@ -28,6 +28,7 @@ const createBlog = asyncHandler(async (req, res) => {
   }
 
   const createdBlog = await createADocument(BlogModel, {
+    author: req.user._id,
     title,
     category,
     metaKeywords,

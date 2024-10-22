@@ -8,6 +8,10 @@ const blogPostSchema = new Schema(
       enum: ["published", "waiting"],
       default: "published",
     },
+    author: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
     title: {
       type: String,
       required: true,
