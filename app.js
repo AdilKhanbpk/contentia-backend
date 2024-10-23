@@ -23,6 +23,7 @@ import adminPricingRoute from "./routes/admin/adminPricing.routes.js";
 import adminAdditionalServiceRoute from "./routes/admin/adminAdditionalService.routes.js";
 import adminClaimsRoute from "./routes/admin/adminClaim.routes.js";
 import adminNotificationRoute from "./routes/admin/adminNotification.routes.js";
+import adminEmailNotificationRoute from "./routes/admin/adminEmailNotification.routes.js";
 import ApiError from "./utils/ApiError.js";
 
 const app = express();
@@ -66,6 +67,7 @@ app.use("/api/v1/admin/pricing", adminPricingRoute);
 app.use("/api/v1/admin/additionalServices", adminAdditionalServiceRoute);
 app.use("/api/v1/admin/claims", adminClaimsRoute);
 app.use("/api/v1/admin/notifications", adminNotificationRoute);
+app.use("/api/v1/admin/emailNotifications", adminEmailNotificationRoute);
 
 app.all("*", (req, res) => {
   const message = `Can't find ${req.originalUrl} on this server!`;
