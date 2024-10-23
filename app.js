@@ -4,7 +4,7 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import { fileURLToPath } from "url";
 
-import userAuthRoutes from "./routes/userAuth.routes.js";
+import userAuthRoutes from "./routes/user.routes.js";
 import ordersRoute from "./routes/orders.routes.js";
 import becomeCreatorRoute from "./routes/becomeCreator.routes.js";
 
@@ -21,6 +21,8 @@ import adminHowItWorksRoute from "./routes/admin/adminHowItWorks.routes.js";
 import adminOrderRoute from "./routes/admin/adminOrder.routes.js";
 import adminPricingRoute from "./routes/admin/adminPricing.routes.js";
 import adminAdditionalServiceRoute from "./routes/admin/adminAdditionalService.routes.js";
+import adminClaimsRoute from "./routes/admin/adminClaim.routes.js";
+import adminNotificationRoute from "./routes/admin/adminNotification.routes.js";
 import ApiError from "./utils/ApiError.js";
 
 const app = express();
@@ -62,6 +64,8 @@ app.use("/api/v1/admin/helpSupport", adminHelpSupportRoute);
 app.use("/api/v1/admin/order", adminOrderRoute);
 app.use("/api/v1/admin/pricing", adminPricingRoute);
 app.use("/api/v1/admin/additionalServices", adminAdditionalServiceRoute);
+app.use("/api/v1/admin/claims", adminClaimsRoute);
+app.use("/api/v1/admin/notifications", adminNotificationRoute);
 
 app.all("*", (req, res) => {
   const message = `Can't find ${req.originalUrl} on this server!`;

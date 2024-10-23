@@ -21,4 +21,35 @@ const checkOwnership = (model, ownerFieldName, userId) => {
   }
 };
 
-export default checkOwnership;
+/**
+ * Check an Id is valid MongoDb Id
+ * @param {string} id - The ID to validate.
+ * @returns {boolean} - Returns true if the ID is valid, otherwise false.
+ */
+/**
+ * Check if an ID is a valid MongoDB ObjectId
+ * @param {string} id - The ID to validate.
+ * @throws {ApiError} - Throws an ApiError with a 400 status code if the ID is invalid.
+ * @returns {boolean} - Returns true if the ID is valid.
+ */
+const isValidId = (id) => {
+  if (!id) {
+    throw new ApiError(400, "ID is missing");
+  }
+
+  if (typeof id !== "string") {
+    throw new ApiError(400, "ID must be a string");
+  }
+
+  if (id.length !== 24) {
+    throw new ApiError(400, "ID must be 24 characters long");
+  }
+
+  if (!/^[0-9a-fA-F]+$/.test(id)) {
+    throw new ApiError(400, "ID must be a valid hexadecimal string");
+  }
+
+  return true;
+};
+
+export { checkOwnership, isValidId };
