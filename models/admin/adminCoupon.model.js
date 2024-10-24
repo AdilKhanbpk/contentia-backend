@@ -11,7 +11,6 @@ const couponSchema = new Schema(
     },
     discountTl: {
       type: String,
-      required: true,
     },
     discountPercentage: {
       type: Number,

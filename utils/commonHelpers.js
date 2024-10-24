@@ -1,3 +1,4 @@
+import { isValidObjectId } from "mongoose";
 import ApiError from "./ApiError.js";
 
 /**
@@ -21,4 +22,25 @@ const checkOwnership = (model, ownerFieldName, userId) => {
   }
 };
 
-export default checkOwnership;
+/**
+ * Check an Id is valid MongoDb Id
+ * @param {string} id - The ID to validate.
+ * @returns {boolean} - Returns true if the ID is valid, otherwise false.
+ */
+/**
+ * Check if an ID is a valid MongoDB ObjectId
+ * @param {string} id - The ID to validate.
+ * @throws {ApiError} - Throws an ApiError with a 400 status code if the ID is invalid.
+ * @returns {boolean} - Returns true if the ID is valid.
+ */
+const isValidId = (id) => {
+  const isValid = isValidObjectId(id);
+
+  if (!isValid) {
+    throw new ApiError(400, "Invalid Id");
+  }
+
+  return isValid;
+};
+
+export { checkOwnership, isValidId };

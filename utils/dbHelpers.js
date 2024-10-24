@@ -33,6 +33,9 @@ const findById = async (model, id) => {
 const createADocument = async (model, data) => {
   try {
     const document = await model.create(data);
+    if (!document) {
+      throw new ApiError(500, "Failed to create document");
+    }
     return document;
   } catch (error) {
     throw new ApiError(500, `Error creating document: ${error.message}`);
@@ -48,7 +51,12 @@ const createADocument = async (model, data) => {
  */
 const findAll = async (model) => {
   try {
-    const documents = await model.find({});
+    const documents = await model.find();
+
+    if (!documents || documents.length === 0) {
+      throw new ApiError(404, "No documents found");
+    }
+
     return documents;
   } catch (error) {
     throw new ApiError(500, `Error finding documents: ${error.message}`);
@@ -66,6 +74,9 @@ const findAll = async (model) => {
 const findByQuery = async (model, query) => {
   try {
     const documents = await model.find(query);
+    if (!documents || documents.length === 0) {
+      throw new ApiError(404, "No documents found");
+    }
     return documents;
   } catch (error) {
     throw new ApiError(500, `Error finding documents: ${error.message}`);
@@ -104,7 +115,7 @@ const deleteById = async (model, id) => {
 const updateById = async (model, id, updateData) => {
   try {
     const updatedDocument = await model.findByIdAndUpdate(id, updateData, {
-      new: true, // Return the updated document after update
+      new: true,
     });
     if (!updatedDocument) {
       throw new ApiError(404, "Document not found");

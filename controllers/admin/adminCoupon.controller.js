@@ -47,8 +47,8 @@ const getCoupons = asyncHandler(async (req, res) => {
 });
 
 const getCouponById = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const coupon = await CouponModel.findById(id);
+  const { couponId } = req.params;
+  const coupon = await CouponModel.findById(couponId);
 
   if (!coupon) {
     throw new ApiError(404, "Coupon not found");
@@ -60,7 +60,7 @@ const getCouponById = asyncHandler(async (req, res) => {
 });
 
 const updateCoupon = asyncHandler(async (req, res) => {
-  const { id } = req.params;
+  const { couponId } = req.params;
   const {
     code,
     discountTl,
@@ -69,7 +69,7 @@ const updateCoupon = asyncHandler(async (req, res) => {
     usageLimit,
     isActive,
   } = req.body;
-  const coupon = await CouponModel.findById(id);
+  const coupon = await CouponModel.findById(couponId);
 
   if (!coupon) {
     throw new ApiError(404, "Coupon not found");
@@ -103,8 +103,8 @@ const updateCoupon = asyncHandler(async (req, res) => {
 });
 
 const deleteCoupon = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const coupon = await CouponModel.findById(id);
+  const { couponId } = req.params;
+  const coupon = await CouponModel.findById(couponId);
 
   if (!coupon) {
     throw new ApiError(404, "Coupon not found");

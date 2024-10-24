@@ -11,9 +11,9 @@ import {
 const router = express.Router();
 
 router.get("/", isAuthenticated, getPricePlans);
-router.get("/:id", isAuthenticated, getPricePlanById);
+router.get("/:pricePlanId", isAuthenticated, getPricePlanById);
 router.post("/", isAuthenticated, createPricePlan);
-router.put("/:id", isAuthenticated, updatePricePlan);
-router.delete("/:id", isAuthenticated, deletePricePlan);
+router.patch("/:pricePlanId", isAuthenticated, updatePricePlan);
+router.delete("/:pricePlanId", isAuthenticated, deletePricePlan);
 
 export default router;

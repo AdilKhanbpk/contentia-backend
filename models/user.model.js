@@ -4,42 +4,72 @@ import bcrypt from "bcrypt";
 
 const userSchema = new mongoose.Schema(
   {
-    role: {
-      type: String,
-      default: "user",
-    },
     userType: {
       type: String,
       default: "customer",
     },
+    role: {
+      type: String,
+      enum: ["admin", "user"],
+      default: "user",
+    },
+    fullName: {
+      type: String,
+    },
     email: {
       type: String,
-      required: true,
+      required: [true, "Email is required."],
       unique: true,
+      validate: {
+        validator: function (value) {
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          return emailRegex.test(value);
+        },
+        message: "Invalid email format.",
+      },
+    },
+    phoneNumber: {
+      type: String,
+    },
+    customerStatus: {
+      type: String,
+      default: "waiting",
     },
     password: {
       type: String,
       required: true,
     },
+    invoice: {
+      type: {
+        type: String,
+      },
+      individual: {
+        invoiceFullName: {
+          type: String,
+        },
+        invoiceIdentityNumber: { type: String },
+        invoiceAddress: { type: String },
+      },
+      corporate: {
+        companyName: {
+          type: String,
+        },
+        taxNumber: { type: String },
+        taxOffice: { type: String },
+        invoiceAddress: { type: String },
+      },
+    },
     rememberMe: {
       type: Boolean,
-      default: false, // For "Beni Hatırla"
+      default: false,
     },
-    termsAccepted: {
+    termsAndConditionsApproved: {
       type: Boolean,
-      default: false, // For "Kullanıcı Sözleşmesi"
-    },
-    marketingConsent: {
-      type: Boolean,
-      default: false, // For "Ticari Elektronik İleti"
-    },
-    ordersProfile: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "OrdersProfile", // Reference to OrdersProfile model
+      default: false,
     },
   },
   {
-    timestamps: true, // Automatically manage createdAt and updatedAt fields
+    timestamps: true,
   }
 );
 

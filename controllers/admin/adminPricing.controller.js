@@ -3,6 +3,15 @@ import PricePlanModel from "../../models/admin/adminPricing.model.js";
 import ApiError from "../../utils/ApiError.js";
 import ApiResponse from "../../utils/ApiResponse.js";
 import asyncHandler from "../../utils/asyncHandler.js";
+import { isValidId } from "../../utils/commonHelpers.js";
+import {
+  createADocument,
+  deleteById,
+  findAll,
+  findById,
+  findByQuery,
+  updateById,
+} from "../../utils/dbHelpers.js";
 
 const createPricePlan = asyncHandler(async (req, res) => {
   const { videoCount, strikeThroughPrice, finalPrice } = req.body;
@@ -11,7 +20,7 @@ const createPricePlan = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Video count and final price are required.");
   }
 
-  const newPricePlan = await PricePlanModel.create({
+  const newPricePlan = await createADocument(PricePlanModel, {
     videoCount,
     strikeThroughPrice,
     finalPrice,
@@ -25,7 +34,7 @@ const createPricePlan = asyncHandler(async (req, res) => {
 });
 
 const getPricePlans = asyncHandler(async (req, res) => {
-  const pricePlans = await PricePlanModel.find();
+  const pricePlans = await findAll(PricePlanModel);
   return res
     .status(200)
     .json(
@@ -34,12 +43,11 @@ const getPricePlans = asyncHandler(async (req, res) => {
 });
 
 const getPricePlanById = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const pricePlan = await PricePlanModel.findById(id);
+  const { pricePlanId } = req.params;
 
-  if (!pricePlan) {
-    throw new ApiError(404, `Price plan not found with id: ${id}`);
-  }
+  isValidId(pricePlanId);
+
+  const pricePlan = await findById(PricePlanModel, pricePlanId);
 
   return res
     .status(200)
@@ -47,39 +55,56 @@ const getPricePlanById = asyncHandler(async (req, res) => {
 });
 
 const updatePricePlan = asyncHandler(async (req, res) => {
-  const { id } = req.params;
+  const { pricePlanId } = req.params;
   const { videoCount, strikeThroughPrice, finalPrice } = req.body;
-  const pricePlan = await PricePlanModel.findById(id);
 
-  if (!pricePlan) {
-    throw new ApiError(404, `Price plan not found with id: ${id}`);
+  isValidId(pricePlanId);
+
+  const existingPlan = await findById(PricePlanModel, pricePlanId);
+
+  if (!existingPlan) {
+    throw new ApiError(404, "Price plan not found.");
   }
 
-  pricePlan.videoCount = videoCount || pricePlan.videoCount;
-  pricePlan.strikeThroughPrice =
-    strikeThroughPrice || pricePlan.strikeThroughPrice;
-  pricePlan.finalPrice = finalPrice || pricePlan.finalPrice;
+  if (existingPlan.videoCount === 1) {
+    const updatedPlan = await updateById(PricePlanModel, pricePlanId, {
+      // strikeThroughPrice,
+      finalPrice,
+    });
 
-  await pricePlan.save();
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          updatedPlan,
+          "Price updated successfully for one video plan"
+        )
+      );
+  }
+  const updatedPlan = await updateById(PricePlanModel, pricePlanId, {
+    videoCount,
+    strikeThroughPrice,
+    finalPrice,
+  });
 
   return res
     .status(200)
-    .json(new ApiResponse(200, pricePlan, "Price plan updated successfully"));
+    .json(new ApiResponse(200, updatedPlan, "Price plan updated successfully"));
 });
 
 const deletePricePlan = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const pricePlan = await PricePlanModel.findById(id);
+  const { pricePlanId } = req.params;
 
-  if (!pricePlan) {
-    throw new ApiError(404, `Price plan not found with id: ${id}`);
-  }
+  isValidId(pricePlanId);
 
-  await pricePlan.remove();
+  const deletedPricePlan = await deleteById(PricePlanModel, pricePlanId);
 
   return res
     .status(200)
-    .json(new ApiResponse(200, null, "Price plan deleted successfully"));
+    .json(
+      new ApiResponse(200, deletedPricePlan, "Price plan deleted successfully")
+    );
 });
 
 export {

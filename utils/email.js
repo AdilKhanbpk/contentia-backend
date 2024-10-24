@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer";
 
-const sendEmail = ({ email, subject, text }) => {
+const sendEmail = ({ email, subject, text = null, html = null }) => {
   return new Promise((resolve, reject) => {
     const transporter = nodemailer.createTransport({
       service: "gmail",
@@ -10,15 +10,12 @@ const sendEmail = ({ email, subject, text }) => {
       },
     });
 
-    // Logging input parameters for debugging
-    console.log("Sending email:", { email, subject, text });
-
     const mail_configs = {
       from: '"Muhammad Ammar Afridi" <ammardata122@gmail.com>',
-      to: email,
+      to: Array.isArray(email) ? email.join(",") : email,
       subject: subject,
-      text: text,
-      // html: "<h1>Hello world</h1>", // Uncomment to send HTML emails
+      ...(text && { text }),
+      ...(html && { html }),
     };
 
     transporter.sendMail(mail_configs, (err, info) => {
@@ -26,7 +23,7 @@ const sendEmail = ({ email, subject, text }) => {
         console.log("Error sending email:", err.message);
         return reject({ message: err.message });
       }
-      console.log("Email sent successfully:", info);
+      // console.log("Email sent successfully:", info);
       return resolve({ message: "Mail is Sent Successfully" });
     });
   });

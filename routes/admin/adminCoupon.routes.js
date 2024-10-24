@@ -11,11 +11,11 @@ import { isAuthenticated } from "../../middlewares/authentication.middleware.js"
 
 const router = express.Router();
 
-router.post("/create", createCoupon);
+router.post("/", createCoupon);
 router.get("/", getCoupons);
-router.get("/:id", getCouponById);
-router.put("/:id", updateCoupon);
-router.delete("/:id", deleteCoupon);
+router.get("/:couponId", getCouponById);
+router.patch("/:couponId", updateCoupon);
+router.delete("/:couponId", deleteCoupon);
 router.post("/validate", validateCoupon);
 
 export default router;
