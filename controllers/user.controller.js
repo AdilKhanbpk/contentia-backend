@@ -3,7 +3,7 @@ import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import { isValidId } from "../utils/commonHelpers.js";
-import { updateById } from "../utils/dbHelpers.js";
+import { findById, updateById } from "../utils/dbHelpers.js";
 
 const cookieOptions = {
   httpOnly: true,
@@ -103,7 +103,34 @@ export const updateUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, updatedUser, "User updated Successfully"));
 });
 
-export const changePassword = asyncHandler(async (req, res) => {});
+export const changePassword = asyncHandler(async (req, res) => {
+  const { currentPassword, newPassword, confirmNewPassword } = req.body;
+
+  if (!currentPassword || !newPassword || !confirmNewPassword) {
+    throw new ApiError(400, "Please provide all the required fields");
+  }
+
+  isValidId(req.user._id);
+
+  const user = await findById(User, req.user._id);
+
+  const isPasswordCorrect = await user.ComparePassword(currentPassword);
+
+  if (!isPasswordCorrect) {
+    throw new ApiError(400, "Current password is incorrect");
+  }
+
+  if (newPassword !== confirmNewPassword) {
+    throw new ApiError(400, "Passwords do not match");
+  }
+
+  user.password = newPassword;
+  await user.save();
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, null, "Password changed successfully"));
+});
 
 export const logout = asyncHandler(async (req, res) => {
   return res

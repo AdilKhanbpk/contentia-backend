@@ -1,3 +1,4 @@
+import { isValidObjectId } from "mongoose";
 import ApiError from "./ApiError.js";
 
 /**
@@ -33,23 +34,13 @@ const checkOwnership = (model, ownerFieldName, userId) => {
  * @returns {boolean} - Returns true if the ID is valid.
  */
 const isValidId = (id) => {
-  if (!id) {
-    throw new ApiError(400, "ID is missing");
+  const isValid = isValidObjectId(id);
+
+  if (!isValid) {
+    throw new ApiError(400, "Invalid Id");
   }
 
-  if (typeof id !== "string") {
-    throw new ApiError(400, "ID must be a string");
-  }
-
-  if (id.length !== 24) {
-    throw new ApiError(400, "ID must be 24 characters long");
-  }
-
-  if (!/^[0-9a-fA-F]+$/.test(id)) {
-    throw new ApiError(400, "ID must be a valid hexadecimal string");
-  }
-
-  return true;
+  return isValid;
 };
 
 export { checkOwnership, isValidId };
