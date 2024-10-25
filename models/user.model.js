@@ -28,6 +28,9 @@ const userSchema = new mongoose.Schema(
         message: "Invalid email format.",
       },
     },
+    age: {
+      type: Number,
+    },
     phoneNumber: {
       type: String,
     },

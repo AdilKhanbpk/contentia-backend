@@ -6,10 +6,11 @@ import { fileURLToPath } from "url";
 
 import userAuthRoutes from "./routes/user.routes.js";
 import ordersRoute from "./routes/orders.routes.js";
-import becomeCreatorRoute from "./routes/becomeCreator.routes.js";
+import becomeCreatorRoute from "./routes/creator.routes.js";
 
 // ADMIN ROUTES
-import adminUserRoutes from "./routes/admin/adminUser.routes.js";
+import adminCustomerRoutes from "./routes/admin/adminCustomer.routes.js";
+import adminCreatorRoutes from "./routes/admin/adminCreator.routes.js";
 import adminCustomPackage from "./routes/admin/adminCustomPackage.routes.js";
 import adminBannerRoute from "./routes/admin/adminBanner.routes.js";
 import adminAboutRoute from "./routes/admin/adminAbout.routes.js";
@@ -53,7 +54,8 @@ app.use("/api/v1/orders", ordersRoute);
 app.use("/api/v1/become-creator", becomeCreatorRoute);
 
 // ADMIN ROUTES
-app.use("/api/v1/admin/users", adminUserRoutes);
+app.use("/api/v1/admin/customer", adminCustomerRoutes);
+app.use("/api/v1/admin/creator", adminCreatorRoutes);
 app.use("/api/v1/admin/packages", adminCustomPackage);
 app.use("/api/v1/admin/faq", adminFaqRoute);
 app.use("/api/v1/admin/banner", adminBannerRoute);

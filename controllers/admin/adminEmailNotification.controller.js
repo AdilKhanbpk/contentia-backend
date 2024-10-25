@@ -1,5 +1,5 @@
 import EmailNotification from "../../models/admin/adminEmailNotification.model.js";
-import Creator from "../../models/becomeCreator.model.js";
+import Creator from "../../models/creator.model.js";
 import User from "../../models/user.model.js";
 import ApiError from "../../utils/ApiError.js";
 import ApiResponse from "../../utils/ApiResponse.js";
