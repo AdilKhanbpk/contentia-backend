@@ -10,7 +10,7 @@ import {
   findById,
   updateById,
 } from "../../utils/dbHelpers.js";
-import Creator from "../../models/admin/adminCreatorUser.model.js";
+import Creator from "../../models/creator.model.js";
 import User from "../../models/user.model.js";
 import Notification from "../../models/admin/adminNotification.model.js";
 
