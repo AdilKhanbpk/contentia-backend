@@ -3,6 +3,9 @@ import HelpSupportModel from "../../models/admin/adminHelpSupport.model.js";
 import ApiError from "../../utils/ApiError.js";
 import ApiResponse from "../../utils/ApiResponse.js";
 import asyncHandler from "../../utils/asyncHandler.js";
+import { isValidId } from "../../utils/commonHelpers.js";
+import { uploadImageToCloudinary } from "../../utils/Cloudinary.js";
+import { findAll, findById, updateById } from "../../utils/dbHelpers.js";
 
 const createHelpSupport = asyncHandler(async (req, res) => {
   const { title, category, content } = req.body;
@@ -11,10 +14,19 @@ const createHelpSupport = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Title, Category, and Content are required.");
   }
 
-  const newHelpSupport = await HelpSupportModel.create({
+  const icon = req.file?.path;
+
+  if (!icon) {
+    throw new ApiError(400, "Icon is required.");
+  }
+
+  const uploadedImage = await uploadImageToCloudinary(icon);
+
+  const newHelpSupport = await createADocument(HelpSupportModel, {
     title,
     category,
     content,
+    icon: uploadedImage.path,
   });
 
   return res
@@ -25,7 +37,7 @@ const createHelpSupport = asyncHandler(async (req, res) => {
 });
 
 const getHelpSupports = asyncHandler(async (req, res) => {
-  const helpSupports = await HelpSupportModel.find();
+  const helpSupports = await findAll(HelpSupportModel);
   return res
     .status(200)
     .json(
@@ -34,12 +46,10 @@ const getHelpSupports = asyncHandler(async (req, res) => {
 });
 
 const getHelpSupportById = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const helpSupport = await HelpSupportModel.findById(id);
+  const { helpSupportId } = req.params;
+  isValidId(helpSupportId);
 
-  if (!helpSupport) {
-    throw new ApiError(404, `Help support not found with id: ${id}`);
-  }
+  const helpSupport = await findById(HelpSupportModel, helpSupportId);
 
   return res
     .status(200)
@@ -49,40 +59,71 @@ const getHelpSupportById = asyncHandler(async (req, res) => {
 });
 
 const updateHelpSupport = asyncHandler(async (req, res) => {
-  const { id } = req.params;
+  const { helpSupportId } = req.params;
   const { title, category, content } = req.body;
-  const helpSupport = await HelpSupportModel.findById(id);
 
-  if (!helpSupport) {
-    throw new ApiError(404, `Help support not found with id: ${id}`);
-  }
+  isValidId(helpSupportId);
 
-  helpSupport.title = title || helpSupport.title;
-  helpSupport.category = category || helpSupport.category;
-  helpSupport.content = content || helpSupport.content;
-
-  await helpSupport.save();
+  const updatedHelpSupport = await updateById(HelpSupportModel, helpSupportId, {
+    title,
+    category,
+    content,
+  });
 
   return res
     .status(200)
     .json(
-      new ApiResponse(200, helpSupport, "Help support updated successfully")
+      new ApiResponse(
+        200,
+        updatedHelpSupport,
+        "Help support updated successfully"
+      )
+    );
+});
+
+const updateHelpSupportIcon = asyncHandler(async (req, res) => {
+  const { helpSupportId } = req.params;
+
+  isValidId(helpSupportId);
+  const icon = req.file?.path;
+
+  if (!icon) {
+    throw new ApiError(400, "Icon is required.");
+  }
+
+  const uploadedImage = await uploadImageToCloudinary(icon);
+
+  const updatedHelpSupport = await updateById(HelpSupportModel, helpSupportId, {
+    icon: uploadedImage.path,
+  });
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        updatedHelpSupport,
+        "Help support icon updated successfully"
+      )
     );
 });
 
 const deleteHelpSupport = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const helpSupport = await HelpSupportModel.findById(id);
+  const { helpSupportId } = req.params;
 
-  if (!helpSupport) {
-    throw new ApiError(404, `Help support not found with id: ${id}`);
-  }
+  isValidId(helpSupportId);
 
-  await helpSupport.remove();
+  const helpSupport = await findById(HelpSupportModel, helpSupportId);
+
+  const iconPath = helpSupport.icon;
+
+  await deleteImageFromCloudinary(iconPath);
 
   return res
     .status(200)
-    .json(new ApiResponse(200, null, "Help support deleted successfully"));
+    .json(
+      new ApiResponse(200, helpSupport, "Help support deleted successfully")
+    );
 });
 
 export {
@@ -90,5 +131,6 @@ export {
   getHelpSupports,
   getHelpSupportById,
   updateHelpSupport,
+  updateHelpSupportIcon,
   deleteHelpSupport,
 };

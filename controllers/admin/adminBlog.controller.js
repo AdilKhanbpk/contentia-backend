@@ -3,11 +3,17 @@ import ApiError from "../../utils/ApiError.js";
 import ApiResponse from "../../utils/ApiResponse.js";
 import asyncHandler from "../../utils/asyncHandler.js";
 import {
+  deleteImageFromCloudinary,
+  uploadImageToCloudinary,
+} from "../../utils/Cloudinary.js";
+import { isValidId } from "../../utils/commonHelpers.js";
+import {
   createADocument,
   findByQuery,
   updateById,
   deleteById,
   findById,
+  findAll,
 } from "../../utils/dbHelpers.js";
 
 const createBlog = asyncHandler(async (req, res) => {
@@ -22,10 +28,12 @@ const createBlog = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Blog already exists");
   }
 
-  const bannerImage = req.file?.path;
-  if (!bannerImage) {
+  const blogImage = req.file?.path;
+  if (!blogImage) {
     throw new ApiError(400, "Please provide a banner image");
   }
+
+  const uploadImage = await uploadImageToCloudinary(blogImage);
 
   const createdBlog = await createADocument(BlogModel, {
     author: req.user._id,
@@ -34,10 +42,8 @@ const createBlog = asyncHandler(async (req, res) => {
     metaKeywords,
     metaDescription,
     content,
-    bannerImage,
+    bannerImage: uploadImage.path,
   });
-
-  await createdBlog.save();
 
   return res
     .status(201)
@@ -45,11 +51,7 @@ const createBlog = asyncHandler(async (req, res) => {
 });
 
 const getBlogs = asyncHandler(async (req, res) => {
-  const blogs = await findByQuery(BlogModel, {});
-
-  if (!blogs || blogs.length === 0) {
-    throw new ApiError(404, "No blogs found");
-  }
+  const blogs = await findAll(BlogModel);
   return res
     .status(200)
     .json(new ApiResponse(200, blogs, "Blogs fetched successfully!"));
@@ -58,15 +60,9 @@ const getBlogs = asyncHandler(async (req, res) => {
 const getBlogById = asyncHandler(async (req, res) => {
   const { blogId } = req.params;
 
-  if (!blogId) {
-    throw new ApiError(400, "Please provide a blog ID");
-  }
+  isValidId(blogId);
 
   const blog = await findById(BlogModel, blogId);
-
-  if (!blog) {
-    throw new ApiError(404, "Blog not found");
-  }
 
   return res
     .status(200)
@@ -76,9 +72,7 @@ const getBlogById = asyncHandler(async (req, res) => {
 const updateBlog = asyncHandler(async (req, res) => {
   const { blogId } = req.params;
 
-  if (!blogId) {
-    throw new ApiError(400, "Please provide a blog ID");
-  }
+  isValidId(blogId);
 
   const { title, category, metaKeywords, metaDescription, content } = req.body;
 
@@ -94,10 +88,6 @@ const updateBlog = asyncHandler(async (req, res) => {
     content,
   });
 
-  if (!updatedBlog) {
-    throw new ApiError(404, "Blog not found");
-  }
-
   return res
     .status(200)
     .json(new ApiResponse(200, updatedBlog, "Blog updated successfully!"));
@@ -106,23 +96,19 @@ const updateBlog = asyncHandler(async (req, res) => {
 const updateBannerImageOfBlog = asyncHandler(async (req, res) => {
   const { blogId } = req.params;
 
-  if (!blogId) {
-    throw new ApiError(400, "Please provide a blog ID");
-  }
+  isValidId(blogId);
 
-  const bannerImage = req.file;
+  const blogImage = req.file.path;
 
-  if (!bannerImage) {
+  if (!blogImage) {
     throw new ApiError(400, "Please provide a banner image");
   }
 
-  const updatedBannerImageOfBlog = await updateById(BlogModel, blogId, {
-    bannerImage: bannerImage.path,
-  });
+  const uploadedImage = await uploadImageToCloudinary(blogImage);
 
-  if (!updatedBannerImageOfBlog) {
-    throw new ApiError(404, "Blog not found");
-  }
+  const updatedBannerImageOfBlog = await updateById(BlogModel, blogId, {
+    bannerImage: uploadedImage.path,
+  });
 
   return res
     .status(200)
@@ -138,15 +124,15 @@ const updateBannerImageOfBlog = asyncHandler(async (req, res) => {
 const deleteBlog = asyncHandler(async (req, res) => {
   const { blogId } = req.params;
 
-  if (!blogId) {
-    throw new ApiError(400, "Please provide a blog ID");
-  }
+  isValidId(blogId);
+
+  const blog = await findById(BlogModel, blogId);
+
+  const blogBannerImage = blog.bannerImage;
+
+  await deleteImageFromCloudinary(blogBannerImage);
 
   const deletedBlog = await deleteById(BlogModel, blogId);
-
-  if (!deletedBlog) {
-    throw new ApiError(404, "Blog not found");
-  }
 
   return res
     .status(200)

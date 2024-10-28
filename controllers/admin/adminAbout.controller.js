@@ -3,41 +3,100 @@ import AboutModel from "../../models/admin/adminAbout.model.js";
 import ApiError from "../../utils/ApiError.js";
 import ApiResponse from "../../utils/ApiResponse.js";
 import asyncHandler from "../../utils/asyncHandler.js";
+import { uploadImageToCloudinary } from "../../utils/Cloudinary.js";
+import { findAll, findById, findOne } from "../../utils/dbHelpers.js";
 
-const createOrUpdateAbout = asyncHandler(async (req, res) => {
-  const { content } = req.body;
+const createAbout = asyncHandler(async (req, res) => {
+  const {
+    title,
+    content,
+    contactTitle,
+    contactEmail,
+    contactPhone,
+    contactAddress,
+    buttonUrl,
+  } = req.body;
 
-  if (!content) {
-    throw new ApiError(400, "Content is required.");
+  const aboutImage = req.file.path;
+
+  if (!aboutImage) {
+    throw new ApiError(400, "Please provide an image");
   }
 
-  let about = await AboutModel.findOne();
+  const uploadImage = await uploadImageToCloudinary(aboutImage);
 
-  if (about) {
-    about.content = content;
-    await about.save();
-    return res
-      .status(200)
-      .json(new ApiResponse(200, about, "About content updated successfully"));
-  }
-
-  about = await AboutModel.create({ content });
+  const newAbout = await createADocument(AboutModel, {
+    title,
+    content,
+    contactTitle,
+    contactEmail,
+    contactPhone,
+    contactAddress,
+    buttonUrl,
+    aboutImage: uploadImage.path,
+  });
 
   return res
     .status(201)
-    .json(new ApiResponse(201, about, "About content created successfully"));
+    .json(new ApiResponse(201, newAbout, "About created successfully"));
 });
 
-const getAbout = asyncHandler(async (req, res) => {
-  const about = await AboutModel.findOne();
+const updateAbout = asyncHandler(async (req, res) => {
+  const { aboutId } = req.params;
+  const {
+    title,
+    content,
+    contactTitle,
+    contactEmail,
+    contactPhone,
+    contactAddress,
+    buttonUrl,
+  } = req.body;
 
-  if (!about) {
-    throw new ApiError(404, "About content not found");
-  }
+  isValidId(aboutId);
+
+  const updatedAbout = await updateById(AboutModel, aboutId, {
+    title,
+    content,
+    contactTitle,
+    contactEmail,
+    contactPhone,
+    contactAddress,
+    buttonUrl,
+  });
 
   return res
     .status(200)
-    .json(new ApiResponse(200, about, "About content retrieved successfully"));
+    .json(new ApiResponse(200, updatedAbout, "About updated successfully"));
 });
 
-export { createOrUpdateAbout, getAbout };
+const updateAboutImage = asyncHandler(async (req, res) => {
+  const { aboutId } = req.params;
+  const aboutImage = req.file.path;
+
+  isValidId(aboutId);
+
+  if (!aboutImage) {
+    throw new ApiError(400, "Please provide an image");
+  }
+
+  const uploadImage = await uploadImageToCloudinary(aboutImage);
+
+  const updatedAbout = await updateById(AboutModel, aboutId, {
+    aboutImage: uploadImage.path,
+  });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, updatedAbout, "About updated successfully"));
+});
+
+const getAbout = asyncHandler(async (req, res) => {
+  const about = await findOne(AboutModel, {});
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, about, "About retrieved successfully"));
+});
+
+export { createAbout, updateAbout, getAbout, updateAboutImage };

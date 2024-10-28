@@ -2,8 +2,25 @@ import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 
+const requiredIfAccountType = (accountType, type) => {
+  return function () {
+    return this.accountType === accountType && type;
+  };
+};
+
+const requiredIfInvoiceType = (invoiceType, type) => {
+  return function () {
+    return this.invoiceType === invoiceType && type;
+  };
+};
+
 const userSchema = new mongoose.Schema(
   {
+    status: {
+      type: String,
+      enum: ["approved", "waiting", "rejected"],
+      default: "waiting",
+    },
     userType: {
       type: String,
       default: "customer",
@@ -36,30 +53,50 @@ const userSchema = new mongoose.Schema(
     },
     customerStatus: {
       type: String,
+      enum: ["waiting", "approved", "rejected"],
       default: "waiting",
     },
     password: {
       type: String,
       required: true,
     },
-    invoice: {
-      type: {
+
+    invoiceType: {
+      type: String,
+      enum: ["individual", "institutional"],
+      required: [
+        true,
+        "Invoice type is required and must be 'individual' or 'institutional'.",
+      ],
+    },
+    billingInformation: {
+      invoiceStatus: {
+        type: Boolean,
+        required: [true, "Invoice status is required."],
+      },
+      trId: {
         type: String,
+        required: [true, "Billing -> TR ID is required."],
       },
-      individual: {
-        invoiceFullName: {
-          type: String,
-        },
-        invoiceIdentityNumber: { type: String },
-        invoiceAddress: { type: String },
+      address: {
+        type: String,
+        required: [true, "Billing -> Address is required."],
       },
-      corporate: {
-        companyName: {
-          type: String,
-        },
-        taxNumber: { type: String },
-        taxOffice: { type: String },
-        invoiceAddress: { type: String },
+      fullName: {
+        type: String,
+        required: requiredIfInvoiceType("individual", true),
+      },
+      companyName: {
+        type: String,
+        required: requiredIfInvoiceType("institutional", true),
+      },
+      taxNumber: {
+        type: String,
+        required: requiredIfInvoiceType("institutional", true),
+      },
+      taxOffice: {
+        type: String,
+        required: requiredIfInvoiceType("institutional", true),
       },
     },
     rememberMe: {

@@ -10,9 +10,9 @@ import {
 const router = express.Router();
 
 router.get("/", isAuthenticated, getFaqs);
-router.get("/:id", isAuthenticated, getFaqs); // Consider updating to getFaqById
+router.get("/:faqId", isAuthenticated, getFaqs); // Consider updating to getFaqById
 router.post("/", isAuthenticated, createFaq);
-router.put("/:id", isAuthenticated, updateFaq);
-router.delete("/:id", isAuthenticated, deleteFaq);
+router.patch("/:faqId", isAuthenticated, updateFaq);
+router.delete("/:faqId", isAuthenticated, deleteFaq);
 
 export default router;

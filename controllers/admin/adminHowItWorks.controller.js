@@ -1,17 +1,30 @@
 // controllers/adminHowItWorksController.js
-import HowItWorksModel from "../../models/admin/adminHowItWorks.model.js";
 import ApiError from "../../utils/ApiError.js";
 import ApiResponse from "../../utils/ApiResponse.js";
 import asyncHandler from "../../utils/asyncHandler.js";
+import HowItWorkModel from "../../models/admin/adminHowItworks.model.js";
+import { findAll, findById, updateById } from "../../utils/dbHelpers.js";
 
 const createHowItWorks = asyncHandler(async (req, res) => {
-  const { title, description } = req.body;
+  const { sectionTitle, sectionDescription, steps } = req.body;
 
-  if (!title || !description) {
-    throw new ApiError(400, "Title and Description are required.");
+  if (
+    !sectionTitle ||
+    !sectionDescription ||
+    !Array.isArray(steps) ||
+    steps.length === 0
+  ) {
+    throw new ApiError(
+      400,
+      "Section Title, Description, and at least one Step are required."
+    );
   }
 
-  const newHowItWorks = await HowItWorksModel.create({ title, description });
+  const newHowItWorks = await createADocument(HowItWorkModel, {
+    sectionTitle,
+    sectionDescription,
+    steps,
+  });
 
   return res
     .status(201)
@@ -25,7 +38,7 @@ const createHowItWorks = asyncHandler(async (req, res) => {
 });
 
 const getHowItWorks = asyncHandler(async (req, res) => {
-  const howItWorks = await HowItWorksModel.find();
+  const howItWorks = await findAll(HowItWorkModel);
   return res
     .status(200)
     .json(
@@ -38,13 +51,8 @@ const getHowItWorks = asyncHandler(async (req, res) => {
 });
 
 const getHowItWorksById = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const howItWorks = await HowItWorksModel.findById(id);
-
-  if (!howItWorks) {
-    throw new ApiError(404, `How It Works section not found with id: ${id}`);
-  }
-
+  const { howItWorksId } = req.params;
+  const howItWorks = await findById(HowItWorkModel, howItWorksId);
   return res
     .status(200)
     .json(
@@ -56,40 +64,60 @@ const getHowItWorksById = asyncHandler(async (req, res) => {
     );
 });
 
-const updateHowItWorks = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const { title, description } = req.body;
-  const howItWorks = await HowItWorksModel.findById(id);
+const updateStepInHowItWorks = asyncHandler(async (req, res) => {
+  const { howItWorksId } = req.params;
+  const { sectionTitle, sectionDescription, steps } = req.body;
 
-  if (!howItWorks) {
-    throw new ApiError(404, `How It Works section not found with id: ${id}`);
+  if (!sectionTitle && !sectionDescription && !steps) {
+    throw new ApiError(
+      400,
+      "At least one of sectionTitle, sectionDescription, or steps is required."
+    );
   }
 
-  howItWorks.title = title || howItWorks.title;
-  howItWorks.description = description || howItWorks.description;
+  if (steps && steps.length > 4) {
+    throw new ApiError(400, "The steps array must contain up to 4 items.");
+  }
 
-  await howItWorks.save();
+  const updateFields = {};
+
+  if (sectionTitle) updateFields.sectionTitle = sectionTitle;
+  if (sectionDescription) updateFields.sectionDescription = sectionDescription;
+
+  if (steps) updateFields.steps = steps;
+
+  const updatedHowItWorks = await updateById(HowItWorkModel, howItWorksId, {
+    ...updateFields,
+  });
+
+  if (!updatedHowItWorks) {
+    throw new ApiError(
+      404,
+      `How It Works section not found with howItWorksId: ${howItWorksId}`
+    );
+  }
 
   return res
     .status(200)
     .json(
       new ApiResponse(
         200,
-        howItWorks,
+        updatedHowItWorks,
         "How It Works section updated successfully"
       )
     );
 });
 
 const deleteHowItWorks = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const howItWorks = await HowItWorksModel.findById(id);
+  const { howItWorksId } = req.params;
+  const howItWorks = await HowItWorkModel.findByIdAndDelete(howItWorksId);
 
   if (!howItWorks) {
-    throw new ApiError(404, `How It Works section not found with id: ${id}`);
+    throw new ApiError(
+      404,
+      `How It Works section not found with howItWorksId: ${howItWorksId}`
+    );
   }
-
-  await howItWorks.remove();
 
   return res
     .status(200)
@@ -102,6 +130,6 @@ export {
   createHowItWorks,
   getHowItWorks,
   getHowItWorksById,
-  updateHowItWorks,
+  updateStepInHowItWorks,
   deleteHowItWorks,
 };

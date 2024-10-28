@@ -5,15 +5,15 @@ import {
   deleteHowItWorks,
   getHowItWorks,
   getHowItWorksById,
-  updateHowItWorks,
+  updateStepInHowItWorks,
 } from "../../controllers/admin/adminHowItWorks.controller.js";
 
 const router = express.Router();
 
 router.get("/", isAuthenticated, getHowItWorks);
-router.get("/:id", isAuthenticated, getHowItWorksById);
+router.get("/:howItWorksId", isAuthenticated, getHowItWorksById);
 router.post("/", isAuthenticated, createHowItWorks);
-router.put("/:id", isAuthenticated, updateHowItWorks);
-router.delete("/:id", isAuthenticated, deleteHowItWorks);
+router.patch("/:howItWorksId", isAuthenticated, updateStepInHowItWorks);
+router.delete("/:howItWorksId", isAuthenticated, deleteHowItWorks);
 
 export default router;

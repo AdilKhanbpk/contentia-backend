@@ -1,6 +1,6 @@
 import express from "express";
 import {
-  createOrUpdateAbout,
+  createAbout,
   getAbout,
 } from "../../controllers/admin/adminAbout.controller.js";
 import { isAuthenticated } from "../../middlewares/authentication.middleware.js";
@@ -8,6 +8,6 @@ import { isAuthenticated } from "../../middlewares/authentication.middleware.js"
 const router = express.Router();
 
 router.get("/", getAbout);
-router.post("/", createOrUpdateAbout);
+router.post("/", createAbout);
 
 export default router;
