@@ -3,17 +3,7 @@ const Schema = mongoose.Schema;
 
 const bannerSchema = new Schema(
   {
-    title: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    category: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    content: {
+    bannerImage: {
       type: String,
       required: true,
     },

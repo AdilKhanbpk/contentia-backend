@@ -25,11 +25,11 @@ const getFaqs = asyncHandler(async (req, res) => {
 });
 
 const getFaqById = asyncHandler(async (req, res, next) => {
-  const { id } = req.params;
-  const faq = await FaqModel.findById(id);
+  const { faqId } = req.params;
+  const faq = await FaqModel.findById(faqId);
 
   if (!faq) {
-    throw new ApiError(404, `FAQ not found with id: ${id}`);
+    throw new ApiError(404, `FAQ not found with faqId: ${faqId}`);
   }
 
   return res
@@ -38,12 +38,12 @@ const getFaqById = asyncHandler(async (req, res, next) => {
 });
 
 const updateFaq = asyncHandler(async (req, res, next) => {
-  const { id } = req.params;
+  const { faqId } = req.params;
   const { question, answer } = req.body;
-  const faq = await FaqModel.findById(id);
+  const faq = await FaqModel.findById(faqId);
 
   if (!faq) {
-    throw new ApiError(404, `FAQ not found with id: ${id}`);
+    throw new ApiError(404, `FAQ not found with faqId: ${faqId}`);
   }
 
   faq.question = question || faq.question;
@@ -57,11 +57,11 @@ const updateFaq = asyncHandler(async (req, res, next) => {
 });
 
 const deleteFaq = asyncHandler(async (req, res, next) => {
-  const { id } = req.params;
-  const faq = await FaqModel.findById(id);
+  const { faqId } = req.params;
+  const faq = await FaqModel.findById(faqId);
 
   if (!faq) {
-    throw new ApiError(404, `FAQ not found with id: ${id}`);
+    throw new ApiError(404, `FAQ not found with faqId: ${faqId}`);
   }
 
   await faq.remove();

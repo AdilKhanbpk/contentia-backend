@@ -3,7 +3,35 @@ const Schema = mongoose.Schema;
 
 const aboutSchema = new Schema(
   {
+    title: {
+      type: String,
+      required: true,
+    },
     content: {
+      type: String,
+      required: true,
+    },
+    contactTitle: {
+      type: String,
+      required: true,
+    },
+    contactEmail: {
+      type: String,
+      required: true,
+    },
+    contactPhone: {
+      type: String,
+      required: true,
+    },
+    contactAddress: {
+      type: String,
+      required: true,
+    },
+    buttonUrl: {
+      type: String,
+      required: true,
+    },
+    aboutImage: {
       type: String,
       required: true,
     },
