@@ -13,10 +13,10 @@ const router = express.Router();
 // Protect all routes
 router.use(isAuthenticated);
 
-router.post("/", createCreator);
-router.get("/", getAllCreators);
-router.get("/:creatorId", getSingleCreator);
-router.patch("/:creatorId", updateCreator);
-router.delete("/:creatorId", deleteCreator);
+router.post("/", isAuthenticated, createCreator);
+router.get("/", isAuthenticated, getAllCreators);
+router.get("/:creatorId", isAuthenticated, getSingleCreator);
+router.patch("/:creatorId", isAuthenticated, updateCreator);
+router.delete("/:creatorId", isAuthenticated, deleteCreator);
 
 export default router;

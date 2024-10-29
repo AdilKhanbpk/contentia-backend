@@ -99,4 +99,16 @@ const getAbout = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, about, "About retrieved successfully"));
 });
 
-export { createAbout, updateAbout, getAbout, updateAboutImage };
+const deleteAbout = asyncHandler(async (req, res) => {
+  const { aboutId } = req.params;
+
+  isValidId(aboutId);
+
+  const deletedAbout = await deleteById(AboutModel, aboutId);
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, deletedAbout, "About deleted successfully"));
+});
+
+export { createAbout, updateAbout, getAbout, updateAboutImage, deleteAbout };

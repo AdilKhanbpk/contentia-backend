@@ -10,10 +10,14 @@ import { isAuthenticated } from "../../middlewares/authentication.middleware.js"
 
 const router = express.Router();
 
-router.post("/", createAdditionalService);
-router.get("/", getAdditionalServices);
-router.get("/:id", getAdditionalServiceById);
-router.put("/:id", updateAdditionalService);
-router.delete("/:id", deleteAdditionalService);
+router.post("/", isAuthenticated, createAdditionalService);
+router.get("/", isAuthenticated, getAdditionalServices);
+router.get("/:additionalServicesId", isAuthenticated, getAdditionalServiceById);
+router.put("/:additionalServicesId", isAuthenticated, updateAdditionalService);
+router.delete(
+  "/:additionalServicesId",
+  isAuthenticated,
+  deleteAdditionalService
+);
 
 export default router;
