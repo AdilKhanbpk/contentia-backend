@@ -7,6 +7,7 @@ import { fileURLToPath } from "url";
 import userAuthRoutes from "./routes/user.routes.js";
 import ordersRoute from "./routes/orders.routes.js";
 import becomeCreatorRoute from "./routes/creator.routes.js";
+import brandRoute from "./routes/brand.routes.js";
 
 // ADMIN ROUTES
 import adminCustomerRoutes from "./routes/admin/adminCustomer.routes.js";
@@ -53,6 +54,7 @@ app.use(cookieParser());
 app.use("/api/v1/users", userAuthRoutes);
 app.use("/api/v1/orders", ordersRoute);
 app.use("/api/v1/become-creator", becomeCreatorRoute);
+app.use("/api/v1/brands", brandRoute);
 
 // ADMIN ROUTES
 app.use("/api/v1/admin/customer", adminCustomerRoutes);

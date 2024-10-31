@@ -2,7 +2,10 @@ import AdditionalServiceModel from "../../models/admin/adminAdditionalService.mo
 import ApiError from "../../utils/ApiError.js";
 import ApiResponse from "../../utils/ApiResponse.js";
 import asyncHandler from "../../utils/asyncHandler.js";
-import { uploadImageToCloudinary } from "../../utils/Cloudinary.js";
+import {
+  deleteImageFromCloudinary,
+  uploadImageToCloudinary,
+} from "../../utils/Cloudinary.js";
 import {
   createADocument,
   deleteById,
@@ -20,7 +23,7 @@ const createAdditionalService = asyncHandler(async (req, res) => {
     editPrice,
     sharePrice,
     coverPicPrice,
-    creatorType,
+    creatorTypePrice,
     shippingPrice,
     durationTime,
     durationPrice,
@@ -32,7 +35,7 @@ const createAdditionalService = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Please provide an image");
   }
 
-  // const uploadedImage = await uploadImageToCloudinary(imageUrl);
+  const uploadedImage = await uploadImageToCloudinary(imageUrl);
 
   const additionalService = await createADocument(AdditionalServiceModel, {
     name,
@@ -42,8 +45,8 @@ const createAdditionalService = asyncHandler(async (req, res) => {
     editPrice,
     sharePrice,
     coverPicPrice,
-    creatorType,
-    image: imageUrl.url,
+    creatorTypePrice,
+    image: uploadedImage.url,
     shippingPrice,
     durationTime,
     durationPrice,
@@ -74,11 +77,14 @@ const getAdditionalServices = asyncHandler(async (req, res) => {
 });
 
 const getAdditionalServiceById = asyncHandler(async (req, res) => {
-  const { id } = req.params;
+  const { additionalServicesId } = req.params;
 
-  isValidObjectId(id);
+  isValidObjectId(additionalServicesId);
 
-  const additionalService = await findById(AdditionalServiceModel, id);
+  const additionalService = await findById(
+    AdditionalServiceModel,
+    additionalServicesId
+  );
 
   return res
     .status(200)
@@ -92,54 +98,89 @@ const getAdditionalServiceById = asyncHandler(async (req, res) => {
 });
 
 const updateAdditionalService = asyncHandler(async (req, res) => {
-  const { id } = req.params;
+  const { additionalServicesId } = req.params;
   const {
     name,
     price,
-    image,
     platform,
     aspectRatio,
     editPrice,
     sharePrice,
     coverPicPrice,
-    creatorType,
+    creatorTypePrice,
     shippingPrice,
     durationTime,
     durationPrice,
   } = req.body;
 
-  const additionalService = await updateById(AdditionalServiceModel, id, {
+  const imageUrl = req.file?.path;
+
+  isValidObjectId(additionalServicesId);
+
+  const additionalService = await findById(
+    AdditionalServiceModel,
+    additionalServicesId
+  );
+
+  const updateData = {
     name,
     price,
-    image,
     platform,
     aspectRatio,
     editPrice,
     sharePrice,
     coverPicPrice,
-    creatorType,
+    creatorTypePrice,
     shippingPrice,
     durationTime,
     durationPrice,
-  });
+  };
+
+  // Delete and update image if a new one is provided
+  if (imageUrl) {
+    if (additionalService.image) {
+      await deleteImageFromCloudinary(additionalService.image);
+    }
+
+    const uploadedImage = await uploadImageToCloudinary(imageUrl);
+    updateData.image = uploadedImage.url;
+  }
+
+  const updatedAdditionalService = await updateById(
+    AdditionalServiceModel,
+    additionalServicesId,
+    updateData
+  );
 
   return res
     .status(200)
     .json(
       new ApiResponse(
         200,
-        additionalService,
+        updatedAdditionalService,
         "Additional service updated successfully"
       )
     );
 });
 
 const deleteAdditionalService = asyncHandler(async (req, res) => {
-  const { id } = req.params;
+  const { additionalServicesId } = req.params;
 
-  isValidObjectId(id);
+  isValidObjectId(additionalServicesId);
 
-  const deletedAdditionalService = await deleteById(AdditionalServiceModel, id);
+  const additionalService = await findById(
+    AdditionalServiceModel,
+    additionalServicesId
+  );
+
+  if (additionalService.image) {
+    await deleteImageFromCloudinary(additionalService.image);
+  }
+
+  const deletedAdditionalService = await deleteById(
+    AdditionalServiceModel,
+    additionalServicesId
+  );
 
   return res
     .status(200)

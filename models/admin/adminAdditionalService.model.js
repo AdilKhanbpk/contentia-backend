@@ -27,8 +27,8 @@ const additionalServiceSchema = new Schema(
     coverPicPrice: {
       type: Number,
     },
-    creatorType: {
-      type: String,
+    creatorTypePrice: {
+      type: Number,
     },
     shippingPrice: {
       type: Number,

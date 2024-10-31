@@ -41,7 +41,7 @@ export const isAdmin = async (req, res, next) => {
 
   if (!user) throw new ApiError(404, "User not found");
 
-  if (user.role.roleName !== "admin") {
+  if (user.role !== "admin") {
     throw new ApiError(403, "Admin access required");
   }
 

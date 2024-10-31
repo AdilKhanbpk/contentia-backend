@@ -27,6 +27,6 @@ const adminClaimsSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const AdminClaims = mongoose.model("AdminClaims", adminClaimsSchema);
+const AdminClaims = mongoose.model("Claims", adminClaimsSchema);
 
 export default AdminClaims;
