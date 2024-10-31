@@ -3,8 +3,19 @@ import AboutModel from "../../models/admin/adminAbout.model.js";
 import ApiError from "../../utils/ApiError.js";
 import ApiResponse from "../../utils/ApiResponse.js";
 import asyncHandler from "../../utils/asyncHandler.js";
-import { uploadImageToCloudinary } from "../../utils/Cloudinary.js";
-import { findAll, findById, findOne } from "../../utils/dbHelpers.js";
+import {
+  deleteImageFromCloudinary,
+  uploadImageToCloudinary,
+} from "../../utils/Cloudinary.js";
+import { isValidId } from "../../utils/commonHelpers.js";
+import {
+  createADocument,
+  deleteById,
+  findAll,
+  findById,
+  findOne,
+  updateById,
+} from "../../utils/dbHelpers.js";
 
 const createAbout = asyncHandler(async (req, res) => {
   const {
@@ -33,7 +44,7 @@ const createAbout = asyncHandler(async (req, res) => {
     contactPhone,
     contactAddress,
     buttonUrl,
-    aboutImage: uploadImage.path,
+    aboutImage: uploadImage.url,
   });
 
   return res
@@ -76,6 +87,12 @@ const updateAboutImage = asyncHandler(async (req, res) => {
 
   isValidId(aboutId);
 
+  const about = await findById(AboutModel, aboutId);
+
+  if (about.aboutImage) {
+    await deleteImageFromCloudinary(about.aboutImage);
+  }
+
   if (!aboutImage) {
     throw new ApiError(400, "Please provide an image");
   }
@@ -83,7 +100,7 @@ const updateAboutImage = asyncHandler(async (req, res) => {
   const uploadImage = await uploadImageToCloudinary(aboutImage);
 
   const updatedAbout = await updateById(AboutModel, aboutId, {
-    aboutImage: uploadImage.path,
+    aboutImage: uploadImage.url,
   });
 
   return res
@@ -103,6 +120,12 @@ const deleteAbout = asyncHandler(async (req, res) => {
   const { aboutId } = req.params;
 
   isValidId(aboutId);
+
+  const about = await findById(AboutModel, aboutId);
+
+  if (about.aboutImage) {
+    await deleteImageFromCloudinary(about.aboutImage);
+  }
 
   const deletedAbout = await deleteById(AboutModel, aboutId);
 

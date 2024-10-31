@@ -17,7 +17,12 @@ router.get(
   uploadOnMulter.single("bannerImage"),
   getBanners
 );
-router.post("/", isAuthenticated, createBanner);
+router.post(
+  "/",
+  isAuthenticated,
+  uploadOnMulter.single("bannerImage"),
+  createBanner
+);
 router.patch(
   "/:bannerId",
   isAuthenticated,

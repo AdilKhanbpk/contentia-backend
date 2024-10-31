@@ -3,6 +3,10 @@ const Schema = mongoose.Schema;
 
 const bannerSchema = new Schema(
   {
+    bannerUrl: {
+      type: String,
+      required: true,
+    },
     bannerImage: {
       type: String,
       required: true,

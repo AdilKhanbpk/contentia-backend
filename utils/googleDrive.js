@@ -281,10 +281,6 @@ const listAllFolders = async () => {
   }
 };
 
-// const allFiles = await listAllFolders("1EPAmQWbpnBYU3ujLYSBz0xthoOz4m4JL");
-
-// console.log(allFiles);
-
 export {
   createFolderAndFile,
   createFolder,

@@ -16,16 +16,21 @@ import {
 } from "../../utils/dbHelpers.js";
 
 const createBanner = asyncHandler(async (req, res) => {
+  const { bannerUrl } = req.body;
   const bannerImage = req.file?.path;
+
+  if (!bannerUrl) {
+    throw new ApiError(400, "Please provide a banner url");
+  }
 
   if (!bannerImage) {
     throw new ApiError(400, "Please provide a banner image");
   }
-
   const uploadBanner = await uploadImageToCloudinary(bannerImage);
 
   const createdBanner = await createADocument(BannerModel, {
-    bannerImage: uploadBanner.path,
+    bannerUrl,
+    bannerImage: uploadBanner?.url,
   });
 
   return res
@@ -54,19 +59,36 @@ const getBannerById = asyncHandler(async (req, res) => {
 
 const updateBanner = asyncHandler(async (req, res) => {
   const { bannerId } = req.params;
+  const { bannerUrl } = req.body;
   const bannerImage = req.file?.path;
 
   isValidId(bannerId);
 
-  if (!bannerImage) {
-    throw new ApiError(400, "Please provide a banner image");
+  const banner = await findById(BannerModel, bannerId);
+
+  const updateData = {};
+
+  if (bannerUrl && bannerUrl !== banner.bannerUrl) {
+    updateData.bannerUrl = bannerUrl;
   }
 
-  const uploadedImage = await uploadImageToCloudinary(bannerImage);
+  if (bannerImage) {
+    if (banner.bannerImage) {
+      await deleteImageFromCloudinary(banner.bannerImage);
+    }
 
-  const updatedBanner = await updateById(BannerModel, bannerId, {
-    bannerImage: uploadedImage.path,
-  });
+    const uploadedImage = await uploadImageToCloudinary(bannerImage);
+    updateData.bannerImage = uploadedImage.url;
+  }
+
+  if (!Object.keys(updateData).length) {
+    throw new ApiError(
+      400,
+      "Please provide either a banner image or URL to update"
+    );
+  }
+
+  const updatedBanner = await updateById(BannerModel, bannerId, updateData);
 
   return res
     .status(200)
