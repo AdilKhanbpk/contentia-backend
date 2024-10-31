@@ -2,13 +2,14 @@ import User from "../models/user.model.js";
 import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import asyncHandler from "../utils/asyncHandler.js";
-import { isValidId } from "../utils/commonHelpers.js";
+import { isValidId, resolvePath } from "../utils/commonHelpers.js";
 import { findById, updateById } from "../utils/dbHelpers.js";
+import { createFolder } from "../utils/googleDrive.js";
 
 const cookieOptions = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
-  sameSite: "strict", // Prevent CSRF attacks
+  sameSite: "strict",
 };
 
 const generateTokens = async (userId) => {

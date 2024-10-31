@@ -13,10 +13,10 @@ const router = express.Router();
 // Protect all routes
 router.use(isAuthenticated);
 
-router.post("/customers", createCustomer);
-router.get("/customers", getAllCustomers);
-router.get("/customers/:id", getSingleCustomer);
-router.put("/customers/:id", updateCustomer);
-router.delete("/customers/:id", deleteCustomer);
+router.post("/customers", isAuthenticated, createCustomer);
+router.get("/customers", isAuthenticated, getAllCustomers);
+router.get("/customers/:id", isAuthenticated, getSingleCustomer);
+router.put("/customers/:id", isAuthenticated, updateCustomer);
+router.delete("/customers/:id", isAuthenticated, deleteCustomer);
 
 export default router;

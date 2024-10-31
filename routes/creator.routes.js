@@ -5,6 +5,6 @@ import { isAuthenticated } from "../middlewares/authentication.middleware.js";
 const router = express.Router();
 
 // Route to create or update OrdersProfile
-router.post("/create", isAuthenticated, createCreator);
+router.post("/create", createCreator);
 
 export default router;

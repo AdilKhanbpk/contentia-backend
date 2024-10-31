@@ -4,8 +4,16 @@ import ApiError from "../../utils/ApiError.js";
 import ApiResponse from "../../utils/ApiResponse.js";
 import asyncHandler from "../../utils/asyncHandler.js";
 import { isValidId } from "../../utils/commonHelpers.js";
-import { uploadImageToCloudinary } from "../../utils/Cloudinary.js";
-import { findAll, findById, updateById } from "../../utils/dbHelpers.js";
+import {
+  deleteImageFromCloudinary,
+  uploadImageToCloudinary,
+} from "../../utils/Cloudinary.js";
+import {
+  createADocument,
+  findAll,
+  findById,
+  updateById,
+} from "../../utils/dbHelpers.js";
 
 const createHelpSupport = asyncHandler(async (req, res) => {
   const { title, category, content } = req.body;
@@ -26,7 +34,7 @@ const createHelpSupport = asyncHandler(async (req, res) => {
     title,
     category,
     content,
-    icon: uploadedImage.path,
+    icon: uploadedImage?.url,
   });
 
   return res
@@ -85,6 +93,13 @@ const updateHelpSupportIcon = asyncHandler(async (req, res) => {
   const { helpSupportId } = req.params;
 
   isValidId(helpSupportId);
+
+  const helpSupport = await findById(HelpSupportModel, helpSupportId);
+
+  if (helpSupport.icon) {
+    await deleteImageFromCloudinary(helpSupport.icon);
+  }
+
   const icon = req.file?.path;
 
   if (!icon) {
@@ -94,7 +109,7 @@ const updateHelpSupportIcon = asyncHandler(async (req, res) => {
   const uploadedImage = await uploadImageToCloudinary(icon);
 
   const updatedHelpSupport = await updateById(HelpSupportModel, helpSupportId, {
-    icon: uploadedImage.path,
+    icon: uploadedImage?.url,
   });
 
   return res

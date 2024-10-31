@@ -1,5 +1,7 @@
 import { isValidObjectId } from "mongoose";
 import ApiError from "./ApiError.js";
+import path from "path";
+import { fileURLToPath } from "url";
 
 /**
  * Checks if the current user is the owner of the resource.
@@ -43,4 +45,15 @@ const isValidId = (id) => {
   return isValid;
 };
 
-export { checkOwnership, isValidId };
+/**
+ *
+ * @param {string} filePath - The path of the file to resolve.
+ * @returns - The resolved path.
+ */
+const resolvePath = (filePath) => {
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = path.dirname(__filename);
+  return path.join(__dirname, filePath);
+};
+
+export { checkOwnership, isValidId, resolvePath };

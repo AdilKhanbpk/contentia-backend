@@ -6,14 +6,27 @@ import {
   getHelpSupportById,
   getHelpSupports,
   updateHelpSupport,
+  updateHelpSupportIcon,
 } from "../../controllers/admin/adminHelpSupport.controller.js";
+import { uploadOnMulter } from "../../middlewares/multer.middleware.js";
 
 const router = express.Router();
 
 router.get("/", isAuthenticated, getHelpSupports);
-router.get("/:id", isAuthenticated, getHelpSupportById);
-router.post("/", isAuthenticated, createHelpSupport);
-router.put("/:id", isAuthenticated, updateHelpSupport);
-router.delete("/:id", isAuthenticated, deleteHelpSupport);
+router.get("/:helpSupportId", isAuthenticated, getHelpSupportById);
+router.post(
+  "/",
+  isAuthenticated,
+  uploadOnMulter.single("icon"),
+  createHelpSupport
+);
+router.patch("/:helpSupportId", isAuthenticated, updateHelpSupport);
+router.patch(
+  "/:helpSupportId/change-icon",
+  isAuthenticated,
+  uploadOnMulter.single("icon"),
+  updateHelpSupportIcon
+);
+router.delete("/:helpSupportId", isAuthenticated, deleteHelpSupport);
 
 export default router;
