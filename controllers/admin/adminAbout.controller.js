@@ -11,7 +11,6 @@ import { isValidId } from "../../utils/commonHelpers.js";
 import {
   createADocument,
   deleteById,
-  findAll,
   findById,
   findOne,
   updateById,
