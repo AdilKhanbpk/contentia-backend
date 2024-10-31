@@ -12,6 +12,7 @@ import brandRoute from "./routes/brand.routes.js";
 // ADMIN ROUTES
 import adminCustomerRoutes from "./routes/admin/adminCustomer.routes.js";
 import adminCreatorRoutes from "./routes/admin/adminCreator.routes.js";
+import adminLandingPageRoute from "./routes/admin/adminLandingPage.routes.js";
 import adminCustomPackage from "./routes/admin/adminCustomPackage.routes.js";
 import adminBannerRoute from "./routes/admin/adminBanner.routes.js";
 import adminAboutRoute from "./routes/admin/adminAbout.routes.js";
@@ -59,6 +60,7 @@ app.use("/api/v1/brands", brandRoute);
 // ADMIN ROUTES
 app.use("/api/v1/admin/customer", adminCustomerRoutes);
 app.use("/api/v1/admin/creator", adminCreatorRoutes);
+app.use("/api/v1/admin/landingPage", adminLandingPageRoute);
 app.use("/api/v1/admin/packages", adminCustomPackage);
 app.use("/api/v1/admin/faq", adminFaqRoute);
 app.use("/api/v1/admin/banner", adminBannerRoute);
