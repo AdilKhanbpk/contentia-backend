@@ -58,8 +58,8 @@ app.use("/api/v1/become-creator", becomeCreatorRoute);
 app.use("/api/v1/brands", brandRoute);
 
 // ADMIN ROUTES
-app.use("/api/v1/admin/customer", adminCustomerRoutes);
-app.use("/api/v1/admin/creator", adminCreatorRoutes);
+app.use("/api/v1/admin/customers", adminCustomerRoutes);
+app.use("/api/v1/admin/creators", adminCreatorRoutes);
 app.use("/api/v1/admin/landingPage", adminLandingPageRoute);
 app.use("/api/v1/admin/packages", adminCustomPackage);
 app.use("/api/v1/admin/faq", adminFaqRoute);

@@ -2,12 +2,6 @@ import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 
-const requiredIfAccountType = (accountType, type) => {
-  return function () {
-    return this.accountType === accountType && type;
-  };
-};
-
 const requiredIfInvoiceType = (invoiceType, type) => {
   return function () {
     return this.invoiceType === invoiceType && type;

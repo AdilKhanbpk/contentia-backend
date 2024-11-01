@@ -32,29 +32,30 @@ const createCreator = asyncHandler(async (req, res) => {
 
   if (accountType === "individual") {
     console.log("Account type:", accountType);
-    if (
-      !paymentInformation?.ibanNumber ||
-      !paymentInformation?.address ||
-      !paymentInformation?.fullName ||
-      !paymentInformation?.trId
-    ) {
+
+    if (!paymentInformation?.ibanNumber || !paymentInformation?.address) {
       throw new ApiError(
         400,
-        "Please fill all required fields for individual account type"
+        "Please fill ibanNumber and address for individual account type"
+      );
+    }
+
+    if (!paymentInformation?.fullName || !paymentInformation?.trId) {
+      throw new ApiError(
+        400,
+        "Please fill fullName and trId for individual account type"
       );
     }
   } else if (accountType === "institutional") {
     console.log("Account type:", accountType);
     if (
-      !paymentInformation?.ibanNumber ||
-      !paymentInformation?.address ||
       !paymentInformation?.companyName ||
       !paymentInformation?.taxNumber ||
       !paymentInformation?.taxOffice
     ) {
       throw new ApiError(
         400,
-        "Please fill all required fields for institutional account type"
+        "Please fill companyName, taxNumber, and taxOffice for institutional account type"
       );
     }
   } else {
@@ -67,28 +68,30 @@ const createCreator = asyncHandler(async (req, res) => {
   if (invoiceType === "individual") {
     console.log("Invoice type:", invoiceType);
     console.log(billingInformation);
-    if (
-      !billingInformation?.address ||
-      !billingInformation?.trId ||
-      !billingInformation?.fullName
-    ) {
+
+    if (!billingInformation?.invoiceStatus || !billingInformation?.address) {
       throw new ApiError(
         400,
-        "Please fill all required fields for individual invoice type"
+        "Please fill invoiceStatus and address for individual invoice type"
+      );
+    }
+
+    if (!billingInformation?.fullName) {
+      throw new ApiError(
+        400,
+        "Please fill fullName for individual invoice type"
       );
     }
   } else if (invoiceType === "institutional") {
     console.log("Invoice type:", invoiceType);
     if (
-      !billingInformation?.address ||
-      !billingInformation?.trId ||
       !billingInformation?.companyName ||
       !billingInformation?.taxNumber ||
       !billingInformation?.taxOffice
     ) {
       throw new ApiError(
         400,
-        "Please fill all required fields for institutional invoice type"
+        "Please fill companyName, taxNumber, and taxOffice for institutional invoice type"
       );
     }
   } else {
