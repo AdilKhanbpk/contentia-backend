@@ -129,6 +129,11 @@ const CreatorFormSchema = new mongoose.Schema(
           type: String,
           enum: ["product", "service", "space"],
         },
+        creatorType: {
+          type: String,
+          enum: ["macro", "micro"],
+          default: "macro",
+        },
         contentFormats: [String],
         areaOfInterest: [String],
         addressDetails: {
@@ -195,6 +200,6 @@ const CreatorFormSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const CreatorModel = mongoose.model("creator", CreatorFormSchema);
+const CreatorModel = mongoose.model("Creator", CreatorFormSchema);
 
 export default CreatorModel;

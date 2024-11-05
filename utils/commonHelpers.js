@@ -36,6 +36,9 @@ const checkOwnership = (model, ownerFieldName, userId) => {
  * @returns {boolean} - Returns true if the ID is valid.
  */
 const isValidId = (id) => {
+  if (!id) {
+    throw new ApiError(400, "Provide an Id to validate");
+  }
   const isValid = isValidObjectId(id);
 
   if (!isValid) {

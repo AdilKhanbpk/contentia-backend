@@ -2,6 +2,7 @@ import User from "../../models/user.model.js";
 import ApiError from "../../utils/ApiError.js";
 import ApiResponse from "../../utils/ApiResponse.js";
 import asyncHandler from "../../utils/asyncHandler.js";
+import { isValidId } from "../../utils/commonHelpers.js";
 import {
   createADocument,
   deleteById,
@@ -10,60 +11,78 @@ import {
   updateById,
 } from "../../utils/dbHelpers.js";
 
-const createCustomer = asyncHandler(async (req, res, next) => {
+const createCustomer = asyncHandler(async (req, res) => {
   const {
-    role,
     fullName,
     email,
+    age,
     phoneNumber,
+    password,
+    invoiceType,
+    billingInformation,
     termsAndConditionsApproved,
-    invoice,
-    communication,
   } = req.body;
 
   if (
-    !role ||
     !fullName ||
     !email ||
+    !age ||
     !phoneNumber ||
-    !termsAndConditionsApproved ||
-    !invoice ||
-    !communication
+    !password ||
+    !invoiceType ||
+    !billingInformation
   ) {
     throw new ApiError(400, "Please fill all the required fields");
   }
 
-  if (invoice.type === "Individual") {
-    const { type, individual } = invoice;
-    if (!individual || !type) {
+  if (invoiceType === "individual") {
+    console.log("Invoice type:", invoiceType);
+    console.log(billingInformation);
+
+    if (
+      !billingInformation?.invoiceStatus ||
+      !billingInformation?.address ||
+      !billingInformation?.trId
+    ) {
       throw new ApiError(
         400,
-        "Invoice Type and all the individual details are required for Individual invoice."
+        "Please fill invoiceStatus , address and trId for individual invoice type"
       );
     }
-  } else if (invoice.type === "Corporate") {
-    const { type, corporate } = invoice;
-    if (!corporate || !type) {
+
+    if (!billingInformation?.fullName) {
       throw new ApiError(
         400,
-        "Invoice Type and all the corporate details are required for Corporate invoice."
+        "Please fill fullName for individual invoice type"
+      );
+    }
+  } else if (invoiceType === "institutional") {
+    console.log("Invoice type:", invoiceType);
+    if (
+      !billingInformation?.companyName ||
+      !billingInformation?.taxNumber ||
+      !billingInformation?.taxOffice
+    ) {
+      throw new ApiError(
+        400,
+        "Please fill company , taxNumber and taxOffice for institutional invoice type"
       );
     }
   } else {
     throw new ApiError(
       400,
-      'Invalid invoice type. Must be "Individual" or "Corporate".'
+      "Invoice type must be 'individual' or 'institutional'"
     );
   }
-
-  const newUser = await User.create({
-    role,
+  const newUser = await createADocument(User, {
     fullName,
     email,
+    age,
     phoneNumber,
-    termsAndConditionsApproved,
-    communication,
-    invoice,
+    password,
+    invoiceType,
+    billingInformation,
+    termsAndConditionsApproved: true,
   });
 
   return res
@@ -71,21 +90,69 @@ const createCustomer = asyncHandler(async (req, res, next) => {
     .json(new ApiResponse(201, newUser, "User created successfully"));
 });
 
-const updateCustomer = asyncHandler(async (req, res, next) => {
+const updateCustomer = asyncHandler(async (req, res) => {
   const { customerId } = req.params;
-  const updateData = req.body;
+  const {
+    status,
+    userType,
+    role,
+    fullName,
+    email,
+    age,
+    phoneNumber,
+    invoiceType,
+    billingInformation,
+  } = req.body;
 
-  const customer = await CustomerUserModel.findById(customerId);
+  isValidId(customerId);
 
-  if (!customer) {
-    throw new ApiError(404, "Customer not found");
+  if (
+    invoiceType === "individual" &&
+    (!billingInformation?.invoiceStatus ||
+      !billingInformation?.address ||
+      !billingInformation?.trId ||
+      !billingInformation?.fullName)
+  ) {
+    throw new ApiError(
+      400,
+      "Please fill invoiceStatus, address, trId, and fullName for individual invoice type"
+    );
   }
 
-  const updatedCustomer = await CustomerUserModel.findByIdAndUpdate(
-    customerId,
-    updateData,
-    { new: true }
-  );
+  if (
+    invoiceType === "institutional" &&
+    (!billingInformation?.companyName ||
+      !billingInformation?.taxNumber ||
+      !billingInformation?.taxOffice)
+  ) {
+    throw new ApiError(
+      400,
+      "Please fill companyName, taxNumber, and taxOffice for institutional invoice type"
+    );
+  }
+
+  if (
+    invoiceType &&
+    invoiceType !== "individual" &&
+    invoiceType !== "institutional"
+  ) {
+    throw new ApiError(
+      400,
+      "Invoice type must be 'individual' or 'institutional'"
+    );
+  }
+
+  const updatedCustomer = await updateById(User, customerId, {
+    status,
+    userType,
+    role,
+    fullName,
+    email,
+    age,
+    phoneNumber,
+    invoiceType,
+    billingInformation,
+  });
 
   return res
     .status(200)
@@ -94,49 +161,44 @@ const updateCustomer = asyncHandler(async (req, res, next) => {
     );
 });
 
-const deleteCustomer = asyncHandler(async (req, res, next) => {
-  const { customerId } = req.params;
-
-  const customer = await CustomerUserModel.findById(customerId);
-
-  if (!customer) {
-    throw new ApiError(404, "Customer not found");
-  }
-
-  await CustomerUserModel.findByIdAndDelete(customerId);
+const getCustomers = asyncHandler(async (req, res) => {
+  const customers = await findAll(User);
 
   return res
     .status(200)
-    .json(new ApiResponse(200, null, "Customer deleted successfully"));
+    .json(new ApiResponse(200, customers, "Customers fetched successfully"));
 });
 
-const getSingleCustomer = asyncHandler(async (req, res, next) => {
+const getCustomerById = asyncHandler(async (req, res) => {
   const { customerId } = req.params;
 
-  const customer = await CustomerUserModel.findById(customerId);
+  isValidId(customerId);
 
-  if (!customer) {
-    throw new ApiError(404, "Customer not found");
-  }
+  const customer = await findById(User, customerId);
 
   return res
     .status(200)
     .json(new ApiResponse(200, customer, "Customer fetched successfully"));
 });
 
-const getAllCustomers = asyncHandler(async (req, res) => {
-  const customers = await CustomerUserModel.find();
+const deleteCustomer = asyncHandler(async (req, res) => {
+  const { customerId } = req.params;
+
+  isValidId(customerId);
+
+  const deletedCustomer = await deleteById(User, customerId);
+
   return res
     .status(200)
     .json(
-      new ApiResponse(200, customers, "All customers fetched successfully")
+      new ApiResponse(200, deletedCustomer, "Customer deleted successfully")
     );
 });
 
 export {
   createCustomer,
-  getSingleCustomer,
   updateCustomer,
+  getCustomers,
+  getCustomerById,
   deleteCustomer,
-  getAllCustomers,
 };

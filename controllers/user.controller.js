@@ -93,12 +93,11 @@ export const login = asyncHandler(async (req, res, next) => {
 });
 
 export const updateUser = asyncHandler(async (req, res) => {
-  const { userId } = req.params;
   const { ...rest } = req.body;
 
-  isValidId(userId);
+  isValidId(req.user._id);
 
-  const updatedUser = await updateById(User, userId, rest);
+  const updatedUser = await updateById(User, req.user._id, rest);
   return res
     .status(200)
     .json(new ApiResponse(200, updatedUser, "User updated Successfully"));

@@ -13,7 +13,7 @@ const router = express.Router();
 router.post("/", isAuthenticated, createOrder);
 router.get("/", isAuthenticated, getOrders);
 router.get("/:orderId", isAuthenticated, getOrderById);
-router.put("/:orderId", isAuthenticated, updateOrder);
+router.patch("/:orderId", isAuthenticated, updateOrder);
 router.delete("/:orderId", isAuthenticated, deleteOrder);
 
 export default router;

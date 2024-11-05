@@ -1,7 +1,7 @@
 // models/packageModel.js
-import mongoose from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
-const packageSchema = new mongoose.Schema({
+const packageSchema = new Schema({
   status: {
     type: String,
     enum: ["active", "completed", "refunded"],
@@ -9,16 +9,18 @@ const packageSchema = new mongoose.Schema({
     default: "active",
   },
   packageCreator: {
-    type: mongoose.Types.ObjectId,
-    ref: "user",
+    type: Schema.Types.ObjectId,
+    ref: "User",
   },
   packageCustomer: {
-    type: mongoose.Types.ObjectId,
-    ref: "customer",
+    type: Schema.Types.ObjectId,
+    ref: "User",
   },
   packageType: {
     type: String,
-    required: true,
+  },
+  noOfUgc: {
+    type: Number,
   },
   packageStatus: {
     type: String,

@@ -3,21 +3,14 @@ import ApiError from "../../utils/ApiError.js";
 import ApiResponse from "../../utils/ApiResponse.js";
 import asyncHandler from "../../utils/asyncHandler.js";
 import {
-  deleteImageFromCloudinary,
-  uploadImageToCloudinary,
-} from "../../utils/Cloudinary.js";
-import {
   createADocument,
   deleteById,
-  findAll,
   findById,
   updateById,
 } from "../../utils/dbHelpers.js";
 
 const createAdditionalService = asyncHandler(async (req, res) => {
   const {
-    name,
-    price,
     platform,
     aspectRatio,
     editPrice,
@@ -25,31 +18,20 @@ const createAdditionalService = asyncHandler(async (req, res) => {
     coverPicPrice,
     creatorTypePrice,
     shippingPrice,
-    durationTime,
-    durationPrice,
+    thirtySecondDurationPrice,
+    sixtySecondDurationPrice,
   } = req.body;
 
-  const imageUrl = req.file?.path;
-
-  if (!imageUrl) {
-    throw new ApiError(400, "Please provide an image");
-  }
-
-  const uploadedImage = await uploadImageToCloudinary(imageUrl);
-
   const additionalService = await createADocument(AdditionalServiceModel, {
-    name,
-    price,
     platform,
     aspectRatio,
     editPrice,
     sharePrice,
     coverPicPrice,
     creatorTypePrice,
-    image: uploadedImage.url,
     shippingPrice,
-    durationTime,
-    durationPrice,
+    thirtySecondDurationPrice,
+    sixtySecondDurationPrice,
   });
 
   return res
@@ -64,7 +46,8 @@ const createAdditionalService = asyncHandler(async (req, res) => {
 });
 
 const getAdditionalServices = asyncHandler(async (req, res) => {
-  const additionalServices = await findAll(AdditionalServiceModel);
+  const additionalServices = await AdditionalServiceModel.findOne({});
+
   return res
     .status(200)
     .json(
@@ -100,8 +83,6 @@ const getAdditionalServiceById = asyncHandler(async (req, res) => {
 const updateAdditionalService = asyncHandler(async (req, res) => {
   const { additionalServicesId } = req.params;
   const {
-    name,
-    price,
     platform,
     aspectRatio,
     editPrice,
@@ -109,11 +90,9 @@ const updateAdditionalService = asyncHandler(async (req, res) => {
     coverPicPrice,
     creatorTypePrice,
     shippingPrice,
-    durationTime,
-    durationPrice,
+    thirtySecondDurationPrice,
+    sixtySecondDurationPrice,
   } = req.body;
-
-  const imageUrl = req.file?.path;
 
   isValidObjectId(additionalServicesId);
 
@@ -123,8 +102,6 @@ const updateAdditionalService = asyncHandler(async (req, res) => {
   );
 
   const updateData = {
-    name,
-    price,
     platform,
     aspectRatio,
     editPrice,
@@ -132,19 +109,9 @@ const updateAdditionalService = asyncHandler(async (req, res) => {
     coverPicPrice,
     creatorTypePrice,
     shippingPrice,
-    durationTime,
-    durationPrice,
+    thirtySecondDurationPrice,
+    sixtySecondDurationPrice,
   };
-
-  // Delete and update image if a new one is provided
-  if (imageUrl) {
-    if (additionalService.image) {
-      await deleteImageFromCloudinary(additionalService.image);
-    }
-
-    const uploadedImage = await uploadImageToCloudinary(imageUrl);
-    updateData.image = uploadedImage.url;
-  }
 
   const updatedAdditionalService = await updateById(
     AdditionalServiceModel,
@@ -167,15 +134,6 @@ const deleteAdditionalService = asyncHandler(async (req, res) => {
   const { additionalServicesId } = req.params;
 
   isValidObjectId(additionalServicesId);
-
-  const additionalService = await findById(
-    AdditionalServiceModel,
-    additionalServicesId
-  );
-
-  if (additionalService.image) {
-    await deleteImageFromCloudinary(additionalService.image);
-  }
 
   const deletedAdditionalService = await deleteById(
     AdditionalServiceModel,
