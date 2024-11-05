@@ -1,4 +1,4 @@
-import PackageModel from "../../models/admin/adminCustomPackage.model.js";
+import Package from "../../models/admin/adminCustomPackage.model.js";
 import ApiError from "../../utils/ApiError.js";
 import ApiResponse from "../../utils/ApiResponse.js";
 import asyncHandler from "../../utils/asyncHandler.js";
@@ -9,15 +9,20 @@ import {
   deleteById,
   findById,
 } from "../../utils/dbHelpers.js";
+import { isValidId } from "../../utils/commonHelpers.js";
 
 const createCustomPackage = asyncHandler(async (req, res) => {
   const {
     packageType,
+    noOfUgc,
+    customerId,
     packageTotalPrice,
     packageAdditionalServices,
     packageBriefContent,
     packagePreferences,
   } = req.body;
+
+  isValidId(customerId);
 
   if (
     !packageAdditionalServices ||
@@ -29,8 +34,10 @@ const createCustomPackage = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Please provide all additional services");
   }
 
-  const createdPackage = await createADocument(PackageModel, {
+  const createdPackage = await createADocument(Package, {
     packageCreator: req.user._id,
+    packageCustomer: customerId,
+    noOfUgc,
     packageType,
     packageTotalPrice,
     packageAdditionalServices,
@@ -48,7 +55,8 @@ const createCustomPackage = asyncHandler(async (req, res) => {
 });
 
 const getAllCustomPackages = asyncHandler(async (req, res) => {
-  const packages = await findByQuery(PackageModel, {});
+  const packages = await Package.find().populate("packageCustomer");
+
   if (!packages || packages.length === 0) {
     throw new ApiError(404, "No packages found");
   }
@@ -62,7 +70,9 @@ const getAllCustomPackages = asyncHandler(async (req, res) => {
 const getCustomPackageById = asyncHandler(async (req, res) => {
   const { packageId } = req.params;
 
-  const packageData = await findById(PackageModel, packageId);
+  const packageData = await Package.findById(packageId).populate(
+    "packageCustomer"
+  );
 
   if (!packageData) {
     throw new ApiError(404, "Package not found");
@@ -77,7 +87,7 @@ const updateCustomPackage = asyncHandler(async (req, res) => {
   const { packageId } = req.params;
   const updateData = req.body;
 
-  const updatedPackage = await updateById(PackageModel, packageId, updateData);
+  const updatedPackage = await updateById(Package, packageId, updateData);
 
   if (!updatedPackage) {
     throw new ApiError(404, "Package not found or failed to update");
@@ -91,7 +101,7 @@ const updateCustomPackage = asyncHandler(async (req, res) => {
 const deleteCustomPackage = asyncHandler(async (req, res) => {
   const { packageId } = req.params;
 
-  const deletedPackage = await deleteById(PackageModel, packageId);
+  const deletedPackage = await deleteById(Package, packageId);
 
   if (!deletedPackage) {
     throw new ApiError(404, "Package not found or failed to delete");
