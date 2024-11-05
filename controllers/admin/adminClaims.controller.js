@@ -10,7 +10,7 @@ import {
   findById,
   updateById,
 } from "../../utils/dbHelpers.js";
-import AdminClaims from "../../models/admin/adminClaims.model.js";
+import Claims from "../../models/admin/adminClaims.model.js";
 
 const createClaim = asyncHandler(async (req, res) => {
   const { claimContent, claimDate } = req.body;
@@ -23,7 +23,7 @@ const createClaim = asyncHandler(async (req, res) => {
   isValidId(customerId);
   isValidId(orderId);
 
-  const createdClaim = await createADocument(AdminClaims, {
+  const createdClaim = await createADocument(Claims, {
     claimContent,
     claimDate,
     customer: customerId,
@@ -36,7 +36,7 @@ const createClaim = asyncHandler(async (req, res) => {
 });
 
 const getClaims = asyncHandler(async (req, res) => {
-  const claims = await findAll(AdminClaims);
+  const claims = await Claims.find().populate("customer").populate("order");
   return res
     .status(200)
     .json(new ApiResponse(200, claims, "Claims retrieved successfully"));
@@ -47,7 +47,9 @@ const getClaimById = asyncHandler(async (req, res) => {
 
   isValidId(claimId);
 
-  const claim = await findById(AdminClaims, claimId);
+  const claim = await Claims.findById(claimId)
+    .populate("customer")
+    .populate("order");
 
   return res
     .status(200)
@@ -60,7 +62,7 @@ const updateClaim = asyncHandler(async (req, res) => {
 
   isValidId(claimId);
 
-  const updatedClaim = await updateById(AdminClaims, claimId, {
+  const updatedClaim = await updateById(Claims, claimId, {
     claimContent,
     claimDate,
   });
@@ -75,7 +77,7 @@ const deleteClaim = asyncHandler(async (req, res) => {
 
   isValidId(claimId);
 
-  const deletedClaim = await deleteById(AdminClaims, claimId);
+  const deletedClaim = await deleteById(Claims, claimId);
 
   return res
     .status(200)

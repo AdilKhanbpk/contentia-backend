@@ -9,11 +9,11 @@ const adminClaimsSchema = new mongoose.Schema(
     },
     customer: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Customers",
+      ref: "User",
     },
     order: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Orders",
+      ref: "Order",
     },
     claimDate: {
       type: Date,

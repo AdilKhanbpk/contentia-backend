@@ -2,10 +2,19 @@ import CouponModel from "../../models/admin/adminCoupon.model.js";
 import ApiError from "../../utils/ApiError.js";
 import ApiResponse from "../../utils/ApiResponse.js";
 import asyncHandler from "../../utils/asyncHandler.js";
+import { isValidId } from "../../utils/commonHelpers.js";
 
 const createCoupon = asyncHandler(async (req, res) => {
-  const { code, discountTl, discountPercentage, expiryDate, usageLimit } =
-    req.body;
+  const {
+    customerId,
+    code,
+    discountTl,
+    discountPercentage,
+    expiryDate,
+    usageLimit,
+  } = req.body;
+
+  isValidId(customerId);
 
   if (!code || !expiryDate) {
     throw new ApiError(400, "Coupon code and expiry date are required.");
@@ -27,6 +36,7 @@ const createCoupon = asyncHandler(async (req, res) => {
   }
 
   const coupon = await CouponModel.create({
+    customer: customerId,
     code,
     discountTl,
     discountPercentage,
@@ -40,7 +50,7 @@ const createCoupon = asyncHandler(async (req, res) => {
 });
 
 const getCoupons = asyncHandler(async (req, res) => {
-  const coupons = await CouponModel.find();
+  const coupons = await CouponModel.find().populate("customer");
   return res
     .status(200)
     .json(new ApiResponse(200, coupons, "Coupons retrieved successfully"));
@@ -48,7 +58,7 @@ const getCoupons = asyncHandler(async (req, res) => {
 
 const getCouponById = asyncHandler(async (req, res) => {
   const { couponId } = req.params;
-  const coupon = await CouponModel.findById(couponId);
+  const coupon = await CouponModel.findById(couponId).populate("customer");
 
   if (!coupon) {
     throw new ApiError(404, "Coupon not found");
@@ -62,6 +72,7 @@ const getCouponById = asyncHandler(async (req, res) => {
 const updateCoupon = asyncHandler(async (req, res) => {
   const { couponId } = req.params;
   const {
+    customerId,
     code,
     discountTl,
     discountPercentage,
@@ -69,6 +80,9 @@ const updateCoupon = asyncHandler(async (req, res) => {
     usageLimit,
     isActive,
   } = req.body;
+
+  isValidId(couponId);
+  customerId && isValidId(customerId);
   const coupon = await CouponModel.findById(couponId);
 
   if (!coupon) {
@@ -85,6 +99,7 @@ const updateCoupon = asyncHandler(async (req, res) => {
     );
   }
 
+  coupon.customer = customerId || coupon.customer;
   coupon.code = code || coupon.code;
   coupon.discountTl = discountTl !== undefined ? discountTl : coupon.discountTl;
   coupon.discountPercentage =

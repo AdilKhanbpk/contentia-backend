@@ -13,7 +13,7 @@ const router = express.Router();
 router.post("/signup", signup);
 router.post("/login", login);
 router.get("/logout", isAuthenticated, logout);
-router.patch("/:userId", isAuthenticated, updateUser);
+router.patch("/update-me", isAuthenticated, updateUser);
 router.patch("/change-password", isAuthenticated, changePassword);
 
 export default router;
