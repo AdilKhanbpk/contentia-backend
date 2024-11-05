@@ -1,11 +1,21 @@
-import mongoose from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
-const ordersProfileSchema = new mongoose.Schema(
+const ordersProfileSchema = new Schema(
   {
     orderOwner: {
-      type: mongoose.Types.ObjectId,
-      ref: "customer",
+      type: Schema.Types.ObjectId,
+      ref: "User",
     },
+    assignedCreators: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Creator",
+      },
+    ],
+    noOfUgc: {
+      type: Number,
+    },
+
     totalPrice: {
       type: Number,
       required: true,
@@ -51,12 +61,6 @@ const ordersProfileSchema = new mongoose.Schema(
       creatorType: {
         type: String,
       },
-      locationAddress: {
-        type: String,
-      },
-      showCreatorAddress: {
-        type: Boolean,
-      },
       productShipping: {
         type: Boolean,
       },
@@ -88,19 +92,15 @@ const ordersProfileSchema = new mongoose.Schema(
     briefContent: {
       brandName: {
         type: String,
-        required: true,
       },
       brief: {
         type: String,
-        required: true,
       },
       productServiceName: {
         type: String,
-        required: true,
       },
       productServiceDesc: {
         type: String,
-        required: true,
       },
       scenario: {
         type: String,
@@ -115,19 +115,34 @@ const ordersProfileSchema = new mongoose.Schema(
         type: String,
       },
     },
-    orderQuota: {
+    numberOfRequests: {
       type: Number,
     },
-    numberOfRequests: {
+    orderQuota: {
       type: Number,
     },
     quotaLeft: {
       type: Number,
     },
+    uploadFiles: [
+      {
+        uploadedBy: {
+          type: mongoose.Types.ObjectId,
+          ref: "creator",
+        },
+        fileUrls: {
+          type: [String],
+        },
+        uploadedDate: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
   },
   { timestamps: true }
 );
 
-const OrdersProfile = mongoose.model("Order", ordersProfileSchema);
+const Order = mongoose.model("Order", ordersProfileSchema);
 
-export default OrdersProfile;
+export default Order;

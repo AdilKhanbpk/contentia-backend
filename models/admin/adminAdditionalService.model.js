@@ -33,10 +33,10 @@ const additionalServiceSchema = new Schema(
     shippingPrice: {
       type: Number,
     },
-    durationTime: {
+    thirtySecondDurationPrice: {
       type: Number,
     },
-    durationPrice: {
+    sixtySecondDurationPrice: {
       type: Number,
     },
   },

@@ -10,15 +10,18 @@ const packageSchema = new mongoose.Schema({
   },
   packageCreator: {
     type: mongoose.Types.ObjectId,
-    ref: "user",
+    ref: "User",
   },
   packageCustomer: {
     type: mongoose.Types.ObjectId,
-    ref: "customer",
+    ref: "User",
   },
   packageType: {
     type: String,
     required: true,
+  },
+  noOfUgc: {
+    type: Number,
   },
   packageStatus: {
     type: String,

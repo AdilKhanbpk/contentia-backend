@@ -69,7 +69,7 @@ app.use("/api/v1/admin/about", adminAboutRoute);
 app.use("/api/v1/admin/blogs", adminBlogRoute);
 app.use("/api/v1/admin/coupons", adminCouponRoute);
 app.use("/api/v1/admin/helpSupport", adminHelpSupportRoute);
-app.use("/api/v1/admin/order", adminOrderRoute);
+app.use("/api/v1/admin/orders", adminOrderRoute);
 app.use("/api/v1/admin/pricing", adminPricingRoute);
 app.use("/api/v1/admin/additionalServices", adminAdditionalServiceRoute);
 app.use("/api/v1/admin/claims", adminClaimsRoute);

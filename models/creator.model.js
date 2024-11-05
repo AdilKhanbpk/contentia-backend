@@ -200,6 +200,6 @@ const CreatorFormSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const CreatorModel = mongoose.model("creator", CreatorFormSchema);
+const CreatorModel = mongoose.model("Creator", CreatorFormSchema);
 
 export default CreatorModel;

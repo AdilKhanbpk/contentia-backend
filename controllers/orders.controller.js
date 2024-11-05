@@ -5,6 +5,8 @@ import ApiError from "../utils/ApiError.js";
 
 const createOrder = asyncHandler(async (req, res, next) => {
   const {
+    noOfUgc,
+    totalPrice,
     orderStatus,
     paymentStatus,
     contentsDelivered,
@@ -37,6 +39,7 @@ const createOrder = asyncHandler(async (req, res, next) => {
 
   const newOrder = await Orders.create({
     orderOwner: req.user._id,
+    noOfUgc,
     totalPrice,
     orderStatus,
     paymentStatus,
@@ -62,7 +65,7 @@ const getOrders = asyncHandler(async (req, res) => {
 
   return res
     .status(200)
-    .json(new ApiResponse(200, orders, "Orders retrieved successfully"));
+    .json(new ApiResponse(200, orders, "My Orders retrieved successfully"));
 });
 
 const getOrder = asyncHandler(async (req, res) => {
@@ -82,6 +85,7 @@ const getOrder = asyncHandler(async (req, res) => {
 const updateOrder = asyncHandler(async (req, res) => {
   const { orderId } = req.params;
   const {
+    noOfUgc,
     orderOwner,
     orderStatus,
     paymentStatus,
@@ -91,11 +95,13 @@ const updateOrder = asyncHandler(async (req, res) => {
     briefContent,
     orderQuota,
     numberOfRequests,
+    uploadFiles,
   } = req.body;
 
   const order = await Orders.findByIdAndUpdate(
     orderId,
     {
+      noOfUgc,
       orderOwner,
       orderStatus,
       paymentStatus,
@@ -105,6 +111,7 @@ const updateOrder = asyncHandler(async (req, res) => {
       briefContent,
       orderQuota,
       numberOfRequests,
+      uploadFiles,
     },
     { new: true }
   );

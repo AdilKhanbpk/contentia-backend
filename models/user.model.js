@@ -58,39 +58,28 @@ const userSchema = new mongoose.Schema(
     invoiceType: {
       type: String,
       enum: ["individual", "institutional"],
-      required: [
-        true,
-        "Invoice type is required and must be 'individual' or 'institutional'.",
-      ],
     },
     billingInformation: {
       invoiceStatus: {
         type: Boolean,
-        required: [true, "Invoice status is required."],
       },
       trId: {
         type: String,
-        required: [true, "Billing -> TR ID is required."],
       },
       address: {
         type: String,
-        required: [true, "Billing -> Address is required."],
       },
       fullName: {
         type: String,
-        required: requiredIfInvoiceType("individual", true),
       },
       companyName: {
         type: String,
-        required: requiredIfInvoiceType("institutional", true),
       },
       taxNumber: {
         type: String,
-        required: requiredIfInvoiceType("institutional", true),
       },
       taxOffice: {
         type: String,
-        required: requiredIfInvoiceType("institutional", true),
       },
     },
     rememberMe: {
