@@ -31,6 +31,10 @@ const couponSchema = new Schema(
       type: Number,
       default: null,
     },
+    usedCount: {
+      type: Number,
+      default: 0,
+    },
   },
   {
     timestamps: true,

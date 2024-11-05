@@ -2,6 +2,10 @@ import mongoose, { Schema } from "mongoose";
 
 const ordersProfileSchema = new Schema(
   {
+    coupon: {
+      type: Schema.Types.ObjectId,
+      ref: "Coupon",
+    },
     orderOwner: {
       type: Schema.Types.ObjectId,
       ref: "User",
