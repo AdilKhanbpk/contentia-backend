@@ -19,6 +19,7 @@ const uploadImageToCloudinary = async (filePath) => {
     if (!filePath) return null;
 
     const uploadedFile = await cloudinary.uploader.upload(filePath, {
+      folder: "contentia",
       resource_type: "auto",
     });
 
@@ -40,12 +41,12 @@ const uploadImageToCloudinary = async (filePath) => {
  * @param {string} fileUrl - The URL of the file to delete.
  * @returns {Promise<Object|null>} - Returns the result of the deletion, or null if failed.
  */
-const deleteImageFromCloudinary = async (fileUrl) => {
+const deleteImageFromCloudinary = async (fileUrl, resourceType = "image") => {
   const filePath = extractPublicId(fileUrl);
 
   try {
     const deletedFile = await cloudinary.uploader.destroy(filePath, {
-      resource_type: "image",
+      resource_type: resourceType,
     });
 
     return deletedFile;
@@ -67,6 +68,7 @@ const uploadMultipleImagesToCloudinary = async (filePaths) => {
     const uploadedFiles = await Promise.all(
       filePaths.map(async (filePath) => {
         const uploadedFile = await cloudinary.uploader.upload(filePath, {
+          folder: "contentia",
           resource_type: "auto",
         });
         fs.unlinkSync(filePath); // Delete each file after upload

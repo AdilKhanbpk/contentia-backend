@@ -2,44 +2,45 @@ import LandingPageModel from "../../models/admin/adminLandingPage.model.js";
 import ApiError from "../../utils/ApiError.js";
 import ApiResponse from "../../utils/ApiResponse.js";
 import asyncHandler from "../../utils/asyncHandler.js";
+import {
+  deleteImageFromCloudinary,
+  deleteImagesFromCloudinary,
+  uploadMultipleImagesToCloudinary,
+} from "../../utils/Cloudinary.js";
 import { isValidId } from "../../utils/commonHelpers.js";
 import { createADocument, updateById } from "../../utils/dbHelpers.js";
 
 const createLandingPage = asyncHandler(async (req, res) => {
-  const {
-    carouselHeroTitle,
-    staticHeroTitle,
-    heroSubTitle,
-    videoOne,
-    videoTwo,
-    videoThree,
-    videoFour,
-    videoFive,
-    videoSix,
-    videoSeven,
-    videoEight,
-    videoNine,
-    videoTen,
-  } = req.body;
+  const { carouselHeroTitle, staticHeroTitle, heroSubTitle } = req.body;
 
   if (!carouselHeroTitle || !staticHeroTitle || !heroSubTitle) {
     throw new ApiError(400, "Please provide all the required fields");
   }
 
+  const videoPaths = [];
+  for (let i = 1; i <= 10; i++) {
+    const videoPath = req.files?.[`video${i}`]?.[0]?.path;
+    if (!videoPath) {
+      throw new ApiError(400, `Video ${i} is required`);
+    }
+    videoPaths.push(videoPath);
+  }
+
+  console.log(videoPaths);
+
+  const uploadedVideos = await uploadMultipleImagesToCloudinary(videoPaths);
+
+  if (!uploadedVideos || uploadedVideos.length !== 10) {
+    throw new ApiError(400, "Video upload failed, please try again");
+  }
+
+  const videoUrls = uploadedVideos.map((video) => video?.secure_url);
+
   const newLandingPage = await createADocument(LandingPageModel, {
     carouselHeroTitle,
     staticHeroTitle,
     heroSubTitle,
-    videoOne,
-    videoTwo,
-    videoThree,
-    videoFour,
-    videoFive,
-    videoSix,
-    videoSeven,
-    videoEight,
-    videoNine,
-    videoTen,
+    videos: videoUrls, // Storing video URLs as an array
   });
 
   return res
@@ -65,37 +66,63 @@ const getLandingPage = asyncHandler(async (req, res) => {
 
 const updateLandingPage = asyncHandler(async (req, res) => {
   const { landingPageId } = req.params;
+  const { carouselHeroTitle, staticHeroTitle, heroSubTitle } = req.body;
+
   isValidId(landingPageId);
-  const {
-    carouselHeroTitle,
-    staticHeroTitle,
-    heroSubTitle,
-    videoOne,
-    videoTwo,
-    videoThree,
-    videoFour,
-    videoFive,
-    videoSix,
-    videoSeven,
-    videoEight,
-    videoNine,
-    videoTen,
-  } = req.body;
+
+  const landingPage = await LandingPageModel.findById(landingPageId);
+
+  if (!landingPage) {
+    throw new ApiError(404, "Landing page not found");
+  }
+
+  let updatedVideos = landingPage.videos || [];
+
+  for (let i = 1; i <= 10; i++) {
+    const videoField = `video${i}`;
+
+    if (req.files?.[videoField]) {
+      const newVideoPath = req.files[videoField]?.[0]?.path;
+
+      if (!newVideoPath) {
+        throw new ApiError(400, `${videoField} is required`);
+      }
+
+      if (updatedVideos[i - 1]) {
+        try {
+          await deleteImageFromCloudinary(updatedVideos[i - 1], "video");
+        } catch (error) {
+          console.error(
+            `Failed to delete ${videoField} from Cloudinary:`,
+            error
+          );
+          throw new ApiError(
+            500,
+            `Failed to delete ${videoField} from Cloudinary`
+          );
+        }
+      }
+
+      const uploadedVideo = await uploadMultipleImagesToCloudinary([
+        newVideoPath,
+      ]);
+
+      if (!uploadedVideo || uploadedVideo.length !== 1) {
+        throw new ApiError(
+          400,
+          `${videoField} upload failed, please try again`
+        );
+      }
+
+      updatedVideos[i - 1] = uploadedVideo[0]?.secure_url;
+    }
+  }
 
   const updatedLandingPage = await updateById(LandingPageModel, landingPageId, {
     carouselHeroTitle,
     staticHeroTitle,
     heroSubTitle,
-    videoOne,
-    videoTwo,
-    videoThree,
-    videoFour,
-    videoFive,
-    videoSix,
-    videoSeven,
-    videoEight,
-    videoNine,
-    videoTen,
+    videos: updatedVideos,
   });
 
   return res

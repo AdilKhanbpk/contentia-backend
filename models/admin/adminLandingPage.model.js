@@ -18,41 +18,20 @@ const landingPageSchema = new Schema(
       required: true,
       trim: true,
     },
-    videoOne: {
-      type: String,
-    },
-    videoTwo: {
-      type: String,
-    },
-    videoThree: {
-      type: String,
-    },
-    videoFour: {
-      type: String,
-    },
-    videoFive: {
-      type: String,
-    },
-    videoSix: {
-      type: String,
-    },
-    videoSeven: {
-      type: String,
-    },
-    videoEight: {
-      type: String,
-    },
-    videoNine: {
-      type: String,
-    },
-    videoTen: {
-      type: String,
+    videos: {
+      type: [String], // This allows multiple videos to be stored in an array
+      validate: [arrayLimit, "{PATH} exceeds the limit of 10 videos"],
     },
   },
   {
     timestamps: true,
   }
 );
+
+// Custom validator to limit the number of videos to 10
+function arrayLimit(val) {
+  return val.length <= 10;
+}
 
 const LandingPageModel =
   mongoose.models.LandingPage ||
