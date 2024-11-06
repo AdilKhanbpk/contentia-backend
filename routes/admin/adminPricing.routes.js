@@ -1,5 +1,8 @@
 import express from "express";
-import { isAuthenticated } from "../../middlewares/authentication.middleware.js";
+import {
+  isAuthenticated,
+  isAdmin,
+} from "../../middlewares/authentication.middleware.js";
 import {
   createPricePlan,
   deletePricePlan,
@@ -11,9 +14,9 @@ import {
 const router = express.Router();
 
 router.get("/", isAuthenticated, getPricePlans);
-router.get("/:pricePlanId", isAuthenticated, getPricePlanById);
-router.post("/", isAuthenticated, createPricePlan);
-router.patch("/:pricePlanId", isAuthenticated, updatePricePlan);
-router.delete("/:pricePlanId", isAuthenticated, deletePricePlan);
+router.get("/:pricePlanId", isAuthenticated, isAdmin, getPricePlanById);
+router.post("/", isAuthenticated, isAdmin, createPricePlan);
+router.patch("/:pricePlanId", isAuthenticated, isAdmin, updatePricePlan);
+router.delete("/:pricePlanId", isAuthenticated, isAdmin, deletePricePlan);
 
 export default router;

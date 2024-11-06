@@ -1,5 +1,8 @@
 import express from "express";
-import { isAuthenticated } from "../../middlewares/authentication.middleware.js";
+import {
+  isAuthenticated,
+  isAdmin,
+} from "../../middlewares/authentication.middleware.js";
 import {
   createOrder,
   deleteOrder,
@@ -10,10 +13,10 @@ import {
 
 const router = express.Router();
 
-router.post("/", isAuthenticated, createOrder);
-router.get("/", isAuthenticated, getOrders);
-router.get("/:orderId", isAuthenticated, getOrderById);
-router.patch("/:orderId", isAuthenticated, updateOrder);
-router.delete("/:orderId", isAuthenticated, deleteOrder);
+router.post("/", isAuthenticated, isAdmin, createOrder);
+router.get("/", isAuthenticated, isAdmin, getOrders);
+router.get("/:orderId", isAuthenticated, isAdmin, getOrderById);
+router.patch("/:orderId", isAuthenticated, isAdmin, updateOrder);
+router.delete("/:orderId", isAuthenticated, isAdmin, deleteOrder);
 
 export default router;
