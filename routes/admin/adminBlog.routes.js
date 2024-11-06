@@ -1,5 +1,8 @@
 import express from "express";
-import { isAuthenticated } from "../../middlewares/authentication.middleware.js";
+import {
+  isAuthenticated,
+  isAdmin,
+} from "../../middlewares/authentication.middleware.js";
 import {
   createBlog,
   deleteBlog,
@@ -13,22 +16,24 @@ import { uploadOnMulter } from "../../middlewares/multer.middleware.js";
 const router = express.Router();
 
 router.get("/", isAuthenticated, getBlogs);
-router.get("/:blogId", isAuthenticated, getBlogById);
+router.get("/:blogId", isAuthenticated, isAdmin, getBlogById);
 router.post(
   "/",
   isAuthenticated,
+  isAdmin,
   uploadOnMulter.single("bannerImage"),
   createBlog
 );
-router.patch("/:blogId", isAuthenticated, updateBlog);
+router.patch("/:blogId", isAuthenticated, isAdmin, updateBlog);
 
 router.patch(
   "/:blogId/bannerImage",
   isAuthenticated,
+  isAdmin,
   uploadOnMulter.single("bannerImage"),
   updateBannerImageOfBlog
 );
 
-router.delete("/:blogId", isAuthenticated, deleteBlog);
+router.delete("/:blogId", isAuthenticated, isAdmin, deleteBlog);
 
 export default router;

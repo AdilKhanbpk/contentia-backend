@@ -1,6 +1,9 @@
 import express from "express";
 
-import { isAuthenticated } from "../../middlewares/authentication.middleware.js";
+import {
+  isAuthenticated,
+  isAdmin,
+} from "../../middlewares/authentication.middleware.js";
 import {
   createClaim,
   deleteClaim,
@@ -11,10 +14,10 @@ import {
 
 const router = express.Router();
 
-router.get("", isAuthenticated, getClaims);
+router.get("", isAuthenticated, isAdmin, getClaims);
 router.post("/:customerId/:orderId", isAuthenticated, createClaim);
-router.patch("/:claimId", isAuthenticated, updateClaim);
-router.delete("/:claimId", isAuthenticated, deleteClaim);
-router.get("/:claimId", isAuthenticated, getClaimById);
+router.patch("/:claimId", isAdmin, isAuthenticated, updateClaim);
+router.delete("/:claimId", isAdmin, isAuthenticated, deleteClaim);
+router.get("/:claimId", isAdmin, isAuthenticated, getClaimById);
 
 export default router;

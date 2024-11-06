@@ -8,16 +8,19 @@ import {
   updateCoupon,
   validateCoupon,
 } from "../../controllers/admin/adminCoupon.controller.js";
-import { isAuthenticated } from "../../middlewares/authentication.middleware.js";
+import {
+  isAuthenticated,
+  isAdmin,
+} from "../../middlewares/authentication.middleware.js";
 
 const router = express.Router();
 
-router.post("/", isAuthenticated, createCoupon);
-router.get("/", isAuthenticated, getCoupons);
+router.post("/", isAuthenticated, isAdmin, createCoupon);
+router.get("/", isAuthenticated, isAdmin, getCoupons);
 router.get("/my-coupons", isAuthenticated, myCoupons);
-router.get("/:couponId", isAuthenticated, getCouponById);
-router.patch("/:couponId", isAuthenticated, updateCoupon);
-router.delete("/:couponId", isAuthenticated, deleteCoupon);
+router.get("/:couponId", isAuthenticated, isAdmin, getCouponById);
+router.patch("/:couponId", isAuthenticated, isAdmin, updateCoupon);
+router.delete("/:couponId", isAuthenticated, isAdmin, deleteCoupon);
 router.post("/validate", isAuthenticated, validateCoupon);
 
 export default router;

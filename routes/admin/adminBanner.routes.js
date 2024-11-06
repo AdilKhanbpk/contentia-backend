@@ -6,7 +6,10 @@ import {
   getBanners,
   updateBanner,
 } from "../../controllers/admin/adminBanner.controller.js";
-import { isAuthenticated } from "../../middlewares/authentication.middleware.js";
+import {
+  isAuthenticated,
+  isAdmin,
+} from "../../middlewares/authentication.middleware.js";
 import { uploadOnMulter } from "../../middlewares/multer.middleware.js";
 
 const router = express.Router();
@@ -20,16 +23,18 @@ router.get(
 router.post(
   "/",
   isAuthenticated,
+  isAdmin,
   uploadOnMulter.single("bannerImage"),
   createBanner
 );
 router.patch(
   "/:bannerId",
   isAuthenticated,
+  isAdmin,
   uploadOnMulter.single("bannerImage"),
   updateBanner
 );
-router.delete("/:bannerId", isAuthenticated, deleteBanner);
-router.get("/:bannerId", isAuthenticated, getBannerById);
+router.delete("/:bannerId", isAuthenticated, isAdmin, deleteBanner);
+router.get("/:bannerId", isAuthenticated, isAdmin, getBannerById);
 
 export default router;

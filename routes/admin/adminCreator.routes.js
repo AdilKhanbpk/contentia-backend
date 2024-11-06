@@ -6,17 +6,20 @@ import {
   getSingleCreator,
   updateCreator,
 } from "../../controllers/admin/adminCreator.controller.js";
-import { isAuthenticated } from "../../middlewares/authentication.middleware.js";
+import {
+  isAuthenticated,
+  isAdmin,
+} from "../../middlewares/authentication.middleware.js";
 
 const router = express.Router();
 
 // Protect all routes
 router.use(isAuthenticated);
 
-router.post("/", isAuthenticated, createCreator);
-router.get("/", isAuthenticated, getAllCreators);
-router.get("/:creatorId", isAuthenticated, getSingleCreator);
-router.patch("/:creatorId", isAuthenticated, updateCreator);
-router.delete("/:creatorId", isAuthenticated, deleteCreator);
+router.post("/", isAuthenticated, isAdmin, createCreator);
+router.get("/", isAuthenticated, isAdmin, getAllCreators);
+router.get("/:creatorId", isAuthenticated, isAdmin, getSingleCreator);
+router.patch("/:creatorId", isAuthenticated, isAdmin, updateCreator);
+router.delete("/:creatorId", isAuthenticated, isAdmin, deleteCreator);
 
 export default router;

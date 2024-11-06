@@ -1,5 +1,8 @@
 import express from "express";
-import { isAuthenticated } from "../../middlewares/authentication.middleware.js";
+import {
+  isAuthenticated,
+  isAdmin,
+} from "../../middlewares/authentication.middleware.js";
 import {
   createEmailNotification,
   deleteEmailNotification,
@@ -10,13 +13,24 @@ import {
 
 const router = express.Router();
 
-router.get("/", isAuthenticated, getEmailNotifications);
-router.get("/:emailNotificationId", isAuthenticated, getEmailNotificationById);
-router.post("/", isAuthenticated, createEmailNotification);
-router.patch("/:emailNotificationId", isAuthenticated, updateEmailNotification);
+router.get("/", isAuthenticated, isAdmin, getEmailNotifications);
+router.get(
+  "/:emailNotificationId",
+  isAuthenticated,
+  isAdmin,
+  getEmailNotificationById
+);
+router.post("/", isAuthenticated, isAdmin, createEmailNotification);
+router.patch(
+  "/:emailNotificationId",
+  isAuthenticated,
+  isAdmin,
+  updateEmailNotification
+);
 router.delete(
   "/:emailNotificationId",
   isAuthenticated,
+  isAdmin,
   deleteEmailNotification
 );
 
