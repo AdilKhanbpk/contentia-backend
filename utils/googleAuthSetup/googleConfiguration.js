@@ -1,6 +1,8 @@
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import dotenv from "dotenv";
+import User from "../../models/user.model.js";
+import ApiError from "../ApiError.js";
 
 dotenv.config();
 
@@ -15,9 +17,13 @@ export const passportSetup = () => {
       },
       async (accessToken, refreshToken, profile, done) => {
         try {
-          console.log(accessToken);
-          console.log(refreshToken);
-          console.log(profile);
+          const email = profile.emails[0].value;
+
+          const checkUserInDb = await User.findOne({ email });
+
+          //   if (checkUserInDb) {
+          //     throw new ApiError(400, "User already exists");
+          //   }
 
           return done(null, profile);
         } catch (error) {
