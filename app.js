@@ -3,6 +3,9 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import { fileURLToPath } from "url";
+import passport from "passport";
+import { passportSetup } from "./utils/googleAuthSetup/googleConfiguration.js";
+import googleAuthRoutes from "./utils/googleAuthSetup/googleAuth.routes.js";
 
 import userAuthRoutes from "./routes/user.routes.js";
 import ordersRoute from "./routes/orders.routes.js";
@@ -32,6 +35,9 @@ import ApiError from "./utils/ApiError.js";
 
 const app = express();
 
+passportSetup(passport);
+app.use(passport.initialize());
+
 const corsOptions = {
   origin: "http://localhost:3000",
   methods: "GET,POST,PUT,DELETE,OPTIONS,PATCH",
@@ -51,6 +57,8 @@ app.use(express.static(path.join(__dirname, "")));
 app.use(express.json({ limit: "10kb" }));
 app.use(express.urlencoded({ extended: true, limit: "10kb" }));
 app.use(cookieParser());
+
+app.use("/", googleAuthRoutes);
 
 app.use("/api/v1/users", userAuthRoutes);
 app.use("/api/v1/orders", ordersRoute);
