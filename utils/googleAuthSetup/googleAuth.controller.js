@@ -4,12 +4,25 @@ export const googleAuth = passport.authenticate("google", {
   scope: ["profile", "email"],
 });
 
-export const googleAuthCallback = passport.authenticate("google", {
-  session: false,
-  successRedirect: "http://localhost:5173/",
-  failureRedirect: "http://localhost:3000/login",
-});
+export const googleAuthCallback = async (req, res) => {
+  try {
+    const user = req.user;
+    const appAccessToken = user.appAccessToken;
 
+    res
+      .cookie("accessToken", appAccessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+      })
+      .redirect(process.env.SUCCESS_REDIRECT_URL || "http://localhost:5173/");
+  } catch (error) {
+    console.error("Error in Google authentication callback:", error);
+    res.redirect(
+      process.env.FAILURE_REDIRECT_URL || "http://localhost:3000/login"
+    );
+  }
+};
 export const logout = (req, res) => {
   req.logout((err) => {
     if (err) {

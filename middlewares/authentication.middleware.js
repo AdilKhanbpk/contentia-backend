@@ -4,6 +4,11 @@ import asyncHandler from "../utils/asyncHandler.js";
 import User from "../models/user.model.js";
 
 export const isAuthenticated = asyncHandler(async (req, res, next) => {
+  if (req.user) {
+    console.log(req.user);
+    return next();
+  }
+
   try {
     const token =
       req.cookies?.accessToken ||
