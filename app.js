@@ -3,6 +3,8 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import { fileURLToPath } from "url";
+import expressSession from "express-session";
+
 import passport from "passport";
 import { passportSetup } from "./utils/googleAuthSetup/googleConfiguration.js";
 import googleAuthRoutes from "./utils/googleAuthSetup/googleAuth.routes.js";
@@ -35,8 +37,17 @@ import ApiError from "./utils/ApiError.js";
 
 const app = express();
 
+app.use(
+  expressSession({
+    name: "ammari",
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+  })
+);
 passportSetup(passport);
 app.use(passport.initialize());
+app.use(passport.session());
 
 const corsOptions = {
   origin: "http://localhost:3000",

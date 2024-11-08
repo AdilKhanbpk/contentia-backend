@@ -10,6 +10,11 @@ const requiredIfInvoiceType = (invoiceType, type) => {
 
 const userSchema = new mongoose.Schema(
   {
+    authProvider: {
+      type: String,
+      enum: ["google", "credentials"],
+      default: "credentials",
+    },
     status: {
       type: String,
       enum: ["approved", "waiting", "rejected"],
@@ -52,7 +57,9 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: true,
+      required: function () {
+        return this.authProvider === "credentials";
+      },
     },
 
     invoiceType: {

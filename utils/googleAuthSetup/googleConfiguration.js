@@ -1,8 +1,9 @@
+// passportSetup.js
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import dotenv from "dotenv";
 import User from "../../models/user.model.js";
-import ApiError from "../ApiError.js";
+import { generateTokens } from "../../controllers/user.controller.js";
 
 dotenv.config();
 
@@ -18,14 +19,27 @@ export const passportSetup = () => {
       async (accessToken, refreshToken, profile, done) => {
         try {
           const email = profile.emails[0].value;
+          const fullName = profile.displayName;
 
-          const checkUserInDb = await User.findOne({ email });
+          let user = await User.findOne({ email });
 
-          //   if (checkUserInDb) {
-          //     throw new ApiError(400, "User already exists");
-          //   }
+          if (!user) {
+            user = await User.create({
+              email,
+              fullName,
+              authProvider: "google",
+            });
+          }
 
-          return done(null, profile);
+          // Generate app-specific JWT for internal usage
+          const { accessToken: appAccessToken } = await generateTokens(
+            user._id
+          );
+
+          console.log(appAccessToken);
+          console.log(user);
+
+          return done(null, { user, appAccessToken });
         } catch (error) {
           done(error);
         }

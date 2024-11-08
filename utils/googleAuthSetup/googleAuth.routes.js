@@ -4,12 +4,20 @@ import {
   googleAuthCallback,
   logout,
 } from "./googleAuth.controller.js";
+import passport from "passport";
 
 const router = express.Router();
 
 router.get("/auth/google", googleAuth);
 
-router.get("/auth/google/callback", googleAuthCallback);
+router.get(
+  "/auth/google/callback",
+  passport.authenticate("google", {
+    session: false,
+    failureRedirect: "http://localhost:3000/login",
+  }),
+  googleAuthCallback
+);
 
 router.get("/auth/logout", logout);
 

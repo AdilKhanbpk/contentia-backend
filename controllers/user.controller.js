@@ -12,7 +12,7 @@ const cookieOptions = {
   sameSite: "strict",
 };
 
-const generateTokens = async (userId) => {
+export const generateTokens = async (userId) => {
   const user = await User.findById(userId);
   if (!user) throw new ApiError(404, "User not found");
 
@@ -38,6 +38,7 @@ export const signup = asyncHandler(async (req, res, next) => {
   const newUser = await User.create({
     email,
     password,
+    authProvider: "credentials",
     ...rest,
   });
 
@@ -140,6 +141,7 @@ export const logout = asyncHandler(async (req, res) => {
 });
 
 export const getProfile = asyncHandler(async (req, res) => {
+  console.log(req.user);
   return res
     .status(200)
     .json(new ApiResponse(200, req.user, "User retrieved successfully"));
