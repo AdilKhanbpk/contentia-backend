@@ -31,13 +31,9 @@ export const passportSetup = () => {
             });
           }
 
-          // Generate app-specific JWT for internal usage
           const { accessToken: appAccessToken } = await generateTokens(
             user._id
           );
-
-          console.log(appAccessToken);
-          console.log(user);
 
           return done(null, { user, appAccessToken });
         } catch (error) {

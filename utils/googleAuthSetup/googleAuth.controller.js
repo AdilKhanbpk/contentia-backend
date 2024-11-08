@@ -15,12 +15,10 @@ export const googleAuthCallback = async (req, res) => {
         secure: process.env.NODE_ENV === "production",
         sameSite: "strict",
       })
-      .redirect(process.env.SUCCESS_REDIRECT_URL || "http://localhost:5173/");
+      .redirect(process.env.SUCCESS_REDIRECT_URL);
   } catch (error) {
     console.error("Error in Google authentication callback:", error);
-    res.redirect(
-      process.env.FAILURE_REDIRECT_URL || "http://localhost:3000/login"
-    );
+    res.redirect(process.env.FAILURE_REDIRECT_URL);
   }
 };
 export const logout = (req, res) => {
