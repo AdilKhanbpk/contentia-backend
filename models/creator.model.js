@@ -1,4 +1,6 @@
 import mongoose from "mongoose";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
 
 const requiredIfAccountType = (accountType, type) => {
   return function () {
@@ -14,6 +16,11 @@ const requiredIfInvoiceType = (invoiceType, type) => {
 
 const CreatorFormSchema = new mongoose.Schema(
   {
+    authProvider: {
+      type: String,
+      enum: ["google", "credentials"],
+      default: "credentials",
+    },
     fullName: {
       type: String,
       required: [true, "Full name is required."],
@@ -21,6 +28,22 @@ const CreatorFormSchema = new mongoose.Schema(
     email: {
       type: String,
       required: [true, "Email is required."],
+    },
+    userType: {
+      type: String,
+      enum: ["customer", "creator"],
+      default: "creator",
+    },
+    role: {
+      type: String,
+      enum: ["admin", "user"],
+      default: "user",
+    },
+    password: {
+      type: String,
+      required: function () {
+        return this.authProvider === "credentials";
+      },
     },
     phoneNumber: {
       type: String,
@@ -185,9 +208,7 @@ const CreatorFormSchema = new mongoose.Schema(
             username: String,
           },
         },
-        portfolioLink: {
-          type: String,
-        },
+        portfolioLink: [String],
       },
     },
 
@@ -199,6 +220,56 @@ const CreatorFormSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+CreatorFormSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) return next();
+  // if the password is modified then allow the hashed password otherwise do nothing
+
+  const hashedPassword = await bcrypt.hash(this.password, 10);
+  this.password = hashedPassword;
+  next();
+});
+
+CreatorFormSchema.pre("save", function (next) {
+  const adminEmail = process.env.ADMIN_EMAIL;
+
+  if (this.email === adminEmail) {
+    this.role = "admin";
+  }
+
+  next();
+});
+
+CreatorFormSchema.methods.AccessToken = function () {
+  const accessToken = jwt.sign(
+    {
+      _id: this._id,
+      email: this.email,
+    },
+    process.env.JWT_ACCESS_TOKEN_SECRET,
+    {
+      expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRY,
+    }
+  );
+  return accessToken;
+};
+
+CreatorFormSchema.methods.RefreshToken = function () {
+  const refreshToken = jwt.sign(
+    {
+      _id: this._id,
+    },
+    process.env.JWT_REFRESH_TOKEN_SECRET,
+    {
+      expiresIn: process.env.JWT_REFRESH_TOKEN_EXPIRY,
+    }
+  );
+  return refreshToken;
+};
+
+CreatorFormSchema.methods.ComparePassword = async function (password) {
+  return await bcrypt.compare(password, this.password);
+};
 
 const CreatorModel = mongoose.model("Creator", CreatorFormSchema);
 

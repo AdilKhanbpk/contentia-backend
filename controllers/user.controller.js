@@ -6,7 +6,7 @@ import { isValidId, resolvePath } from "../utils/commonHelpers.js";
 import { findById, updateById } from "../utils/dbHelpers.js";
 import { createFolder } from "../utils/googleDrive.js";
 
-const cookieOptions = {
+export const cookieOptions = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
   sameSite: "strict",
