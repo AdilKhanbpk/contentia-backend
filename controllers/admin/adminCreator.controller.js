@@ -17,6 +17,7 @@ const createCreator = asyncHandler(async (req, res) => {
     fullName,
     creatorType,
     tckn,
+    password,
     email,
     dateOfBirth,
     gender,
@@ -34,6 +35,7 @@ const createCreator = asyncHandler(async (req, res) => {
   if (
     !isVerified ||
     !fullName ||
+    !password ||
     !creatorType ||
     !tckn ||
     !dateOfBirth ||
@@ -139,6 +141,7 @@ const createCreator = asyncHandler(async (req, res) => {
   const newUser = await createADocument(Creator, {
     fullName,
     tckn,
+    password,
     creatorType,
     email,
     dateOfBirth,
