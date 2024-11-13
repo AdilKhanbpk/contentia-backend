@@ -3,9 +3,9 @@ import ApiError from "../../utils/ApiError.js";
 import ApiResponse from "../../utils/ApiResponse.js";
 import asyncHandler from "../../utils/asyncHandler.js";
 import {
-  deleteImageFromCloudinary,
-  deleteImagesFromCloudinary,
-  uploadMultipleImagesToCloudinary,
+  deleteFileFromCloudinary,
+  deleteMultipleFilesFromCloudinary,
+  uploadMultipleFilesToCloudinary,
 } from "../../utils/Cloudinary.js";
 import { isValidId } from "../../utils/commonHelpers.js";
 import { createADocument, updateById } from "../../utils/dbHelpers.js";
@@ -28,7 +28,10 @@ const createLandingPage = asyncHandler(async (req, res) => {
 
   console.log(videoPaths);
 
-  const uploadedVideos = await uploadMultipleImagesToCloudinary(videoPaths);
+  const uploadedVideos = await uploadMultipleFilesToCloudinary(videoPaths, {
+    resource_type: "video",
+    folder: "videos",
+  });
 
   if (!uploadedVideos || uploadedVideos.length !== 10) {
     throw new ApiError(400, "Video upload failed, please try again");
@@ -90,7 +93,7 @@ const updateLandingPage = asyncHandler(async (req, res) => {
 
       if (updatedVideos[i - 1]) {
         try {
-          await deleteImageFromCloudinary(updatedVideos[i - 1], "video");
+          await deleteFileFromCloudinary(updatedVideos[i - 1], "video");
         } catch (error) {
           console.error(
             `Failed to delete ${videoField} from Cloudinary:`,
@@ -103,9 +106,13 @@ const updateLandingPage = asyncHandler(async (req, res) => {
         }
       }
 
-      const uploadedVideo = await uploadMultipleImagesToCloudinary([
-        newVideoPath,
-      ]);
+      const uploadedVideo = await uploadMultipleFilesToCloudinary(
+        [newVideoPath],
+        {
+          resource_type: "video",
+          folder: "videos",
+        }
+      );
 
       if (!uploadedVideo || uploadedVideo.length !== 1) {
         throw new ApiError(

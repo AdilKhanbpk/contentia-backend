@@ -82,6 +82,12 @@ const createCreator = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Please fill all the required fields");
   }
 
+  const checkEmail = await Creator.findOne({ email });
+
+  if (checkEmail) {
+    throw new ApiError(400, "Email address is already in use.");
+  }
+
   if (accountType === "individual") {
     console.log("Account type:", accountType);
 
@@ -188,12 +194,33 @@ const createCreator = asyncHandler(async (req, res) => {
 });
 
 const updateCreator = asyncHandler(async (req, res) => {
-  const { creatorId } = req.params;
+  const creatorId = req.user._id;
+  isValidId(creatorId);
+
   const updateData = req.body;
 
   const setFields = {};
   for (const [key, value] of Object.entries(updateData)) {
-    if (typeof value === "object" && !Array.isArray(value)) {
+    if (key === "email") {
+      const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      if (!emailPattern.test(value)) {
+        throw new ApiError(400, "Invalid email format.");
+      }
+      const emailExists = await Creator.findOne({
+        email: value,
+        _id: { $ne: creatorId },
+      });
+      if (emailExists) {
+        throw new ApiError(400, "Email already exists.");
+      } else {
+        setFields[key] = value;
+      }
+    } else if (key === "password") {
+      throw new ApiError(
+        400,
+        "Password updates are not allowed in this endpoint."
+      );
+    } else if (typeof value === "object" && !Array.isArray(value)) {
       for (const [nestedKey, nestedValue] of Object.entries(value)) {
         setFields[`${key}.${nestedKey}`] = nestedValue;
       }

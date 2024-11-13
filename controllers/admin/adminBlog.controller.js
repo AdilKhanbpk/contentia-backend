@@ -3,8 +3,8 @@ import ApiError from "../../utils/ApiError.js";
 import ApiResponse from "../../utils/ApiResponse.js";
 import asyncHandler from "../../utils/asyncHandler.js";
 import {
-  deleteImageFromCloudinary,
-  uploadImageToCloudinary,
+  deleteFileFromCloudinary,
+  uploadFileToCloudinary,
 } from "../../utils/Cloudinary.js";
 import { isValidId } from "../../utils/commonHelpers.js";
 import {
@@ -33,7 +33,7 @@ const createBlog = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Please provide a banner image");
   }
 
-  const uploadImage = await uploadImageToCloudinary(blogImage);
+  const uploadImage = await uploadFileToCloudinary(blogImage);
 
   const createdBlog = await createADocument(BlogModel, {
     author: req.user._id,
@@ -104,7 +104,7 @@ const updateBannerImageOfBlog = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Please provide a banner image");
   }
 
-  const uploadedImage = await uploadImageToCloudinary(blogImage);
+  const uploadedImage = await uploadFileToCloudinary(blogImage);
 
   const updatedBannerImageOfBlog = await updateById(BlogModel, blogId, {
     bannerImage: uploadedImage.path,
@@ -130,7 +130,7 @@ const deleteBlog = asyncHandler(async (req, res) => {
 
   const blogBannerImage = blog.bannerImage;
 
-  await deleteImageFromCloudinary(blogBannerImage);
+  await deleteFileFromCloudinary(blogBannerImage);
 
   const deletedBlog = await deleteById(BlogModel, blogId);
 

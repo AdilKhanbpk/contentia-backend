@@ -3,8 +3,8 @@ import ApiError from "../../utils/ApiError.js";
 import ApiResponse from "../../utils/ApiResponse.js";
 import asyncHandler from "../../utils/asyncHandler.js";
 import {
-  deleteImageFromCloudinary,
-  uploadImageToCloudinary,
+  deleteFileFromCloudinary,
+  uploadFileToCloudinary,
 } from "../../utils/Cloudinary.js";
 import { isValidId } from "../../utils/commonHelpers.js";
 import {
@@ -26,7 +26,7 @@ const createBanner = asyncHandler(async (req, res) => {
   if (!bannerImage) {
     throw new ApiError(400, "Please provide a banner image");
   }
-  const uploadBanner = await uploadImageToCloudinary(bannerImage);
+  const uploadBanner = await uploadFileToCloudinary(bannerImage);
 
   const createdBanner = await createADocument(BannerModel, {
     bannerUrl,
@@ -74,10 +74,10 @@ const updateBanner = asyncHandler(async (req, res) => {
 
   if (bannerImage) {
     if (banner.bannerImage) {
-      await deleteImageFromCloudinary(banner.bannerImage);
+      await deleteFileFromCloudinary(banner.bannerImage);
     }
 
-    const uploadedImage = await uploadImageToCloudinary(bannerImage);
+    const uploadedImage = await uploadFileToCloudinary(bannerImage);
     updateData.bannerImage = uploadedImage.url;
   }
 
@@ -104,7 +104,7 @@ const deleteBanner = asyncHandler(async (req, res) => {
 
   const bannerImage = banner.bannerImage;
 
-  await deleteImageFromCloudinary(bannerImage);
+  await deleteFileFromCloudinary(bannerImage);
 
   const deletedBanner = await deleteById(BannerModel, bannerId);
 

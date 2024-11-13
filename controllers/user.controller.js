@@ -2,7 +2,7 @@ import User from "../models/user.model.js";
 import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import asyncHandler from "../utils/asyncHandler.js";
-import { uploadImageToCloudinary } from "../utils/Cloudinary.js";
+import { uploadFileToCloudinary } from "../utils/Cloudinary.js";
 import { isValidId, resolvePath } from "../utils/commonHelpers.js";
 import { findById, updateById } from "../utils/dbHelpers.js";
 import { createFolder } from "../utils/googleDrive.js";
@@ -121,7 +121,7 @@ export const changeProfilePic = asyncHandler(async (req, res) => {
     throw new ApiError(404, "User not found");
   }
 
-  const uploadedFile = await uploadImageToCloudinary(filePath);
+  const uploadedFile = await uploadFileToCloudinary(filePath);
 
   console.log(uploadedFile);
 

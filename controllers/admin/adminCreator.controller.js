@@ -7,7 +7,7 @@ import {
   findAll,
   findById,
 } from "../../utils/dbHelpers.js";
-import CreatorModel from "../../models/creator.model.js";
+import Creator from "../../models/creator.model.js";
 import { isValidId } from "../../utils/commonHelpers.js";
 
 // FOR CREATORS
@@ -46,6 +46,11 @@ const createCreator = asyncHandler(async (req, res) => {
     !invoiceType
   ) {
     throw new ApiError(400, "Please fill all the required fields");
+  }
+  const checkEmail = await Creator.findOne({ email });
+
+  if (checkEmail) {
+    throw new ApiError(400, "Email address is already in use.");
   }
 
   if (accountType === "individual") {
@@ -131,7 +136,7 @@ const createCreator = asyncHandler(async (req, res) => {
     }
   }
 
-  const newUser = await createADocument(CreatorModel, {
+  const newUser = await createADocument(Creator, {
     fullName,
     tckn,
     creatorType,
@@ -173,7 +178,7 @@ const updateCreator = asyncHandler(async (req, res) => {
     }
   }
 
-  const updatedCreator = await CreatorModel.findByIdAndUpdate(
+  const updatedCreator = await Creator.findByIdAndUpdate(
     creatorId,
     { $set: setFields },
     { new: true }
@@ -193,7 +198,7 @@ const deleteCreator = asyncHandler(async (req, res) => {
 
   isValidId(creatorId);
 
-  const creator = await deleteById(CreatorModel, creatorId);
+  const creator = await deleteById(Creator, creatorId);
 
   return res
     .status(200)
@@ -205,7 +210,7 @@ const getSingleCreator = asyncHandler(async (req, res) => {
 
   isValidId(creatorId);
 
-  const creator = await findById(CreatorModel, creatorId);
+  const creator = await findById(Creator, creatorId);
 
   return res
     .status(200)
@@ -213,7 +218,7 @@ const getSingleCreator = asyncHandler(async (req, res) => {
 });
 
 const getAllCreators = asyncHandler(async (req, res) => {
-  const creators = await findAll(CreatorModel);
+  const creators = await findAll(Creator);
   return res
     .status(200)
     .json(new ApiResponse(200, creators, "Creators retrieved"));
