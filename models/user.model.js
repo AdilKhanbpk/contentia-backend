@@ -29,6 +29,9 @@ const userSchema = new mongoose.Schema(
       enum: ["admin", "user"],
       default: "user",
     },
+    profilePic: {
+      type: String,
+    },
     fullName: {
       type: String,
     },

@@ -2,11 +2,12 @@ import User from "../models/user.model.js";
 import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import asyncHandler from "../utils/asyncHandler.js";
+import { uploadImageToCloudinary } from "../utils/Cloudinary.js";
 import { isValidId, resolvePath } from "../utils/commonHelpers.js";
 import { findById, updateById } from "../utils/dbHelpers.js";
 import { createFolder } from "../utils/googleDrive.js";
 
-const cookieOptions = {
+export const cookieOptions = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
   sameSite: "strict",
@@ -102,6 +103,37 @@ export const updateUser = asyncHandler(async (req, res) => {
   return res
     .status(200)
     .json(new ApiResponse(200, updatedUser, "User updated Successfully"));
+});
+
+export const changeProfilePic = asyncHandler(async (req, res) => {
+  const filePath = req.file.path;
+  console.log(filePath);
+
+  isValidId(req.user._id);
+
+  if (!filePath) {
+    throw new ApiError(400, "Please upload a file");
+  }
+
+  const user = await User.findById(req.user._id);
+
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+
+  const uploadedFile = await uploadImageToCloudinary(filePath);
+
+  console.log(uploadedFile);
+
+  await user.updateOne({
+    $set: {
+      profilePic: uploadedFile?.url,
+    },
+  });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, user, "Profile picture updated successfully"));
 });
 
 export const changePassword = asyncHandler(async (req, res) => {

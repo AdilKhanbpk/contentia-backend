@@ -1,11 +1,62 @@
 import asyncHandler from "../utils/asyncHandler.js";
-import CreatorModel from "../models/creator.model.js";
+import Creator from "../models/creator.model.js";
 import ApiError from "../utils/ApiError.js";
-import { createADocument } from "../utils/dbHelpers.js";
+import { createADocument, findById } from "../utils/dbHelpers.js";
+import { cookieOptions } from "./user.controller.js";
+import ApiResponse from "../utils/ApiResponse.js";
+import { isValidId } from "../utils/commonHelpers.js";
+
+export const generateTokens = async (userId) => {
+  const user = await Creator.findById(userId);
+  if (!user) throw new ApiError(404, "User not found");
+
+  const accessToken = user.AccessToken();
+  await user.save({ validateBeforeSave: false });
+
+  return { accessToken };
+};
+
+const loginCreator = asyncHandler(async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    throw new ApiError(400, "Please provide email and password");
+  }
+
+  const user = await Creator.findOne({ email });
+
+  if (!user) {
+    throw new ApiError(400, "Creator not found");
+  }
+
+  const isPasswordCorrect = await user.ComparePassword(password);
+
+  if (!isPasswordCorrect) {
+    throw new ApiError(401, "Invalid credentials");
+  }
+
+  const { accessToken } = await generateTokens(user._id);
+
+  const userWithoutPassword = await Creator.findById(user._id).select(
+    "-password"
+  );
+
+  return res
+    .status(200)
+    .cookie("accessToken", accessToken, cookieOptions)
+    .json(
+      new ApiResponse(
+        200,
+        { userWithoutPassword, accessToken },
+        "Creator logged in successfully"
+      )
+    );
+});
 
 const createCreator = asyncHandler(async (req, res) => {
   const {
     fullName,
+    password,
     tckn,
     email,
     phoneNumber,
@@ -20,6 +71,7 @@ const createCreator = asyncHandler(async (req, res) => {
 
   if (
     !fullName ||
+    !password ||
     !tckn ||
     !email ||
     !phoneNumber ||
@@ -113,8 +165,9 @@ const createCreator = asyncHandler(async (req, res) => {
     }
   }
 
-  const newUser = await createADocument(CreatorModel, {
+  const newUser = await createADocument(Creator, {
     fullName,
+    password,
     tckn,
     email,
     phoneNumber,
@@ -134,4 +187,62 @@ const createCreator = asyncHandler(async (req, res) => {
   });
 });
 
-export { createCreator };
+const updateCreator = asyncHandler(async (req, res) => {
+  const { creatorId } = req.params;
+  const updateData = req.body;
+
+  const setFields = {};
+  for (const [key, value] of Object.entries(updateData)) {
+    if (typeof value === "object" && !Array.isArray(value)) {
+      for (const [nestedKey, nestedValue] of Object.entries(value)) {
+        setFields[`${key}.${nestedKey}`] = nestedValue;
+      }
+    } else {
+      setFields[key] = value;
+    }
+  }
+
+  const updatedCreator = await Creator.findByIdAndUpdate(
+    creatorId,
+    { $set: setFields },
+    { new: true }
+  );
+
+  if (!updatedCreator) {
+    throw new ApiError(404, "Creator not found");
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, updatedCreator, "Creator updated successfully"));
+});
+
+export const changePassword = asyncHandler(async (req, res) => {
+  const { currentPassword, newPassword, confirmNewPassword } = req.body;
+
+  if (!currentPassword || !newPassword || !confirmNewPassword) {
+    throw new ApiError(400, "Please provide all the required fields");
+  }
+
+  isValidId(req.user._id);
+
+  const creator = await findById(Creator, req.user._id);
+
+  const isPasswordCorrect = await creator.ComparePassword(currentPassword);
+  if (!isPasswordCorrect) {
+    throw new ApiError(400, "Current password is incorrect");
+  }
+
+  if (newPassword !== confirmNewPassword) {
+    throw new ApiError(400, "Passwords do not match");
+  }
+
+  creator.password = newPassword;
+  await creator.save();
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, null, "Password changed successfully"));
+});
+
+export { loginCreator, createCreator, updateCreator };

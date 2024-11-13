@@ -73,7 +73,7 @@ app.use("/", googleAuthRoutes);
 
 app.use("/api/v1/users", userAuthRoutes);
 app.use("/api/v1/orders", ordersRoute);
-app.use("/api/v1/become-creator", becomeCreatorRoute);
+app.use("/api/v1/creators", becomeCreatorRoute);
 app.use("/api/v1/brands", brandRoute);
 
 // ADMIN ROUTES
