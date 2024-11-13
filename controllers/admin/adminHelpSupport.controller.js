@@ -5,8 +5,8 @@ import ApiResponse from "../../utils/ApiResponse.js";
 import asyncHandler from "../../utils/asyncHandler.js";
 import { isValidId } from "../../utils/commonHelpers.js";
 import {
-  deleteImageFromCloudinary,
-  uploadImageToCloudinary,
+  deleteFileFromCloudinary,
+  uploadFileToCloudinary,
 } from "../../utils/Cloudinary.js";
 import {
   createADocument,
@@ -28,7 +28,7 @@ const createHelpSupport = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Icon is required.");
   }
 
-  const uploadedImage = await uploadImageToCloudinary(icon);
+  const uploadedImage = await uploadFileToCloudinary(icon);
 
   const newHelpSupport = await createADocument(HelpSupportModel, {
     title,
@@ -97,7 +97,7 @@ const updateHelpSupportIcon = asyncHandler(async (req, res) => {
   const helpSupport = await findById(HelpSupportModel, helpSupportId);
 
   if (helpSupport.icon) {
-    await deleteImageFromCloudinary(helpSupport.icon);
+    await deleteFileFromCloudinary(helpSupport.icon);
   }
 
   const icon = req.file?.path;
@@ -106,7 +106,7 @@ const updateHelpSupportIcon = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Icon is required.");
   }
 
-  const uploadedImage = await uploadImageToCloudinary(icon);
+  const uploadedImage = await uploadFileToCloudinary(icon);
 
   const updatedHelpSupport = await updateById(HelpSupportModel, helpSupportId, {
     icon: uploadedImage?.url,
@@ -132,7 +132,7 @@ const deleteHelpSupport = asyncHandler(async (req, res) => {
 
   const iconPath = helpSupport.icon;
 
-  await deleteImageFromCloudinary(iconPath);
+  await deleteFileFromCloudinary(iconPath);
 
   return res
     .status(200)

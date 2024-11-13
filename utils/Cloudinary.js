@@ -31,15 +31,19 @@ const deleteLocalFile = (filePath) => {
 };
 
 /**
- * Uploads a single image to Cloudinary.
+ * Uploads a single file to Cloudinary with default options.
+ * @param {string} filePath - Local file path to upload.
+ * @param {object} options - Additional Cloudinary upload options.
+ * @returns {object|null} - Uploaded file info or null on failure.
  */
-const uploadImageToCloudinary = async (filePath) => {
+const uploadFileToCloudinary = async (filePath, options = {}) => {
   try {
     if (!filePath) return null;
 
     const uploadedFile = await cloudinary.uploader.upload(filePath, {
-      folder: "contentia",
       resource_type: "auto",
+      folder: "general",
+      ...options,
     });
     deleteLocalFile(filePath);
 
@@ -52,13 +56,16 @@ const uploadImageToCloudinary = async (filePath) => {
 };
 
 /**
- * Deletes a single image from Cloudinary.
+ * Deletes a single file from Cloudinary with a default resource type.
+ * @param {string} fileUrl - URL of the file to delete on Cloudinary.
+ * @param {string} resourceType - Resource type of the file (default is "image").
+ * @returns {object|null} - Deletion result or null on failure.
  */
-const deleteImageFromCloudinary = async (fileUrl, resourceType = "image") => {
-  const filePath = extractPublicId(fileUrl);
+const deleteFileFromCloudinary = async (fileUrl, resourceType = "image") => {
+  const publicId = extractPublicId(fileUrl);
 
   try {
-    const deletedFile = await cloudinary.uploader.destroy(filePath, {
+    const deletedFile = await cloudinary.uploader.destroy(publicId, {
       resource_type: resourceType,
     });
 
@@ -70,17 +77,21 @@ const deleteImageFromCloudinary = async (fileUrl, resourceType = "image") => {
 };
 
 /**
- * Uploads multiple images to Cloudinary.
+ * Uploads multiple files to Cloudinary with default options.
+ * @param {Array<string>} filePaths - List of local file paths to upload.
+ * @param {object} options - Additional Cloudinary upload options.
+ * @returns {Array<object|null>} - Array of uploaded file info or nulls for failures.
  */
-const uploadMultipleImagesToCloudinary = async (filePaths) => {
+const uploadMultipleFilesToCloudinary = async (filePaths, options = {}) => {
   try {
-    if (!filePaths || filePaths.length === 0) return null;
+    if (!Array.isArray(filePaths) || filePaths.length === 0) return null;
 
     const uploadPromises = filePaths.map(async (filePath) => {
       try {
         const uploadedFile = await cloudinary.uploader.upload(filePath, {
-          folder: "contentia",
           resource_type: "auto",
+          folder: "general",
+          ...options,
         });
         deleteLocalFile(filePath);
         return uploadedFile;
@@ -99,26 +110,32 @@ const uploadMultipleImagesToCloudinary = async (filePaths) => {
 };
 
 /**
- * Deletes multiple images from Cloudinary.
+ * Deletes multiple files from Cloudinary with a default resource type.
+ * @param {Array<string>} fileUrls - List of file URLs to delete from Cloudinary.
+ * @param {string} resourceType - Resource type of the files (default is "image").
+ * @returns {Array<object|null>} - Array of deletion results or nulls for failures.
  */
-const deleteImagesFromCloudinary = async (fileUrls, resourceType = "image") => {
+const deleteMultipleFilesFromCloudinary = async (
+  fileUrls,
+  resourceType = "image"
+) => {
   try {
     if (!Array.isArray(fileUrls) || fileUrls.length === 0) return null;
 
     const deletePromises = fileUrls.map(async (fileUrl) => {
-      const filePath = extractPublicId(fileUrl);
+      const publicId = extractPublicId(fileUrl);
       try {
-        const deletedFile = await cloudinary.uploader.destroy(filePath, {
+        const deletedFile = await cloudinary.uploader.destroy(publicId, {
           resource_type: resourceType,
         });
         console.log(
           deletedFile.result === "ok"
-            ? `File ${filePath} deleted successfully.`
-            : `Failed to delete file ${filePath}.`
+            ? `File ${publicId} deleted successfully.`
+            : `Failed to delete file ${publicId}.`
         );
         return deletedFile;
       } catch (error) {
-        console.error(`Error deleting ${filePath}: ${error.message}`);
+        console.error(`Error deleting ${publicId}: ${error.message}`);
         return null;
       }
     });
@@ -131,8 +148,8 @@ const deleteImagesFromCloudinary = async (fileUrls, resourceType = "image") => {
 };
 
 export {
-  uploadImageToCloudinary,
-  uploadMultipleImagesToCloudinary,
-  deleteImageFromCloudinary,
-  deleteImagesFromCloudinary,
+  uploadFileToCloudinary,
+  uploadMultipleFilesToCloudinary,
+  deleteFileFromCloudinary,
+  deleteMultipleFilesFromCloudinary,
 };
