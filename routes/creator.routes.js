@@ -12,7 +12,7 @@ const router = express.Router();
 // Route to create or update OrdersProfile
 router.post("/create", createCreator);
 router.post("/login", loginCreator);
-router.patch("/:creatorId", isAuthenticated, updateCreator);
+router.patch("/", isAuthenticated, updateCreator);
 router.patch("/:creatorId/change-password", isAuthenticated, changePassword);
 
 export default router;
