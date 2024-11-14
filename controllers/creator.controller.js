@@ -244,7 +244,7 @@ const updateCreator = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, updatedCreator, "Creator updated successfully"));
 });
 
-export const changePassword = asyncHandler(async (req, res) => {
+const changePassword = asyncHandler(async (req, res) => {
   const { currentPassword, newPassword, confirmNewPassword } = req.body;
 
   if (!currentPassword || !newPassword || !confirmNewPassword) {
@@ -272,4 +272,43 @@ export const changePassword = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, null, "Password changed successfully"));
 });
 
-export { loginCreator, createCreator, updateCreator };
+const applyForOrder = asyncHandler(async (req, res) => {
+  const { orderId } = req.body;
+
+  if (!orderId) {
+    throw new ApiError(400, "Please provide orderId");
+  }
+
+  isValidId(orderId);
+
+  const order = await findById(Orders, orderId);
+
+  if (!order) {
+    throw new ApiError(404, "Order not found");
+  }
+
+  // PENDING
+});
+
+const myAssignedOrders = asyncHandler(async (req, res) => {});
+
+const uploadContentToOrder = asyncHandler(async (req, res) => {});
+
+const changeProfilePicture = asyncHandler(async (req, res) => {});
+
+const getNotifications = asyncHandler(async (req, res) => {});
+
+const addOrderToFavorites = asyncHandler(async (req, res) => {});
+
+export {
+  loginCreator,
+  createCreator,
+  updateCreator,
+  applyForOrder,
+  changePassword,
+  getNotifications,
+  changeProfilePicture,
+  addOrderToFavorites,
+  myAssignedOrders,
+  uploadContentToOrder,
+};
