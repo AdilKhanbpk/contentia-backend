@@ -53,8 +53,9 @@ const CreatorFormSchema = new mongoose.Schema(
       type: String,
     },
     isVerified: {
-      type: Boolean,
-      default: false,
+      type: String,
+      enum: ["pending", "approved", "rejected"],
+      default: "pending",
     },
     tckn: {
       type: String,

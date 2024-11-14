@@ -15,7 +15,6 @@ import { isValidId } from "../../utils/commonHelpers.js";
 const createCreator = asyncHandler(async (req, res) => {
   const {
     fullName,
-    creatorType,
     tckn,
     password,
     email,
@@ -36,7 +35,6 @@ const createCreator = asyncHandler(async (req, res) => {
     !isVerified ||
     !fullName ||
     !password ||
-    !creatorType ||
     !tckn ||
     !dateOfBirth ||
     !gender ||
@@ -55,40 +53,40 @@ const createCreator = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Email address is already in use.");
   }
 
-  if (accountType === "individual") {
-    console.log("Account type:", accountType);
+  // if (accountType === "individual") {
+  //   console.log("Account type:", accountType);
 
-    if (!paymentInformation?.ibanNumber || !paymentInformation?.address) {
-      throw new ApiError(
-        400,
-        "Please fill ibanNumber and address for individual account type"
-      );
-    }
+  //   if (!paymentInformation?.ibanNumber || !paymentInformation?.address) {
+  //     throw new ApiError(
+  //       400,
+  //       "Please fill ibanNumber and address for individual account type"
+  //     );
+  //   }
 
-    if (!paymentInformation?.fullName || !paymentInformation?.trId) {
-      throw new ApiError(
-        400,
-        "Please fill fullName and trId for individual account type"
-      );
-    }
-  } else if (accountType === "institutional") {
-    console.log("Account type:", accountType);
-    if (
-      !paymentInformation?.companyName ||
-      !paymentInformation?.taxNumber ||
-      !paymentInformation?.taxOffice
-    ) {
-      throw new ApiError(
-        400,
-        "Please fill companyName, taxNumber, and taxOffice for institutional account type"
-      );
-    }
-  } else {
-    throw new ApiError(
-      400,
-      "Account type must be 'individual' or 'institutional'"
-    );
-  }
+  //   if (!paymentInformation?.fullName || !paymentInformation?.trId) {
+  //     throw new ApiError(
+  //       400,
+  //       "Please fill fullName and trId for individual account type"
+  //     );
+  //   }
+  // } else if (accountType === "institutional") {
+  //   console.log("Account type:", accountType);
+  //   if (
+  //     !paymentInformation?.companyName ||
+  //     !paymentInformation?.taxNumber ||
+  //     !paymentInformation?.taxOffice
+  //   ) {
+  //     throw new ApiError(
+  //       400,
+  //       "Please fill companyName, taxNumber, and taxOffice for institutional account type"
+  //     );
+  //   }
+  // } else {
+  //   throw new ApiError(
+  //     400,
+  //     "Account type must be 'individual' or 'institutional'"
+  //   );
+  // }
 
   if (invoiceType === "individual") {
     console.log("Invoice type:", invoiceType);
@@ -142,7 +140,6 @@ const createCreator = asyncHandler(async (req, res) => {
     fullName,
     tckn,
     password,
-    creatorType,
     email,
     dateOfBirth,
     gender,
