@@ -1,10 +1,13 @@
 import asyncHandler from "../utils/asyncHandler.js";
 import Creator from "../models/creator.model.js";
+import Orders from "../models/orders.model.js";
+import Notifications from "../models/admin/adminNotification.model.js";
 import ApiError from "../utils/ApiError.js";
 import { createADocument, findById } from "../utils/dbHelpers.js";
 import { cookieOptions } from "./user.controller.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import { isValidId } from "../utils/commonHelpers.js";
+import { uploadFileToCloudinary } from "../utils/Cloudinary.js";
 
 export const generateTokens = async (userId) => {
   const user = await Creator.findById(userId);
@@ -60,6 +63,7 @@ const createCreator = asyncHandler(async (req, res) => {
     tckn,
     email,
     phoneNumber,
+    addressDetails,
     userAgreement,
     accountType,
     invoiceType,
@@ -80,6 +84,16 @@ const createCreator = asyncHandler(async (req, res) => {
     !invoiceType
   ) {
     throw new ApiError(400, "Please fill all the required fields");
+  }
+
+  if (
+    !addressDetails ||
+    !addressDetails?.addressOne ||
+    !addressDetails?.addressTwo ||
+    !addressDetails?.zipCode ||
+    !addressDetails?.country
+  ) {
+    throw new ApiError(400, "Please fill address details");
   }
 
   const checkEmail = await Creator.findOne({ email });
@@ -178,6 +192,7 @@ const createCreator = asyncHandler(async (req, res) => {
     email,
     phoneNumber,
     userAgreement,
+    addressDetails,
     accountType,
     invoiceType,
     paymentInformation,
@@ -287,16 +302,121 @@ const applyForOrder = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Order not found");
   }
 
-  // PENDING
+  if (order.orderStatus !== "pending") {
+    throw new ApiError(400, "Order is assigned to someone or is not pending");
+  }
+
+  const creator = await findById(Creator, req.user._id);
+
+  if (!creator) {
+    throw new ApiError(404, "Creator not found");
+  }
+
+  order.assignedCreators.push(creator._id);
+
+  await order.save();
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, order, "You Have Applied Successfully"));
 });
 
-const myAssignedOrders = asyncHandler(async (req, res) => {});
+const getAllAppliedOrders = asyncHandler(async (req, res) => {
+  const creatorId = req.user._id;
+
+  isValidId(creatorId);
+
+  const appliedOrders = await Orders.find({
+    assignedCreators: creatorId,
+    orderStatus: "pending",
+  });
+
+  if (!appliedOrders || appliedOrders.length === 0) {
+    throw new ApiError(404, "No pending orders found");
+  }
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        appliedOrders,
+        "Applied orders retrieved successfully"
+      )
+    );
+});
+
+const myAssignedOrders = asyncHandler(async (req, res) => {
+  const creatorId = req.user._id;
+
+  isValidId(creatorId);
+
+  const assignedOrders = await Orders.find({
+    assignedCreators: creatorId,
+    orderStatus: "active",
+  });
+
+  if (!assignedOrders || assignedOrders.length === 0) {
+    throw new ApiError(404, "No active orders found");
+  }
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        assignedOrders,
+        "Assigned orders retrieved successfully"
+      )
+    );
+});
+
+const changeProfilePicture = asyncHandler(async (req, res) => {
+  const creatorId = req.user._id;
+
+  isValidId(creatorId);
+
+  const creator = await findById(Creator, creatorId);
+
+  if (!creator) {
+    throw new ApiError(404, "Creator not found");
+  }
+
+  const profilePath = req.files.path;
+
+  const uploadedImage = await uploadFileToCloudinary(profilePath, {
+    folder: "creator-profile",
+    resource_type: "image",
+  });
+
+  if (!uploadedImage) {
+    throw new ApiError(500, "Failed to upload profile picture");
+  }
+
+  creator.profilePicture = uploadedImage.url;
+
+  await creator.save();
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, creator, "Profile picture updated successfully")
+    );
+});
 
 const uploadContentToOrder = asyncHandler(async (req, res) => {});
 
-const changeProfilePicture = asyncHandler(async (req, res) => {});
+const getNotifications = asyncHandler(async (req, res) => {
+  const creatorId = req.user._id;
 
-const getNotifications = asyncHandler(async (req, res) => {});
+  isValidId(creatorId);
+
+  const notifications = await Notifications.find({ creatorId });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, notifications, "Notifications retrieved"));
+});
 
 const addOrderToFavorites = asyncHandler(async (req, res) => {});
 
@@ -311,4 +431,5 @@ export {
   addOrderToFavorites,
   myAssignedOrders,
   uploadContentToOrder,
+  getAllAppliedOrders,
 };

@@ -34,6 +34,9 @@ const CreatorFormSchema = new mongoose.Schema(
       enum: ["customer", "creator"],
       default: "creator",
     },
+    addressDetails: {
+      type: String,
+    },
     role: {
       type: String,
       enum: ["admin", "user"],
