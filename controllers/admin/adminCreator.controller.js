@@ -15,7 +15,7 @@ import { isValidId } from "../../utils/commonHelpers.js";
 const createCreator = asyncHandler(async (req, res) => {
   const {
     fullName,
-    tckn,
+    identityNo,
     password,
     email,
     dateOfBirth,
@@ -23,29 +23,21 @@ const createCreator = asyncHandler(async (req, res) => {
     phoneNumber,
     isVerified,
     addressDetails,
-    // accountType,
-    // invoiceType,
-    // paymentInformation,
-    // billingInformation,
-    // preferences,
   } = req.body;
 
   if (
     !isVerified ||
     !fullName ||
     !password ||
-    !tckn ||
+    !identityNo ||
     !dateOfBirth ||
     !phoneNumber ||
     !email
-    // !accountType ||
-    // !invoiceType
   ) {
     throw new ApiError(400, "Please fill all the required fields");
   }
 
   if (
-    !addressDetails ||
     !addressDetails?.addressOne ||
     !addressDetails?.addressTwo ||
     !addressDetails?.zipCode ||
@@ -62,92 +54,9 @@ const createCreator = asyncHandler(async (req, res) => {
 
   // TODO commented for admin form submission
 
-  // if (accountType === "individual") {
-  //   console.log("Account type:", accountType);
-
-  //   if (!paymentInformation?.ibanNumber || !paymentInformation?.address) {
-  //     throw new ApiError(
-  //       400,
-  //       "Please fill ibanNumber and address for individual account type"
-  //     );
-  //   }
-
-  //   if (!paymentInformation?.fullName || !paymentInformation?.trId) {
-  //     throw new ApiError(
-  //       400,
-  //       "Please fill fullName and trId for individual account type"
-  //     );
-  //   }
-  // } else if (accountType === "institutional") {
-  //   console.log("Account type:", accountType);
-  //   if (
-  //     !paymentInformation?.companyName ||
-  //     !paymentInformation?.taxNumber ||
-  //     !paymentInformation?.taxOffice
-  //   ) {
-  //     throw new ApiError(
-  //       400,
-  //       "Please fill companyName, taxNumber, and taxOffice for institutional account type"
-  //     );
-  //   }
-  // } else {
-  //   throw new ApiError(
-  //     400,
-  //     "Account type must be 'individual' or 'institutional'"
-  //   );
-  // }
-
-  // if (invoiceType === "individual") {
-  //   console.log("Invoice type:", invoiceType);
-  //   console.log(billingInformation);
-
-  //   if (!billingInformation?.invoiceStatus || !billingInformation?.address) {
-  //     throw new ApiError(
-  //       400,
-  //       "Please fill invoiceStatus and address for individual invoice type"
-  //     );
-  //   }
-
-  //   if (!billingInformation?.fullName) {
-  //     throw new ApiError(
-  //       400,
-  //       "Please fill fullName for individual invoice type"
-  //     );
-  //   }
-  // } else if (invoiceType === "institutional") {
-  //   console.log("Invoice type:", invoiceType);
-  //   if (
-  //     !billingInformation?.companyName ||
-  //     !billingInformation?.taxNumber ||
-  //     !billingInformation?.taxOffice
-  //   ) {
-  //     throw new ApiError(
-  //       400,
-  //       "Please fill companyName, taxNumber, and taxOffice for institutional invoice type"
-  //     );
-  //   }
-  // } else {
-  //   throw new ApiError(
-  //     400,
-  //     "Invoice type must be 'individual' or 'institutional'"
-  //   );
-  // }
-
-  // if (
-  //   preferences?.contentInformation?.contentType === "product" ||
-  //   preferences?.contentInformation?.contentType === "space"
-  // ) {
-  //   if (!preferences.contentInformation.addressDetails) {
-  //     throw new ApiError(
-  //       400,
-  //       "Address details are required for product or space"
-  //     );
-  //   }
-  // }
-
   const newUser = await createADocument(Creator, {
     fullName,
-    tckn,
+    identityNo,
     password,
     email,
     dateOfBirth,
@@ -155,11 +64,6 @@ const createCreator = asyncHandler(async (req, res) => {
     phoneNumber,
     isVerified,
     addressDetails,
-    // accountType,
-    // invoiceType,
-    // paymentInformation,
-    // billingInformation,
-    // preferences,
     userAgreement: true,
     approvedCommercial: true,
   });
