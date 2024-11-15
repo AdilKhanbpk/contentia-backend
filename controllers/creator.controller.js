@@ -7,7 +7,16 @@ import { createADocument, findById } from "../utils/dbHelpers.js";
 import { cookieOptions } from "./user.controller.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import { isValidId } from "../utils/commonHelpers.js";
-import { uploadFileToCloudinary } from "../utils/Cloudinary.js";
+import {
+  listAllFilesInFolder,
+  uploadFilesToFolder,
+  createFolder,
+  getFolderIdByName,
+} from "../utils/googleDrive.js";
+import {
+  uploadFileToCloudinary,
+  uploadMultipleFilesToCloudinary,
+} from "../utils/Cloudinary.js";
 
 export const generateTokens = async (userId) => {
   const user = await Creator.findById(userId);
@@ -404,7 +413,102 @@ const changeProfilePicture = asyncHandler(async (req, res) => {
     );
 });
 
-const uploadContentToOrder = asyncHandler(async (req, res) => {});
+const uploadContentToOrder = asyncHandler(async (req, res) => {
+  const { orderId } = req.params;
+  const creatorId = req.user._id;
+
+  isValidId(orderId);
+  isValidId(creatorId);
+
+  const order = await findById(Orders, orderId);
+  if (!order) {
+    throw new ApiError(404, "Order not found");
+  }
+  if (order.orderStatus !== "pending") {
+    throw new ApiError(400, "Order is not pending");
+  }
+
+  const creator = await findById(Creator, creatorId);
+  if (!creator) {
+    throw new ApiError(404, "Creator not found");
+  }
+
+  if (!req.files || req.files.length === 0) {
+    throw new ApiError(400, "No files uploaded");
+  }
+  const filesPath = req.files.map((file) => file.path);
+
+  // UPLOAD TO CLOUDINARY LOGIC
+
+  // let uploadedFiles;
+  // try {
+  //   uploadedFiles = await uploadMultipleFilesToCloudinary(filesPath, {
+  //     folder: `${creatorId}-${orderId}`,
+  //     resource_type: "file",
+  //   });
+  // } catch (error) {
+  //   throw new ApiError(500, "Failed to upload files");
+  // }
+
+  // if (!uploadedFiles || uploadedFiles.length === 0) {
+  //   throw new ApiError(500, "Failed to upload files");
+  // }
+
+  // const content = uploadedFiles.map((file) => ({
+  //   url: file.url,
+  //   publicId: file.public_id,
+  // }));
+
+  // order.uploadFiles = {
+  //   uploadedBy: creator._id,
+  //   fileUrls: content,
+  //   uploadedDate: Date.now(),
+  // };
+
+  // await order.save();
+
+  // UPLOAD TO GOOGLE DRIVE LOGIC
+
+  try {
+    // Check or create order folder
+    let orderFolderId = await getFolderIdByName(orderId);
+    if (!orderFolderId) {
+      orderFolderId = await createFolder(orderId);
+    }
+
+    // Check or create creator folder within the order folder
+    let creatorFolderId = await getFolderIdByName(creatorId);
+    if (!creatorFolderId) {
+      creatorFolderId = await createFolder(creatorId, orderFolderId);
+    }
+
+    // Upload files to the creator's folder
+    const uploadedFilesToGoogleDrive = await uploadFilesToFolder(
+      creatorFolderId,
+      filesPath
+    );
+
+    if (
+      !uploadedFilesToGoogleDrive ||
+      uploadedFilesToGoogleDrive.length === 0
+    ) {
+      throw new ApiError(500, "Failed to upload files to Google Drive");
+    }
+
+    return res.status(200).json(
+      new ApiResponse(
+        200,
+        {
+          order,
+          uploadedFiles: uploadedFilesToGoogleDrive,
+        },
+        "Content uploaded successfully to Google Drive"
+      )
+    );
+  } catch (error) {
+    throw new ApiError(500, `Google Drive upload error: ${error.message}`);
+  }
+});
 
 const getNotifications = asyncHandler(async (req, res) => {
   const creatorId = req.user._id;
@@ -418,7 +522,69 @@ const getNotifications = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, notifications, "Notifications retrieved"));
 });
 
-const addOrderToFavorites = asyncHandler(async (req, res) => {});
+const addOrderToFavorites = asyncHandler(async (req, res) => {
+  const { orderId } = req.body;
+
+  isValidId(orderId);
+
+  const creatorId = req.user._id;
+
+  isValidId(creatorId);
+
+  const creator = await findById(Creator, creatorId);
+
+  if (!creator) {
+    throw new ApiError(404, "Creator not found");
+  }
+
+  const order = await findById(Orders, orderId);
+
+  if (!order) {
+    throw new ApiError(404, "Order not found");
+  }
+
+  creator.favoriteOrders.push(order._id);
+
+  await creator.save();
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, creator, "Order added to favorites"));
+});
+
+const removeOrderFromFavorites = asyncHandler(async (req, res) => {
+  const { orderId } = req.body;
+
+  isValidId(orderId);
+
+  const creatorId = req.user._id;
+
+  isValidId(creatorId);
+
+  const creator = await findById(Creator, creatorId);
+
+  if (!creator) {
+    throw new ApiError(404, "Creator not found");
+  }
+
+  const order = await findById(Orders, orderId);
+
+  if (!order) {
+    throw new ApiError(404, "Order not found");
+  }
+
+  creator.favoriteOrders = creator.favoriteOrders.filter(
+    (id) => id.toString() !== orderId.toString()
+  );
+
+  await creator.save();
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, creator, "Order removed from favorites"));
+});
+
+const getMyUploadedFolders = asyncHandler(async (req, res) => {});
 
 export {
   loginCreator,
@@ -432,4 +598,6 @@ export {
   myAssignedOrders,
   uploadContentToOrder,
   getAllAppliedOrders,
+  removeOrderFromFavorites,
+  getMyUploadedFolders,
 };

@@ -7,6 +7,10 @@ const CreatorFormSchema = new mongoose.Schema(
     identityNo: {
       type: Number,
     },
+    favoriteOrders: {
+      type: [mongoose.Types.ObjectId],
+      ref: "Order",
+    },
     authProvider: {
       type: String,
       enum: ["google", "credentials"],
