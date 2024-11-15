@@ -26,9 +26,9 @@ const ordersProfileSchema = new Schema(
     },
     orderStatus: {
       type: String,
-      enum: ["active", "completed", "cancelled", "revision"],
+      enum: ["pending", "active", "completed", "cancelled", "revision"],
       required: true,
-      default: "active",
+      default: "pending",
     },
     paymentStatus: {
       type: String,

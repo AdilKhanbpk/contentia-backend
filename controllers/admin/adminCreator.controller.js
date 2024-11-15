@@ -22,13 +22,12 @@ const createCreator = asyncHandler(async (req, res) => {
     gender,
     phoneNumber,
     isVerified,
-    addressOne,
-    addressTwo,
-    accountType,
-    invoiceType,
-    paymentInformation,
-    billingInformation,
-    preferences,
+    addressDetails,
+    // accountType,
+    // invoiceType,
+    // paymentInformation,
+    // billingInformation,
+    // preferences,
   } = req.body;
 
   if (
@@ -37,21 +36,31 @@ const createCreator = asyncHandler(async (req, res) => {
     !password ||
     !tckn ||
     !dateOfBirth ||
-    !gender ||
-    !addressOne ||
-    !addressTwo ||
-    !email ||
     !phoneNumber ||
-    !accountType ||
-    !invoiceType
+    !email
+    // !accountType ||
+    // !invoiceType
   ) {
     throw new ApiError(400, "Please fill all the required fields");
   }
+
+  if (
+    !addressDetails ||
+    !addressDetails?.addressOne ||
+    !addressDetails?.addressTwo ||
+    !addressDetails?.zipCode ||
+    !addressDetails?.country
+  ) {
+    throw new ApiError(400, "Please fill address details");
+  }
+
   const checkEmail = await Creator.findOne({ email });
 
   if (checkEmail) {
     throw new ApiError(400, "Email address is already in use.");
   }
+
+  // TODO commented for admin form submission
 
   // if (accountType === "individual") {
   //   console.log("Account type:", accountType);
@@ -88,53 +97,53 @@ const createCreator = asyncHandler(async (req, res) => {
   //   );
   // }
 
-  if (invoiceType === "individual") {
-    console.log("Invoice type:", invoiceType);
-    console.log(billingInformation);
+  // if (invoiceType === "individual") {
+  //   console.log("Invoice type:", invoiceType);
+  //   console.log(billingInformation);
 
-    if (!billingInformation?.invoiceStatus || !billingInformation?.address) {
-      throw new ApiError(
-        400,
-        "Please fill invoiceStatus and address for individual invoice type"
-      );
-    }
+  //   if (!billingInformation?.invoiceStatus || !billingInformation?.address) {
+  //     throw new ApiError(
+  //       400,
+  //       "Please fill invoiceStatus and address for individual invoice type"
+  //     );
+  //   }
 
-    if (!billingInformation?.fullName) {
-      throw new ApiError(
-        400,
-        "Please fill fullName for individual invoice type"
-      );
-    }
-  } else if (invoiceType === "institutional") {
-    console.log("Invoice type:", invoiceType);
-    if (
-      !billingInformation?.companyName ||
-      !billingInformation?.taxNumber ||
-      !billingInformation?.taxOffice
-    ) {
-      throw new ApiError(
-        400,
-        "Please fill companyName, taxNumber, and taxOffice for institutional invoice type"
-      );
-    }
-  } else {
-    throw new ApiError(
-      400,
-      "Invoice type must be 'individual' or 'institutional'"
-    );
-  }
+  //   if (!billingInformation?.fullName) {
+  //     throw new ApiError(
+  //       400,
+  //       "Please fill fullName for individual invoice type"
+  //     );
+  //   }
+  // } else if (invoiceType === "institutional") {
+  //   console.log("Invoice type:", invoiceType);
+  //   if (
+  //     !billingInformation?.companyName ||
+  //     !billingInformation?.taxNumber ||
+  //     !billingInformation?.taxOffice
+  //   ) {
+  //     throw new ApiError(
+  //       400,
+  //       "Please fill companyName, taxNumber, and taxOffice for institutional invoice type"
+  //     );
+  //   }
+  // } else {
+  //   throw new ApiError(
+  //     400,
+  //     "Invoice type must be 'individual' or 'institutional'"
+  //   );
+  // }
 
-  if (
-    preferences?.contentInformation?.contentType === "product" ||
-    preferences?.contentInformation?.contentType === "space"
-  ) {
-    if (!preferences.contentInformation.addressDetails) {
-      throw new ApiError(
-        400,
-        "Address details are required for product or space"
-      );
-    }
-  }
+  // if (
+  //   preferences?.contentInformation?.contentType === "product" ||
+  //   preferences?.contentInformation?.contentType === "space"
+  // ) {
+  //   if (!preferences.contentInformation.addressDetails) {
+  //     throw new ApiError(
+  //       400,
+  //       "Address details are required for product or space"
+  //     );
+  //   }
+  // }
 
   const newUser = await createADocument(Creator, {
     fullName,
@@ -145,13 +154,12 @@ const createCreator = asyncHandler(async (req, res) => {
     gender,
     phoneNumber,
     isVerified,
-    addressOne,
-    addressTwo,
-    accountType,
-    invoiceType,
-    paymentInformation,
-    billingInformation,
-    preferences,
+    addressDetails,
+    // accountType,
+    // invoiceType,
+    // paymentInformation,
+    // billingInformation,
+    // preferences,
     userAgreement: true,
     approvedCommercial: true,
   });
