@@ -111,35 +111,36 @@ const createFolderAndFile = async (folderName, filePath) => {
 };
 
 /**
- * Creates an empty folder in Google Drive
- * @param {string} folderName - Name of the folder to create
- * @returns {Promise<string>} The ID of the created folder
- * @throws {ApiError} If folder creation fails
+ * Create a folder in Google Drive.
+ * @param {string} folderName - The name of the folder to create.
+ * @param {string} [parentFolderId] - Optional ID of the parent folder.
+ * @returns {Promise<string>} - The ID of the created folder.
+ * @throws {Error} If folder creation fails.
  */
-const createFolder = async (folderName) => {
-  if (!process.env.GOOGLE_DRIVE_FOLDER_ID) {
-    throw new ApiError(500, "Google Drive Root folder ID not configured.");
-  }
-
-  const folderMetadata = {
-    name: folderName,
-    mimeType: "application/vnd.google-apps.folder",
-    parents: [process.env.GOOGLE_DRIVE_FOLDER_ID],
-  };
-
+const createFolder = async (
+  folderName,
+  parentFolderId = process.env.GOOGLE_DRIVE_FOLDER_ID
+) => {
   try {
+    const fileMetadata = {
+      name: folderName,
+      mimeType: "application/vnd.google-apps.folder",
+      parents: parentFolderId ? [parentFolderId] : [],
+    };
+
     const folder = await drive.files.create({
-      resource: folderMetadata,
+      resource: fileMetadata,
       fields: "id",
     });
 
-    if (!folder.data.id) {
-      throw new ApiError(500, "Folder creation failed: No folder ID returned.");
+    if (folder.status !== 200) {
+      throw new Error(`Failed to create folder: ${folder.statusText}`);
     }
 
     return folder.data.id;
   } catch (error) {
-    throw new ApiError(500, `Folder creation error: ${error.message}`);
+    console.error(`Error creating folder: ${error.message}`);
+    throw new Error(`Unable to create folder: ${error.message}`);
   }
 };
 
@@ -281,6 +282,23 @@ const listAllFolders = async () => {
   }
 };
 
+const listSpecificFolderInParentFolder = async (
+  parentFolderId,
+  specificFolderId
+) => {
+  try {
+    const response = await drive.files.list({
+      q: `'${parentFolderId}' in parents and '${specificFolderId}' in parents and trashed = false`,
+      fields: "files(id, name, mimeType, size, createdTime, modifiedTime)",
+      spaces: "drive",
+    });
+
+    return response.data.files;
+  } catch (error) {
+    throw new ApiError(500, `File retrieval error: ${error.message}`);
+  }
+};
+
 export {
   createFolderAndFile,
   createFolder,
@@ -290,4 +308,5 @@ export {
   getFileUrlsFromFolder,
   listAllFilesInFolder,
   listAllFolders,
+  listSpecificFolderInParentFolder,
 };
