@@ -136,11 +136,11 @@ const CreatorFormSchema = new mongoose.Schema(
       contentInformation: {
         contentType: {
           type: String,
-          enum: ["product", "service", "space"],
+          enum: ["product", "service", "other"],
         },
         creatorType: {
           type: String,
-          enum: ["macro", "micro"],
+          enum: ["nano", "micro"],
           default: "macro",
         },
         contentFormats: [String],
