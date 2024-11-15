@@ -16,6 +16,9 @@ const requiredIfInvoiceType = (invoiceType, type) => {
 
 const CreatorFormSchema = new mongoose.Schema(
   {
+    identityNumber: {
+      type: Number,
+    },
     authProvider: {
       type: String,
       enum: ["google", "credentials"],
