@@ -1,11 +1,15 @@
 import multer from "multer";
 import path from "path";
+import fs from "fs";
 
-// Define disk storage configuration
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const tempDir = path.resolve("/tmp");
-    // console.log(tempDir)
+
+    if (!fs.existsSync(tempDir)) {
+      fs.mkdirSync(tempDir, { recursive: true });
+    }
+
     cb(null, tempDir);
   },
   filename: (req, file, cb) => {
