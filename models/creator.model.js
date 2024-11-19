@@ -141,7 +141,7 @@ const CreatorFormSchema = new mongoose.Schema(
         creatorType: {
           type: String,
           enum: ["nano", "micro"],
-          default: "macro",
+          default: "nano",
         },
         contentFormats: [String],
         areaOfInterest: [String],
