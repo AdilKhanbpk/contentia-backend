@@ -12,12 +12,19 @@ import {
   uploadFilesToFolder,
   createFolder,
   getFolderIdByName,
+  listSpecificFolderInParentFolder,
 } from "../utils/googleDrive.js";
 import {
   uploadFileToCloudinary,
   uploadMultipleFilesToCloudinary,
 } from "../utils/Cloudinary.js";
 
+/**
+ * Generates and returns a new access token for the given creator user ID
+ * @param {ObjectId} userId - The MongoDB ObjectId of the creator user
+ * @returns {Promise<Object>} - An object with the new access token
+ * @throws {ApiError} - If the user is not found
+ */
 export const generateTokens = async (userId) => {
   const user = await Creator.findById(userId);
   if (!user) throw new ApiError(404, "User not found");
@@ -321,7 +328,7 @@ const applyForOrder = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Creator not found");
   }
 
-  order.assignedCreators.push(creator._id);
+  order.appliedCreators.push(creator._id);
 
   await order.save();
 
@@ -336,7 +343,7 @@ const getAllAppliedOrders = asyncHandler(async (req, res) => {
   isValidId(creatorId);
 
   const appliedOrders = await Orders.find({
-    assignedCreators: creatorId,
+    appliedCreators: creatorId,
     orderStatus: "pending",
   });
 
@@ -584,7 +591,33 @@ const removeOrderFromFavorites = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, creator, "Order removed from favorites"));
 });
 
-const getMyUploadedFolders = asyncHandler(async (req, res) => {});
+const getMyOrderFolderToUploadContent = asyncHandler(async (req, res) => {
+  const creatorId = req.user._id;
+  const { orderId } = req.params;
+
+  isValidId(creatorId);
+  isValidId(orderId);
+
+  const order = await findById(Orders, orderId);
+  if (!order) {
+    throw new ApiError(404, "Order not found");
+  }
+
+  const creator = await findById(Creator, creatorId);
+  if (!creator) {
+    throw new ApiError(404, "Creator not found");
+  }
+
+  const myFolder = await listSpecificFolderInParentFolder(orderId, creatorId);
+
+  if (!myFolder) {
+    throw new ApiError(404, "Folder not found");
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, myFolder, "My folder retrieved"));
+});
 
 export {
   loginCreator,
@@ -599,5 +632,5 @@ export {
   uploadContentToOrder,
   getAllAppliedOrders,
   removeOrderFromFavorites,
-  getMyUploadedFolders,
+  getMyOrderFolderToUploadContent,
 };
