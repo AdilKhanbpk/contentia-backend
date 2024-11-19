@@ -16,6 +16,13 @@ const ordersProfileSchema = new Schema(
         ref: "Creator",
       },
     ],
+    appliedCreators: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Creator",
+      },
+    ],
+
     noOfUgc: {
       type: Number,
     },
@@ -119,6 +126,7 @@ const ordersProfileSchema = new Schema(
         type: String,
       },
     },
+
     numberOfRequests: {
       type: Number,
     },

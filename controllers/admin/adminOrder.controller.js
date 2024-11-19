@@ -10,7 +10,7 @@ import {
   updateById,
 } from "../../utils/dbHelpers.js";
 
-const createOrder = asyncHandler(async (req, res, next) => {
+const createOrder = asyncHandler(async (req, res) => {
   const {
     customer,
     noOfUgc,
@@ -138,4 +138,83 @@ const deleteOrder = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, deletedOrder, "Order deleted successfully"));
 });
 
-export { createOrder, getOrders, getOrderById, updateOrder, deleteOrder };
+const approveCreatorOnOrder = asyncHandler(async (req, res) => {
+  const { orderId } = req.params;
+  const { creatorId } = req.body;
+
+  isValidId(orderId);
+  isValidId(creatorId);
+
+  const order = await findById(Order, orderId);
+
+  if (!order) {
+    throw new ApiError(404, "Order not found");
+  }
+
+  if (order.orderStatus !== "pending") {
+    throw new ApiError(400, "Order is not pending");
+  }
+
+  if (order.assignedCreators.includes(creatorId)) {
+    throw new ApiError(400, "Creator is already assigned to the order");
+  }
+
+  order.assignedCreators.push(creatorId);
+  order.numberOfRequests = order.assignedCreators.length;
+
+  const updatedOrder = await updateById(Order, orderId, {
+    assignedCreators: order.assignedCreators,
+    numberOfRequests: order.numberOfRequests,
+  });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, updatedOrder, "Creator approved successfully"));
+});
+
+const rejectCreatorOnOrder = asyncHandler(async (req, res) => {
+  const { orderId } = req.params;
+  const { creatorId } = req.body;
+
+  isValidId(orderId);
+  isValidId(creatorId);
+
+  const order = await findById(Order, orderId);
+
+  if (!order) {
+    throw new ApiError(404, "Order not found");
+  }
+
+  if (order.orderStatus !== "pending") {
+    throw new ApiError(400, "Order is not pending");
+  }
+
+  if (!order.assignedCreators.includes(creatorId)) {
+    throw new ApiError(400, "Creator is not assigned to the order");
+  }
+
+  order.assignedCreators = order.assignedCreators.filter(
+    (id) => id !== creatorId
+  );
+
+  order.numberOfRequests = order.assignedCreators.length;
+
+  const updatedOrder = await updateById(Order, orderId, {
+    assignedCreators: order.assignedCreators,
+    numberOfRequests: order.numberOfRequests,
+  });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, updatedOrder, "Creator rejected successfully"));
+});
+
+export {
+  createOrder,
+  getOrders,
+  getOrderById,
+  updateOrder,
+  deleteOrder,
+  approveCreatorOnOrder,
+  rejectCreatorOnOrder,
+};

@@ -328,7 +328,7 @@ const applyForOrder = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Creator not found");
   }
 
-  order.assignedCreators.push(creator._id);
+  order.appliedCreators.push(creator._id);
 
   await order.save();
 
@@ -343,7 +343,7 @@ const getAllAppliedOrders = asyncHandler(async (req, res) => {
   isValidId(creatorId);
 
   const appliedOrders = await Orders.find({
-    assignedCreators: creatorId,
+    appliedCreators: creatorId,
     orderStatus: "pending",
   });
 
@@ -591,7 +591,7 @@ const removeOrderFromFavorites = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, creator, "Order removed from favorites"));
 });
 
-const getMyFolderForUploadContentToMyOrder = asyncHandler(async (req, res) => {
+const getMyOrderFolderToUploadContent = asyncHandler(async (req, res) => {
   const creatorId = req.user._id;
   const { orderId } = req.params;
 
@@ -632,5 +632,5 @@ export {
   uploadContentToOrder,
   getAllAppliedOrders,
   removeOrderFromFavorites,
-  getMyFolderForUploadContentToMyOrder,
+  getMyOrderFolderToUploadContent,
 };
