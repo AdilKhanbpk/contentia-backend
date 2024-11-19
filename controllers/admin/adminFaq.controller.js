@@ -54,13 +54,11 @@ const updateFaq = asyncHandler(async (req, res, next) => {
 
 const deleteFaq = asyncHandler(async (req, res, next) => {
   const { faqId } = req.params;
-  const faq = await FaqModel.findById(faqId);
+  const faq = await FaqModel.findByIdAndDelete(faqId);
 
   if (!faq) {
     throw new ApiError(404, `FAQ not found with faqId: ${faqId}`);
   }
-
-  await faq.remove();
 
   return res
     .status(200)
