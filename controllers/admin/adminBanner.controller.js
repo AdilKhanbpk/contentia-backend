@@ -26,6 +26,13 @@ const createBanner = asyncHandler(async (req, res) => {
   if (!bannerImage) {
     throw new ApiError(400, "Please provide a banner image");
   }
+
+  const banners = await findAll(BannerModel);
+
+  if (banners.length >= 3) {
+    throw new ApiError(400, "You can only have 3 banners");
+  }
+
   const uploadBanner = await uploadFileToCloudinary(bannerImage);
 
   const createdBanner = await createADocument(BannerModel, {
