@@ -3,7 +3,12 @@ import ApiError from "../../utils/ApiError.js";
 import ApiResponse from "../../utils/ApiResponse.js";
 import asyncHandler from "../../utils/asyncHandler.js";
 import HowItWorkModel from "../../models/admin/adminHowItworks.model.js";
-import { findAll, findById, updateById } from "../../utils/dbHelpers.js";
+import {
+  createADocument,
+  findAll,
+  findById,
+  updateById,
+} from "../../utils/dbHelpers.js";
 
 const createHowItWorks = asyncHandler(async (req, res) => {
   const { sectionTitle, sectionDescription, steps } = req.body;
