@@ -134,10 +134,16 @@ const deleteHelpSupport = asyncHandler(async (req, res) => {
 
   await deleteFileFromCloudinary(iconPath);
 
+  const deletedHelpSupport = await deleteById(HelpSupportModel, helpSupportId);
+
   return res
     .status(200)
     .json(
-      new ApiResponse(200, helpSupport, "Help support deleted successfully")
+      new ApiResponse(
+        200,
+        deletedHelpSupport,
+        "Help support deleted successfully"
+      )
     );
 });
 
