@@ -10,6 +10,7 @@ import {
 } from "../../utils/Cloudinary.js";
 import {
   createADocument,
+  deleteById,
   findAll,
   findById,
   updateById,
