@@ -127,7 +127,11 @@ const deleteHowItWorks = asyncHandler(async (req, res) => {
   return res
     .status(200)
     .json(
-      new ApiResponse(200, null, "How It Works section deleted successfully")
+      new ApiResponse(
+        200,
+        howItWorks,
+        "How It Works section deleted successfully"
+      )
     );
 });
 
