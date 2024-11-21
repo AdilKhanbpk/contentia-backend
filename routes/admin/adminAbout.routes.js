@@ -14,7 +14,7 @@ import { uploadOnMulter } from "../../middlewares/multer.middleware.js";
 
 const router = express.Router();
 
-router.get("/:aboutId", isAuthenticated, getAbout);
+router.get("/", isAuthenticated, getAbout);
 router.patch("/:aboutId", isAuthenticated, isAdmin, updateAbout);
 router.patch(
   "/:aboutId/change-image",
