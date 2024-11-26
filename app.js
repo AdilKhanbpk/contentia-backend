@@ -51,7 +51,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 const corsOptions = {
-  origin: process.env.CORS_ORIGIN,
+  origin: ["https://contentia-frontend.vercel.app", "http://localhost:3000"],
   methods: "GET,POST,PUT,DELETE,OPTIONS,PATCH",
   allowedHeaders: "X-Requested-With, Content-Type, Authorization",
   credentials: true,
