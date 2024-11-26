@@ -34,8 +34,8 @@ const createPricePlan = asyncHandler(async (req, res) => {
 });
 
 const getPricePlans = asyncHandler(async (req, res) => {
-  const pricePlans = await findAll(PricePlanModel);
-  return res
+  const pricePlans = await PricePlanModel.find();
+  res
     .status(200)
     .json(
       new ApiResponse(200, pricePlans, "Price plans retrieved successfully")
