@@ -53,10 +53,6 @@ const findAll = async (model) => {
   try {
     const documents = await model.find();
 
-    if (!documents || documents.length === 0) {
-      throw new ApiError(404, "No documents found");
-    }
-
     return documents;
   } catch (error) {
     throw new ApiError(500, `Error finding documents: ${error.message}`);

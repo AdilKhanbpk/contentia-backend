@@ -34,8 +34,8 @@ const createPricePlan = asyncHandler(async (req, res) => {
 });
 
 const getPricePlans = asyncHandler(async (req, res) => {
-  const pricePlans = await findAll(PricePlanModel);
-  return res
+  const pricePlans = await PricePlanModel.find();
+  res
     .status(200)
     .json(
       new ApiResponse(200, pricePlans, "Price plans retrieved successfully")
@@ -66,33 +66,24 @@ const updatePricePlan = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Price plan not found.");
   }
 
-  if (existingPlan.videoCount === 1) {
-    const updatedPlan = await updateById(PricePlanModel, pricePlanId, {
-      // strikeThroughPrice,
-      finalPrice,
-    });
+  const updateData = {};
 
-    return res
-      .status(200)
-      .json(
-        new ApiResponse(
-          200,
-          updatedPlan,
-          "Price updated successfully for one video plan"
-        )
-      );
+  if (videoCount !== undefined) {
+    updateData.videoCount = videoCount;
   }
-  const updatedPlan = await updateById(PricePlanModel, pricePlanId, {
-    videoCount,
-    strikeThroughPrice,
-    finalPrice,
-  });
+  if (strikeThroughPrice !== undefined) {
+    updateData.strikeThroughPrice = strikeThroughPrice;
+  }
+  if (finalPrice !== undefined) {
+    updateData.finalPrice = finalPrice;
+  }
+
+  const updatedPlan = await updateById(PricePlanModel, pricePlanId, updateData);
 
   return res
     .status(200)
     .json(new ApiResponse(200, updatedPlan, "Price plan updated successfully"));
 });
-
 const deletePricePlan = asyncHandler(async (req, res) => {
   const { pricePlanId } = req.params;
 
