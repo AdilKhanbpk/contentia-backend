@@ -24,8 +24,8 @@ router.post(
 router.get("/", isAuthenticated, getAdditionalServices);
 router.get(
   "/:additionalServicesId",
-  isAdmin,
   isAuthenticated,
+  isAdmin,
   getAdditionalServiceById
 );
 router.patch(
