@@ -136,11 +136,10 @@ const deleteCoupon = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Coupon not found");
   }
 
-  await coupon.remove();
-
+  const deletedCoupon = await CouponModel.findByIdAndDelete(couponId);
   return res
     .status(200)
-    .json(new ApiResponse(200, null, "Coupon deleted successfully"));
+    .json(new ApiResponse(200, deletedCoupon, "Coupon deleted successfully"));
 });
 
 const validateCoupon = asyncHandler(async (req, res) => {

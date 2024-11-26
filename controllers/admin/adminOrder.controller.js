@@ -23,13 +23,16 @@ const createOrder = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Please provide all order details");
   }
 
-  let assignedCreatorsArray = [];
-
-  if (assignedCreators) {
-    assignedCreatorsArray = assignedCreators
-      .split(",")
-      .map((id) => mongoose.Types.ObjectId.createFromHexString(id));
+  if (!Array.isArray(assignedCreators) || !assignedCreators.length) {
+    throw new ApiError(400, "Assigned creators must be a non-empty array");
   }
+
+  const validatedCreators = assignedCreators.map((id) => {
+    if (!mongoose.isValidObjectId(id)) {
+      throw new ApiError(400, `Invalid creator ID: ${id}`);
+    }
+    return mongoose.Types.ObjectId.createFromHexString(id);
+  });
 
   if (
     !additionalServices ||
@@ -43,11 +46,11 @@ const createOrder = asyncHandler(async (req, res) => {
 
   const newOrder = await Order.create({
     orderOwner: customer,
-    assignedCreators: assignedCreatorsArray,
+    assignedCreators: validatedCreators,
     noOfUgc,
     totalPrice,
     additionalServices,
-    numberOfRequests: assignedCreatorsArray.length,
+    numberOfRequests: validatedCreators.length,
   });
 
   return res
@@ -59,10 +62,6 @@ const getOrders = asyncHandler(async (req, res) => {
   const orders = await Order.find()
     .populate("orderOwner")
     .populate("assignedCreators");
-
-  if (!orders || orders.length === 0) {
-    throw new ApiError(404, "No orders found");
-  }
 
   return res
     .status(200)
