@@ -2,6 +2,7 @@ import AdditionalServiceModel from "../../models/admin/adminAdditionalService.mo
 import ApiError from "../../utils/ApiError.js";
 import ApiResponse from "../../utils/ApiResponse.js";
 import asyncHandler from "../../utils/asyncHandler.js";
+import { isValidId } from "../../utils/commonHelpers.js";
 import {
   createADocument,
   deleteById,
@@ -62,7 +63,7 @@ const getAdditionalServices = asyncHandler(async (req, res) => {
 const getAdditionalServiceById = asyncHandler(async (req, res) => {
   const { additionalServicesId } = req.params;
 
-  isValidObjectId(additionalServicesId);
+  isValidId(additionalServicesId);
 
   const additionalService = await findById(
     AdditionalServiceModel,
@@ -94,7 +95,7 @@ const updateAdditionalService = asyncHandler(async (req, res) => {
     sixtySecondDurationPrice,
   } = req.body;
 
-  isValidObjectId(additionalServicesId);
+  isValidId(additionalServicesId);
 
   const additionalService = await findById(
     AdditionalServiceModel,
@@ -133,7 +134,7 @@ const updateAdditionalService = asyncHandler(async (req, res) => {
 const deleteAdditionalService = asyncHandler(async (req, res) => {
   const { additionalServicesId } = req.params;
 
-  isValidObjectId(additionalServicesId);
+  isValidId(additionalServicesId);
 
   const deletedAdditionalService = await deleteById(
     AdditionalServiceModel,
