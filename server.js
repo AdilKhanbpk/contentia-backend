@@ -13,11 +13,7 @@ process.on("uncaughtException", (err) => {
 
 const connectDB = async () => {
   try {
-    const DB = process.env.DATABASE.replace(
-      "<password>",
-      process.env.DATABASE_PASSWORD
-    );
-    const connection = await mongoose.connect(process.env.DATABASE_LOCAL);
+    const connection = await mongoose.connect(process.env.DATABASE);
     console.log(
       `Database connection successful with ==> '${connection.connection.name}'`
     );
