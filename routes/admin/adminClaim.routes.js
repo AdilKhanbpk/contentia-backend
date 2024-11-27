@@ -16,8 +16,8 @@ const router = express.Router();
 
 router.get("", isAuthenticated, isAdmin, getClaims);
 router.post("/:customerId/:orderId", isAuthenticated, createClaim);
-router.patch("/:claimId", isAdmin, isAuthenticated, updateClaim);
-router.delete("/:claimId", isAdmin, isAuthenticated, deleteClaim);
-router.get("/:claimId", isAdmin, isAuthenticated, getClaimById);
+router.patch("/:claimId", isAuthenticated, isAdmin, updateClaim);
+router.delete("/:claimId", isAuthenticated, isAdmin, deleteClaim);
+router.get("/:claimId", isAuthenticated, isAdmin, getClaimById);
 
 export default router;
