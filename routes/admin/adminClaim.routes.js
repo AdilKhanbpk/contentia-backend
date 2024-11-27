@@ -15,7 +15,7 @@ import {
 const router = express.Router();
 
 router.get("", isAuthenticated, isAdmin, getClaims);
-router.post("/:customerId/:orderId", isAuthenticated, createClaim);
+router.post("/", isAuthenticated, createClaim);
 router.patch("/:claimId", isAuthenticated, isAdmin, updateClaim);
 router.delete("/:claimId", isAuthenticated, isAdmin, deleteClaim);
 router.get("/:claimId", isAuthenticated, isAdmin, getClaimById);

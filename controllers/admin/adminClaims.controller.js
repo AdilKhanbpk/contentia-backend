@@ -15,8 +15,7 @@ import Order from "../../models/orders.model.js";
 import User from "../../models/user.model.js";
 
 const createClaim = asyncHandler(async (req, res) => {
-  const { claimContent, claimDate } = req.body;
-  const { customerId, orderId } = req.params;
+  const { claimContent, customerId, orderId, claimDate } = req.body;
 
   if (!claimContent) {
     throw new ApiError(400, "Please provide claim content");
@@ -71,11 +70,12 @@ const getClaimById = asyncHandler(async (req, res) => {
 
 const updateClaim = asyncHandler(async (req, res) => {
   const { claimId } = req.params;
-  const { claimContent, claimDate } = req.body;
+  const { claimContent, claimDate, status } = req.body;
 
   isValidId(claimId);
 
   const updatedClaim = await updateById(Claims, claimId, {
+    status,
     claimContent,
     claimDate,
   });
