@@ -11,6 +11,8 @@ import {
   updateById,
 } from "../../utils/dbHelpers.js";
 import Claims from "../../models/admin/adminClaims.model.js";
+import Order from "../../models/orders.model.js";
+import User from "../../models/user.model.js";
 
 const createClaim = asyncHandler(async (req, res) => {
   const { claimContent, claimDate } = req.body;
@@ -23,11 +25,22 @@ const createClaim = asyncHandler(async (req, res) => {
   isValidId(customerId);
   isValidId(orderId);
 
+  const checkCustomer = await User.findById(customerId);
+  const checkOrder = await Order.findById(orderId);
+
+  if (!checkCustomer) {
+    throw new ApiError(404, "Customer not found");
+  }
+
+  if (!checkOrder) {
+    throw new ApiError(404, "Order not found");
+  }
+
   const createdClaim = await createADocument(Claims, {
     claimContent,
     claimDate,
-    customer: customerId,
-    order: orderId,
+    customer: checkCustomer._id,
+    order: checkOrder._id,
   });
 
   return res
