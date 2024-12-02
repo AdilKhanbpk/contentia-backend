@@ -4,6 +4,8 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import { fileURLToPath } from "url";
 import expressSession from "express-session";
+import http from "http";
+import initializeSocketSetup from "./socket/socket.js";
 
 import passport from "passport";
 import { passportSetup } from "./utils/googleAuthSetup/googleConfiguration.js";
@@ -70,6 +72,9 @@ app.use(express.json({ limit: "10kb" }));
 app.use(express.urlencoded({ extended: true, limit: "10kb" }));
 app.use(cookieParser());
 
+const server = http.createServer(app);
+const io = initializeSocketSetup(server);
+
 app.use("/", googleAuthRoutes);
 
 app.use("/api/v1/users", userAuthRoutes);
@@ -102,4 +107,4 @@ app.all("*", (req, res) => {
   throw new ApiError(404, message);
 });
 
-export default app;
+export { app, server };
