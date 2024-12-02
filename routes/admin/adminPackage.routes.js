@@ -6,6 +6,7 @@ import {
 import {
   createLandingPagePackage,
   deleteLandingPagePackage,
+  getAllLandingPagePackages,
   getLandingPagePackageById,
   updateLandingPagePackage,
 } from "../../controllers/admin/adminPackage.controller.js";
@@ -17,7 +18,7 @@ const router = express.Router();
 router.use(isAuthenticated);
 
 router.post("/", isAuthenticated, isAdmin, createLandingPagePackage);
-router.get("/", isAuthenticated, isAdmin, getAllCustomPackages);
+router.get("/", isAuthenticated, isAdmin, getAllLandingPagePackages);
 router.get("/:packageId", isAuthenticated, getLandingPagePackageById);
 router.patch("/:packageId", isAuthenticated, isAdmin, updateLandingPagePackage);
 router.delete(

@@ -22,6 +22,6 @@ const packageSchema = new Schema(
 );
 
 const Package =
-  mongoose.models.package || mongoose.model("package", packageSchema);
+  mongoose.models.package || mongoose.model("Package", packageSchema);
 
 export default Package;

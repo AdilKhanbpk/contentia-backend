@@ -8,6 +8,7 @@ import {
   updateById,
   deleteById,
   findById,
+  findAll,
 } from "../../utils/dbHelpers.js";
 import { isValidId } from "../../utils/commonHelpers.js";
 
@@ -18,7 +19,7 @@ const createLandingPagePackage = asyncHandler(async (req, res) => {
     throw new ApiError(400, "All fields are required");
   }
 
-  const packagesCount = await findByQuery(Package, {});
+  const packagesCount = await findAll(Package);
   if (packagesCount.length >= 3) {
     throw new ApiError(400, "You can create only 3 packages");
   }
@@ -34,7 +35,7 @@ const createLandingPagePackage = asyncHandler(async (req, res) => {
 });
 
 const getAllLandingPagePackages = asyncHandler(async (req, res) => {
-  const packages = await findByQuery(Package, {});
+  const packages = await findAll(Package);
   return res
     .status(200)
     .json(new ApiResponse(200, packages, "Packages fetched successfully"));

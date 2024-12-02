@@ -118,6 +118,6 @@ const packageSchema = new Schema({
   },
 });
 
-const PackageModel = mongoose.model("Package", packageSchema);
+const PackageModel = mongoose.model("CustomPackage", packageSchema);
 
 export default PackageModel;
