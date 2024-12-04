@@ -28,6 +28,7 @@ export default function initializeSocketSetup(server) {
           );
         }
         socket.userId = decodedToken._id;
+        console.log(decodedToken);
         next();
       }
     );
@@ -44,6 +45,11 @@ export default function initializeSocketSetup(server) {
     } else {
       socket.disconnect();
     }
+  });
+
+  io.on("disconnect", () => {
+    console.log("Socket.IO server disconnected");
+    connectedSocket.clear();
   });
 
   console.log("Socket.IO server initialized");

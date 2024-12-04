@@ -13,7 +13,8 @@ import {
 import Creator from "../../models/creator.model.js";
 import User from "../../models/user.model.js";
 import Notification from "../../models/admin/adminNotification.model.js";
-import io, { connectedSocket } from "../../socket/socket.js";
+import { connectedSocket } from "../../socket/socket.js";
+import { io } from "../../app.js";
 
 const sendNotification = async ({
   userType,
@@ -43,6 +44,7 @@ const sendNotification = async ({
 
     users.forEach((userId) => {
       const socketId = connectedSocket.get(userId.toString());
+      console.log("Sending Notification to Socket ID:", socketId);
       if (socketId) {
         io.to(socketId).emit("newNotification", notification);
       } else {
@@ -58,7 +60,6 @@ const sendNotification = async ({
 
 const createNotification = asyncHandler(async (req, res) => {
   const { userType, title, details, users } = req.body;
-
   if (!userType || !title || !details) {
     throw new ApiError(400, "Please provide all the required fields");
   }
