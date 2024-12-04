@@ -4,7 +4,8 @@ import dotenv from "dotenv";
 // Load environment variables from config.env file
 dotenv.config({ path: "./.env" });
 
-import app from "./app.js";
+import { server } from "./app.js";
+
 process.on("uncaughtException", (err) => {
   console.error("UNCAUGHT EXCEPTION! 💥 Shutting down...");
   console.error(err.name, err.message);
@@ -13,7 +14,7 @@ process.on("uncaughtException", (err) => {
 
 const connectDB = async () => {
   try {
-    const connection = await mongoose.connect(process.env.DATABASE);
+    const connection = await mongoose.connect(process.env.DATABASE_LOCAL);
     console.log(
       `Database connection successful with ==> '${connection.connection.name}'`
     );
@@ -26,7 +27,7 @@ const connectDB = async () => {
 const startServer = async () => {
   try {
     const PORT = process.env.PORT || 3000;
-    const server = app.listen(PORT, () => {
+    const serverListener = server.listen(PORT, () => {
       console.log(`Server running on http://localhost:${PORT}/`);
     });
 
@@ -35,7 +36,7 @@ const startServer = async () => {
       console.error("UNHANDLED REJECTION! 💥 Shutting down...");
       console.log(err);
       console.error(err.name, err.message);
-      server.close(() => {
+      serverListener.close(() => {
         process.exit(1);
       });
     });

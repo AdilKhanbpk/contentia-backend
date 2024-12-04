@@ -13,6 +13,7 @@ import {
 import Creator from "../../models/creator.model.js";
 import User from "../../models/user.model.js";
 import Notification from "../../models/admin/adminNotification.model.js";
+import io, { connectedSocket } from "../../socket/socket.js";
 
 const createNotification = asyncHandler(async (req, res) => {
   const { userType, title, details, users } = req.body;
@@ -20,8 +21,8 @@ const createNotification = asyncHandler(async (req, res) => {
   if (!userType || !title || !details) {
     throw new ApiError(400, "Please provide all the required fields");
   }
-  let userIds = [];
 
+  let userIds = [];
   const checkMissingIds = (providedIds, foundUsers, userType) => {
     const foundIds = foundUsers.map((user) => user._id.toString());
     const missingIds = providedIds.filter((id) => !foundIds.includes(id));
@@ -34,14 +35,18 @@ const createNotification = asyncHandler(async (req, res) => {
     }
   };
 
-  if (userType === "creator") {
-    const creators = await Creator.find({ _id: { $in: users } });
-    checkMissingIds(users, creators, "creator");
-    userIds = creators.map((creator) => creator._id);
-  } else if (userType === "customer") {
-    const customers = await User.find({ _id: { $in: users } });
-    checkMissingIds(users, customers, "customer");
-    userIds = customers.map((customer) => customer._id);
+  if (userType === "creator" || userType === "customer") {
+    const model = userType === "creator" ? Creator : User;
+    const usersFromDB = await model.find({ _id: { $in: users } });
+    checkMissingIds(users, usersFromDB, userType);
+    userIds = usersFromDB.map((user) => user._id);
+  } else if (userType === "all") {
+    const creators = await Creator.find();
+    const customers = await User.find();
+    userIds = [
+      ...creators.map((creator) => creator._id),
+      ...customers.map((customer) => customer._id),
+    ];
   } else {
     throw new ApiError(400, "Invalid user type provided");
   }
@@ -51,6 +56,18 @@ const createNotification = asyncHandler(async (req, res) => {
     title,
     details,
     users: userIds,
+    userRefPath:
+      userType === "all" ? null : userType === "creator" ? "creator" : "user",
+  });
+
+  userIds.forEach((userId) => {
+    const socketId = connectedSocket.get(userId.toString());
+
+    if (socketId) {
+      io.to(socketId).emit("newNotification", createdNotification);
+    } else {
+      console.log(`User ${userId} is not connected.`);
+    }
   });
 
   return res

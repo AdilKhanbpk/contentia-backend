@@ -9,6 +9,7 @@ import {
   findById,
   updateById,
 } from "../../utils/dbHelpers.js";
+import { isValidId } from "../../utils/commonHelpers.js";
 
 const createOrder = asyncHandler(async (req, res) => {
   const {
@@ -71,9 +72,15 @@ const getOrders = asyncHandler(async (req, res) => {
 const getOrderById = asyncHandler(async (req, res) => {
   const { orderId } = req.params;
 
+  isValidId(orderId);
+
   const order = await Order.findById(orderId)
     .populate("orderOwner")
     .populate("assignedCreators");
+
+  if (!order) {
+    throw new ApiError(404, "Order not found");
+  }
 
   return res
     .status(200)
