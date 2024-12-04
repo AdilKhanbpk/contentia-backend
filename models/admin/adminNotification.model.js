@@ -4,15 +4,16 @@ const notificationSchema = new mongoose.Schema(
   {
     userType: {
       type: String,
+      enum: ["all", "creator", "customer"],
       required: true,
     },
     users: {
-      type: [mongoose.Types.ObjectId],
+      type: [mongoose.Schema.Types.ObjectId],
       refPath: "userRefPath",
     },
     userRefPath: {
       type: String,
-      enum: ["user", "creator"],
+      enum: ["User", "Creator"],
     },
     title: {
       type: String,
@@ -21,6 +22,19 @@ const notificationSchema = new mongoose.Schema(
     details: {
       type: String,
       required: true,
+    },
+    eventType: {
+      type: String,
+      enum: ["order", "package", "general"],
+      required: true,
+    },
+    metadata: {
+      type: Object, // Holds additional data like order ID, package ID
+      default: {},
+    },
+    isRead: {
+      type: Boolean,
+      default: false,
     },
   },
   {

@@ -15,6 +15,47 @@ import User from "../../models/user.model.js";
 import Notification from "../../models/admin/adminNotification.model.js";
 import io, { connectedSocket } from "../../socket/socket.js";
 
+const sendNotification = async ({
+  userType,
+  title,
+  details,
+  users,
+  eventType,
+  metadata,
+}) => {
+  try {
+    const userRefPath =
+      userType === "creator"
+        ? "Creator"
+        : userType === "customer"
+        ? "User"
+        : "Admin";
+
+    const notification = await Notification.create({
+      userType,
+      title,
+      details,
+      users,
+      eventType,
+      metadata,
+      userRefPath: userType === "all" ? null : userRefPath,
+    });
+
+    users.forEach((userId) => {
+      const socketId = connectedSocket.get(userId.toString());
+      if (socketId) {
+        io.to(socketId).emit("newNotification", notification);
+      } else {
+        console.log(`User ${userId} is not connected.`);
+      }
+    });
+
+    return notification;
+  } catch (error) {
+    throw new ApiError(500, `Failed to send notification : ${error.message}`);
+  }
+};
+
 const createNotification = asyncHandler(async (req, res) => {
   const { userType, title, details, users } = req.body;
 
@@ -23,6 +64,7 @@ const createNotification = asyncHandler(async (req, res) => {
   }
 
   let userIds = [];
+
   const checkMissingIds = (providedIds, foundUsers, userType) => {
     const foundIds = foundUsers.map((user) => user._id.toString());
     const missingIds = providedIds.filter((id) => !foundIds.includes(id));
@@ -51,18 +93,25 @@ const createNotification = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Invalid user type provided");
   }
 
-  const createdNotification = await createADocument(Notification, {
+  const createdNotification = await sendNotification({
     userType,
     title,
     details,
     users: userIds,
-    userRefPath:
-      userType === "all" ? null : userType === "creator" ? "creator" : "user",
+    eventType: "general",
+    metadata: {
+      message: "This is a general notification",
+      author: req.user.fullName,
+      author_role: req.user.role,
+    },
   });
 
-  userIds.forEach((userId) => {
-    const socketId = connectedSocket.get(userId.toString());
+  if (!createdNotification) {
+    throw new ApiError(500, "Failed to create notification");
+  }
 
+  userIds.map((userId) => {
+    const socketId = connectedSocket.get(userId.toString());
     if (socketId) {
       io.to(socketId).emit("newNotification", createdNotification);
     } else {
@@ -70,9 +119,15 @@ const createNotification = asyncHandler(async (req, res) => {
     }
   });
 
-  return res
+  res
     .status(201)
-    .json(new ApiResponse(201, createdNotification, "Notification created"));
+    .json(
+      new ApiResponse(
+        201,
+        createdNotification,
+        "Notification created successfully"
+      )
+    );
 });
 
 const getNotifications = asyncHandler(async (req, res) => {
@@ -145,6 +200,7 @@ const deleteNotification = asyncHandler(async (req, res) => {
 
 export {
   createNotification,
+  sendNotification,
   getNotifications,
   getNotificationById,
   updateNotification,

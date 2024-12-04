@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import Order from "../../models/orders.model.js";
+import Creator from "../../models/creator.model.js";
 import ApiError from "../../utils/ApiError.js";
 import ApiResponse from "../../utils/ApiResponse.js";
 import asyncHandler from "../../utils/asyncHandler.js";
@@ -10,6 +11,7 @@ import {
   updateById,
 } from "../../utils/dbHelpers.js";
 import { isValidId } from "../../utils/commonHelpers.js";
+import { sendNotification } from "../admin/adminNotification.controller.js";
 
 const createOrder = asyncHandler(async (req, res) => {
   const {
@@ -28,12 +30,27 @@ const createOrder = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Assigned creators must be a non-empty array");
   }
 
+  // Validate creator IDs and check if they exist in the database
   const validatedCreators = assignedCreators.map((id) => {
     if (!mongoose.isValidObjectId(id)) {
       throw new ApiError(400, `Invalid creator ID: ${id}`);
     }
     return mongoose.Types.ObjectId.createFromHexString(id);
   });
+
+  const existingCreators = await Creator.find({
+    _id: { $in: validatedCreators },
+  });
+
+  if (existingCreators.length !== validatedCreators.length) {
+    const missingCreators = validatedCreators.filter(
+      (id) => !existingCreators.find((creator) => creator._id.equals(id))
+    );
+    throw new ApiError(
+      404,
+      `The following creator IDs were not found: ${missingCreators.join(", ")}`
+    );
+  }
 
   if (
     !additionalServices ||
@@ -53,6 +70,25 @@ const createOrder = asyncHandler(async (req, res) => {
     additionalServices,
     numberOfRequests: validatedCreators.length,
   });
+
+  if (!newOrder) {
+    throw new ApiError(500, "Failed to create order");
+  }
+
+  const notification = {
+    userType: "customer",
+    eventType: "order",
+    title: "New Order",
+    details: `A new order has been created for customer ${customer} with ID ${newOrder._id}. The order is assigned to ${validatedCreators.length} creators and includes ${noOfUgc} UGCs with a total price of ${totalPrice}.`,
+    users: [customer],
+    metadata: {
+      message: "This is an order notification",
+      author: req.user.fullName,
+      author_role: req.user.role,
+    },
+  };
+
+  await sendNotification(notification);
 
   return res
     .status(201)
