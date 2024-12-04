@@ -73,7 +73,8 @@ app.use(express.urlencoded({ extended: true, limit: "10kb" }));
 app.use(cookieParser());
 
 const server = http.createServer(app);
-const io = initializeSocketSetup(server);
+export const io = initializeSocketSetup(server);
+app.set("io", io);
 
 app.use("/", googleAuthRoutes);
 
