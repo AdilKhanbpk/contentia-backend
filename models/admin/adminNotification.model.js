@@ -8,7 +8,11 @@ const notificationSchema = new mongoose.Schema(
     },
     users: {
       type: [mongoose.Types.ObjectId],
-      ref: "user",
+      refPath: "userRefPath",
+    },
+    userRefPath: {
+      type: String,
+      enum: ["user", "creator"],
     },
     title: {
       type: String,

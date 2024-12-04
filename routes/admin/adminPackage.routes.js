@@ -10,7 +10,6 @@ import {
   getLandingPagePackageById,
   updateLandingPagePackage,
 } from "../../controllers/admin/adminPackage.controller.js";
-import { getAllCustomPackages } from "../../controllers/admin/adminCustomPackage.controller.js";
 
 const router = express.Router();
 
