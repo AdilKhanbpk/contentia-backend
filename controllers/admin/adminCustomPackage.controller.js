@@ -10,6 +10,7 @@ import {
   findById,
 } from "../../utils/dbHelpers.js";
 import { isValidId } from "../../utils/commonHelpers.js";
+import { sendNotification } from "./adminNotification.controller.js";
 
 const createCustomPackage = asyncHandler(async (req, res) => {
   const {
@@ -48,6 +49,21 @@ const createCustomPackage = asyncHandler(async (req, res) => {
   if (!createdPackage) {
     throw new ApiError(500, "Failed to create package");
   }
+
+  const notification = {
+    userType: "customer",
+    eventType: "package",
+    title: "New Package",
+    details: `A new package has been created for customer ${customerId} with ID ${createdPackage._id}. The package includes ${noOfUgc} UGCs with a total price of ${packageTotalPrice}.`,
+    users: [customerId],
+    metadata: {
+      message: "This is a package notification",
+      author: req.user.fullName,
+      author_role: req.user.role,
+    },
+  };
+
+  await sendNotification(notification);
 
   return res
     .status(201)
