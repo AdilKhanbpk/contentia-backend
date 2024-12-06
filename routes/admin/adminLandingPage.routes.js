@@ -31,7 +31,7 @@ router.post(
   ]),
   createLandingPage
 );
-router.get("/", isAuthenticated, getLandingPage);
+router.get("/", getLandingPage);
 router.patch(
   "/:landingPageId",
   isAuthenticated,
