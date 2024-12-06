@@ -1,7 +1,9 @@
 import Orders from "../models/orders.model.js";
+import Claims from "../models/admin/adminClaims.model.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import ApiError from "../utils/ApiError.js";
+import { isValidId } from "../utils/commonHelpers.js";
 
 const createOrder = asyncHandler(async (req, res, next) => {
   const {
@@ -139,4 +141,41 @@ const deleteOrder = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, order, "Order deleted successfully"));
 });
 
-export { createOrder, updateOrder, deleteOrder, getOrder, getOrders };
+const createClaimOnOrder = asyncHandler(async (req, res) => {
+  const { orderId } = req.params;
+  const { claimContent } = req.body;
+
+  isValidId(orderId);
+
+  if (!claimContent) {
+    throw new ApiError(400, "Please provide claim content");
+  }
+
+  const order = await Orders.findById(orderId);
+
+  if (!order) {
+    throw new ApiError(404, "Order not found");
+  }
+
+  const claim = await Claims.create({
+    customer: req.user._id,
+    order: orderId,
+    claimContent,
+  });
+
+  order.orderStatus = "revision";
+  await order.save();
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, claim, "Order retrieved successfully"));
+});
+
+export {
+  createOrder,
+  updateOrder,
+  deleteOrder,
+  getOrder,
+  getOrders,
+  createClaimOnOrder,
+};

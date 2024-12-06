@@ -121,7 +121,7 @@ const getTotalOrders = asyncHandler(async (req, res) => {
   const now = new Date();
   const startOfYear = new Date(now.getFullYear(), 0, 1);
 
-  const [ordersData, totalOrdersCount] = await Promise.all([
+  const [monthlyOrders, totalOrdersCount, statusCounts] = await Promise.all([
     Order.aggregate([
       { $match: { createdAt: { $gte: startOfYear } } },
       {
@@ -136,33 +136,58 @@ const getTotalOrders = asyncHandler(async (req, res) => {
       { $sort: { "_id.month": 1 } },
     ]),
     Order.countDocuments(),
+    Order.aggregate([
+      {
+        $group: {
+          _id: "$orderStatus",
+          count: { $sum: 1 },
+        },
+      },
+    ]),
   ]);
 
   const totalOrdersByMonth = Array(12).fill(0);
-  ordersData.forEach(
-    (data) => (totalOrdersByMonth[data._id.month - 1] = data.count)
-  );
+  monthlyOrders.forEach(({ _id: { month }, count }) => {
+    totalOrdersByMonth[month - 1] = count;
+  });
 
   const currentMonthCount =
-    ordersData.find(
-      (data) =>
-        data._id.year === now.getFullYear() &&
-        data._id.month === now.getMonth() + 1
+    monthlyOrders.find(
+      ({ _id }) =>
+        _id.year === now.getFullYear() && _id.month === now.getMonth() + 1
     )?.count || 0;
+
   const previousMonthCount =
-    ordersData.find(
-      (data) =>
-        data._id.year === now.getFullYear() && data._id.month === now.getMonth()
+    monthlyOrders.find(
+      ({ _id }) =>
+        _id.year === now.getFullYear() && _id.month === now.getMonth()
     )?.count || 0;
+
   const percentageChange = previousMonthCount
     ? ((currentMonthCount - previousMonthCount) / previousMonthCount) * 100
     : currentMonthCount * 100;
+
+  const statusCountsMap = statusCounts.reduce((acc, { _id, count }) => {
+    acc[_id] = count;
+    return acc;
+  }, {});
+
+  const pendingOrders = statusCountsMap["pending"] || 0;
+  const revisionOrders = statusCountsMap["revision"] || 0;
+  const completedOrders = statusCountsMap["completed"] || 0;
+  const activeOrders = statusCountsMap["active"] || 0;
+  const canceledOrders = statusCountsMap["canceled"] || 0;
 
   return res.status(200).json(
     new ApiResponse(
       200,
       {
         totalOrdersCount,
+        completedOrders,
+        pendingOrders,
+        activeOrders,
+        revisionOrders,
+        canceledOrders,
         totalOrdersByMonth,
         currentMonthCount,
         previousMonthCount,
@@ -173,4 +198,11 @@ const getTotalOrders = asyncHandler(async (req, res) => {
   );
 });
 
-export { getTotalCreators, getTotalUsers, getTotalOrders };
+const recentOrders = asyncHandler(async (req, res) => {
+  const orders = await Order.find().sort({ createdAt: -1 }).limit(10);
+  return res
+    .status(200)
+    .json(new ApiResponse(200, orders, "Recent orders retrieved successfully"));
+});
+
+export { getTotalCreators, getTotalUsers, getTotalOrders, recentOrders };
