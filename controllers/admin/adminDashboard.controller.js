@@ -198,4 +198,11 @@ const getTotalOrders = asyncHandler(async (req, res) => {
   );
 });
 
-export { getTotalCreators, getTotalUsers, getTotalOrders };
+const recentOrders = asyncHandler(async (req, res) => {
+  const orders = await Order.find().sort({ createdAt: -1 }).limit(10);
+  return res
+    .status(200)
+    .json(new ApiResponse(200, orders, "Recent orders retrieved successfully"));
+});
+
+export { getTotalCreators, getTotalUsers, getTotalOrders, recentOrders };
