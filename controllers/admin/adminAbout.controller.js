@@ -35,6 +35,12 @@ const createAbout = asyncHandler(async (req, res) => {
 
   const uploadImage = await uploadFileToCloudinary(aboutImage);
 
+  const lengthOfAbout = await findAll(AboutModel);
+
+  if (lengthOfAbout.length > 1) {
+    throw new ApiError(400, "About cannot be created more than one");
+  }
+
   const newAbout = await createADocument(AboutModel, {
     title,
     content,
