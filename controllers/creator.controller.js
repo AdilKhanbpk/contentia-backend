@@ -45,13 +45,13 @@ const loginCreator = asyncHandler(async (req, res) => {
   const user = await Creator.findOne({ email });
 
   if (!user) {
-    throw new ApiError(400, "Creator not found");
+    throw new ApiError(400, "Either email or password is incorrect");
   }
 
   const isPasswordCorrect = await user.ComparePassword(password);
 
   if (!isPasswordCorrect) {
-    throw new ApiError(401, "Invalid credentials");
+    throw new ApiError(401, "Either email or password is incorrect");
   }
 
   const { accessToken } = await generateTokens(user._id);
@@ -102,15 +102,15 @@ const createCreator = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Please fill all the required fields");
   }
 
-  // if (
-  //   !addressDetails ||
-  //   !addressDetails?.addressOne ||
-  //   !addressDetails?.addressTwo ||
-  //   !addressDetails?.zipCode ||
-  //   !addressDetails?.country
-  // ) {
-  //   throw new ApiError(400, "Please fill address details");
-  // }
+  if (
+    !addressDetails ||
+    !addressDetails?.addressOne ||
+    !addressDetails?.addressTwo ||
+    !addressDetails?.zipCode ||
+    !addressDetails?.country
+  ) {
+    throw new ApiError(400, "Please fill address details");
+  }
 
   const checkEmail = await Creator.findOne({ email });
 
