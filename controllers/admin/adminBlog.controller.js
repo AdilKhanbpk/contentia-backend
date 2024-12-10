@@ -23,9 +23,10 @@ const createBlog = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Please provide all the required fields");
   }
 
-  const existedBlog = await findByQuery(BlogModel, { title });
+  const existedBlog = await BlogModel.find({ title });
+
   if (existedBlog.length > 0) {
-    throw new ApiError(400, "Blog already exists");
+    throw new ApiError(400, "Blog with this title already exists");
   }
 
   const blogImage = req.file?.path;
@@ -42,7 +43,7 @@ const createBlog = asyncHandler(async (req, res) => {
     metaKeywords,
     metaDescription,
     content,
-    bannerImage: uploadImage.path,
+    bannerImage: uploadImage?.url,
   });
 
   return res
