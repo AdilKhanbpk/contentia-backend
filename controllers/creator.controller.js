@@ -596,6 +596,7 @@ const getMyOrderFolderToUploadContent = asyncHandler(async (req, res) => {
   const { orderId } = req.params;
 
   isValidId(creatorId);
+
   isValidId(orderId);
 
   const order = await findById(Orders, orderId);

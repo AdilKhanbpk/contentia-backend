@@ -52,7 +52,7 @@ const createBlog = asyncHandler(async (req, res) => {
 });
 
 const getBlogs = asyncHandler(async (req, res) => {
-  const blogs = await findAll(BlogModel);
+  const blogs = await BlogModel.find().populate("author");
   return res
     .status(200)
     .json(new ApiResponse(200, blogs, "Blogs fetched successfully!"));
