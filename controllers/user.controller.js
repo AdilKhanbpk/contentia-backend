@@ -24,7 +24,7 @@ export const generateTokens = async (userId) => {
     return { accessToken, refreshToken };
 };
 
-export const signup = asyncHandler(async (req, res, next) => {
+export const signup = asyncHandler(async (req, res) => {
     const { email, password, ...rest } = req.body;
 
     if (!email || !password) {
@@ -46,7 +46,10 @@ export const signup = asyncHandler(async (req, res, next) => {
 
     const user = await User.findById(newUser._id).select("-password");
 
-    const { accessToken, C } = await generateTokens(newUser._id);
+    const { accessToken, refreshToken } = await generateTokens(newUser._id);
+
+    user.refreshToken = refreshToken;
+    await user.save({ validateBeforeSave: false });
 
     return res
         .status(200)
