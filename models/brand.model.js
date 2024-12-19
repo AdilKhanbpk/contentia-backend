@@ -3,6 +3,10 @@ const Schema = mongoose.Schema;
 
 const brandSchema = new Schema(
     {
+        brandOwner: {
+            type: Schema.Types.ObjectId,
+            ref: "User",
+        },
         brandName: {
             type: String,
             required: true,
@@ -17,6 +21,10 @@ const brandSchema = new Schema(
         brandCountry: {
             type: String,
             required: true,
+        },
+        associatedOrders: {
+            type: [Schema.Types.ObjectId],
+            ref: "Order",
         },
     },
     {
