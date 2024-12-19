@@ -89,4 +89,44 @@ const getMyBrands = asyncHandler(async (req, res) => {
         );
 });
 
-export { createBrand, getBrands, getSingleBrand, updateBrand, deleteBrand };
+export const changeBrandPic = asyncHandler(async (req, res) => {
+    const { brandId } = req.params;
+    const filePath = req.file.path;
+    console.log(filePath);
+
+    isValidId(brandId);
+
+    if (!filePath) {
+        throw new ApiError(400, "Please upload a file");
+    }
+
+    const brand = await BrandModel.findById(brandId);
+
+    if (!brand) {
+        throw new ApiError(404, "Brand not found");
+    }
+
+    const uploadedFile = await uploadFileToCloudinary(filePath);
+
+    console.log(uploadedFile);
+
+    await brand.updateOne({
+        $set: {
+            brandImage: uploadedFile?.url,
+        },
+    });
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, user, "Brand Image updated successfully"));
+});
+
+export {
+    createBrand,
+    getBrands,
+    getSingleBrand,
+    updateBrand,
+    deleteBrand,
+    getMyBrands,
+    changeBrandPic,
+};
