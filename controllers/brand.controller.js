@@ -89,7 +89,7 @@ const getMyBrands = asyncHandler(async (req, res) => {
         );
 });
 
-export const changeBrandPic = asyncHandler(async (req, res) => {
+const changeBrandPic = asyncHandler(async (req, res) => {
     const { brandId } = req.params;
     const filePath = req.file.path;
     console.log(filePath);

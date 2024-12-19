@@ -8,6 +8,7 @@ import {
     getSingleBrand,
     updateBrand,
 } from "../controllers/brand.controller.js";
+import { uploadOnMulter } from "../middlewares/multer.middleware.js";
 
 const router = express.Router();
 
