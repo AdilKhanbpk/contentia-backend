@@ -2,6 +2,7 @@ import BrandModel from "../models/brand.model.js";
 import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import asyncHandler from "../utils/asyncHandler.js";
+import { uploadFileToCloudinary } from "../utils/Cloudinary.js";
 import { isValidId } from "../utils/commonHelpers.js";
 import {
     createADocument,
@@ -118,7 +119,7 @@ const changeBrandPic = asyncHandler(async (req, res) => {
 
     return res
         .status(200)
-        .json(new ApiResponse(200, user, "Brand Image updated successfully"));
+        .json(new ApiResponse(200, brand, "Brand Image updated successfully"));
 });
 
 export {
