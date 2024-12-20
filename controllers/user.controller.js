@@ -187,3 +187,26 @@ export const getProfile = asyncHandler(async (req, res) => {
         .status(200)
         .json(new ApiResponse(200, req.user, "User retrieved successfully"));
 });
+
+export const getNewAccessToken = asyncHandler(async (req, res) => {
+    const { refreshToken } = req.cookies;
+
+    if (!refreshToken) {
+        throw new ApiError(400, "Please provide a refresh token");
+    }
+
+    const user = await User.findOne({ refreshToken });
+
+    if (!user) {
+        throw new ApiError(404, "User not found");
+    }
+
+    const { accessToken } = await generateTokens(user._id);
+
+    return res
+        .status(200)
+        .cookie("accessToken", accessToken, cookieOptions)
+        .json(
+            new ApiResponse(200, { accessToken }, "New access token generated")
+        );
+});

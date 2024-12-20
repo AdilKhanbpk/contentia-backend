@@ -2,7 +2,10 @@ import BrandModel from "../models/brand.model.js";
 import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import asyncHandler from "../utils/asyncHandler.js";
-import { uploadFileToCloudinary } from "../utils/Cloudinary.js";
+import {
+    deleteFileFromCloudinary,
+    uploadFileToCloudinary,
+} from "../utils/Cloudinary.js";
 import { isValidId } from "../utils/commonHelpers.js";
 import {
     createADocument,
@@ -82,7 +85,13 @@ const deleteBrand = asyncHandler(async (req, res) => {
 });
 
 const getMyBrands = asyncHandler(async (req, res) => {
-    const myBrands = await findAll(BrandModel, { brandOwner: req.user._id });
+    const myBrands = await BrandModel.find({
+        brandOwner: req.user._id,
+    }).populate({
+        path: "brandOwner",
+        select: "-password",
+    });
+
     return res
         .status(200)
         .json(
@@ -105,6 +114,10 @@ const changeBrandPic = asyncHandler(async (req, res) => {
 
     if (!brand) {
         throw new ApiError(404, "Brand not found");
+    }
+
+    if (brand.brandImage) {
+        await deleteFileFromCloudinary(brand.brandImage);
     }
 
     const uploadedFile = await uploadFileToCloudinary(filePath);
