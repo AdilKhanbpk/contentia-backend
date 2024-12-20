@@ -44,6 +44,7 @@ const createOrder = asyncHandler(async (req, res, next) => {
     const brand = await BrandModel.findOne({
         brandName: briefContent.brandName,
     });
+
     if (!brand) {
         throw new ApiError(400, "Brand not found");
     }
@@ -62,13 +63,19 @@ const createOrder = asyncHandler(async (req, res, next) => {
         numberOfRequests,
     });
 
+    brand.associatedOrders.push(newOrder._id);
+    await brand.save();
+
     return res
         .status(201)
         .json(new ApiResponse(201, newOrder, "Order created successfully"));
 });
 
 const getOrders = asyncHandler(async (req, res) => {
-    const orders = await Orders.find({ orderOwner: req.user._id });
+    const orders = await Orders.find({ orderOwner: req.user._id }).populate({
+        path: "orderOwner",
+        select: "-password",
+    });
 
     if (!orders) {
         throw new ApiError(404, "No orders found");
@@ -139,11 +146,27 @@ const updateOrder = asyncHandler(async (req, res) => {
 const deleteOrder = asyncHandler(async (req, res) => {
     const { orderId } = req.params;
 
-    const order = await Orders.findByIdAndDelete(orderId);
+    isValidId(orderId);
+    const order = await Orders.findById(orderId);
 
     if (!order) {
-        throw new ApiError(404, "Order not found or not deleted");
+        throw new ApiError(404, "Order not found");
     }
+
+    if (order.briefContent.brandName) {
+        const brand = await BrandModel.findOne({
+            brandName: order.briefContent.brandName,
+        });
+
+        if (brand) {
+            brand.associatedOrders = brand.associatedOrders.filter(
+                (order) => order.toString() !== orderId
+            );
+            await brand.save();
+        }
+    }
+
+    await Orders.findByIdAndDelete(orderId);
 
     return res
         .status(200)
