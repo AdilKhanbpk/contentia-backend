@@ -92,6 +92,26 @@ const getAllCustomPackages = asyncHandler(async (req, res) => {
         );
 });
 
+const getAllCustomPackagesByCustomer = asyncHandler(async (req, res) => {
+    const customerId = req.user;
+
+    isValidId(customerId);
+
+    const packages = await Package.find({
+        packageCustomer: customerId,
+    });
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                packages,
+                "All packages retrieved successfully"
+            )
+        );
+});
+
 const getCustomPackageById = asyncHandler(async (req, res) => {
     const { packageId } = req.params;
 
@@ -146,6 +166,7 @@ const deleteCustomPackage = asyncHandler(async (req, res) => {
 export {
     createCustomPackage,
     getAllCustomPackages,
+    getAllCustomPackagesByCustomer,
     getCustomPackageById,
     updateCustomPackage,
     deleteCustomPackage,

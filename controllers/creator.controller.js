@@ -54,6 +54,10 @@ const loginCreator = asyncHandler(async (req, res) => {
         throw new ApiError(401, "Either email or password is incorrect");
     }
 
+    if (user.isVerified === "pending" || user.isVerified === "rejected") {
+        throw new ApiError(401, "Your account is not verified yet");
+    }
+
     const { accessToken } = await generateTokens(user._id);
 
     const userWithoutPassword = await Creator.findById(user._id).select(
@@ -78,6 +82,7 @@ const createCreator = asyncHandler(async (req, res) => {
         password,
         tckn,
         email,
+        dateOfBirth,
         phoneNumber,
         addressDetails,
         userAgreement,
@@ -94,6 +99,7 @@ const createCreator = asyncHandler(async (req, res) => {
         !password ||
         !tckn ||
         !email ||
+        !dateOfBirth ||
         !phoneNumber ||
         !userAgreement ||
         !accountType ||
@@ -209,6 +215,7 @@ const createCreator = asyncHandler(async (req, res) => {
         password,
         tckn,
         email,
+        dateOfBirth,
         phoneNumber,
         userAgreement,
         addressDetails,

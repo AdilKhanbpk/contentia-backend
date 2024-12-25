@@ -2,10 +2,10 @@ import ApiError from "../../utils/ApiError.js";
 import ApiResponse from "../../utils/ApiResponse.js";
 import asyncHandler from "../../utils/asyncHandler.js";
 import {
-  createADocument,
-  deleteById,
-  findAll,
-  findById,
+    createADocument,
+    deleteById,
+    findAll,
+    findById,
 } from "../../utils/dbHelpers.js";
 import Creator from "../../models/creator.model.js";
 import { isValidId } from "../../utils/commonHelpers.js";
@@ -13,133 +13,135 @@ import { isValidId } from "../../utils/commonHelpers.js";
 // FOR CREATORS
 
 const createCreator = asyncHandler(async (req, res) => {
-  const {
-    fullName,
-    identityNo,
-    password,
-    email,
-    dateOfBirth,
-    gender,
-    phoneNumber,
-    isVerified,
-    addressDetails,
-  } = req.body;
+    const {
+        fullName,
+        identityNo,
+        password,
+        email,
+        dateOfBirth,
+        gender,
+        phoneNumber,
+        isVerified,
+        addressDetails,
+    } = req.body;
 
-  if (
-    !isVerified ||
-    !fullName ||
-    !password ||
-    !identityNo ||
-    !dateOfBirth ||
-    !phoneNumber ||
-    !email
-  ) {
-    throw new ApiError(400, "Please fill all the required fields");
-  }
+    if (
+        !isVerified ||
+        !fullName ||
+        !password ||
+        !identityNo ||
+        !dateOfBirth ||
+        !phoneNumber ||
+        !email
+    ) {
+        throw new ApiError(400, "Please fill all the required fields");
+    }
 
-  if (
-    !addressDetails?.addressOne ||
-    !addressDetails?.addressTwo ||
-    !addressDetails?.zipCode ||
-    !addressDetails?.country
-  ) {
-    throw new ApiError(400, "Please fill address details");
-  }
+    if (
+        !addressDetails?.addressOne ||
+        !addressDetails?.addressTwo ||
+        !addressDetails?.zipCode ||
+        !addressDetails?.country
+    ) {
+        throw new ApiError(400, "Please fill address details");
+    }
 
-  const checkEmail = await Creator.findOne({ email });
+    const checkEmail = await Creator.findOne({ email });
 
-  if (checkEmail) {
-    throw new ApiError(400, "Email address is already in use.");
-  }
+    if (checkEmail) {
+        throw new ApiError(400, "Email address is already in use.");
+    }
 
-  // TODO commented for admin form submission
+    // TODO commented for admin form submission
 
-  const newUser = await createADocument(Creator, {
-    fullName,
-    identityNo,
-    password,
-    email,
-    dateOfBirth,
-    gender,
-    phoneNumber,
-    isVerified,
-    addressDetails,
-    userAgreement: true,
-    approvedCommercial: true,
-  });
+    const newUser = await createADocument(Creator, {
+        fullName,
+        identityNo,
+        password,
+        email,
+        dateOfBirth,
+        gender,
+        phoneNumber,
+        isVerified,
+        addressDetails,
+        userAgreement: true,
+        approvedCommercial: true,
+    });
 
-  return res.status(201).json({
-    status: 201,
-    data: newUser,
-    message: "Creator user created successfully",
-  });
+    return res.status(201).json({
+        status: 201,
+        data: newUser,
+        message: "Creator user created successfully",
+    });
 });
 
 const updateCreator = asyncHandler(async (req, res) => {
-  const { creatorId } = req.params;
-  const updateData = req.body;
+    const { creatorId } = req.params;
+    const updateData = req.body;
 
-  const setFields = {};
-  for (const [key, value] of Object.entries(updateData)) {
-    if (typeof value === "object" && !Array.isArray(value)) {
-      for (const [nestedKey, nestedValue] of Object.entries(value)) {
-        setFields[`${key}.${nestedKey}`] = nestedValue;
-      }
-    } else {
-      setFields[key] = value;
+    const setFields = {};
+    for (const [key, value] of Object.entries(updateData)) {
+        if (typeof value === "object" && !Array.isArray(value)) {
+            for (const [nestedKey, nestedValue] of Object.entries(value)) {
+                setFields[`${key}.${nestedKey}`] = nestedValue;
+            }
+        } else {
+            setFields[key] = value;
+        }
     }
-  }
 
-  const updatedCreator = await Creator.findByIdAndUpdate(
-    creatorId,
-    { $set: setFields },
-    { new: true }
-  );
+    const updatedCreator = await Creator.findByIdAndUpdate(
+        creatorId,
+        { $set: setFields },
+        { new: true }
+    );
 
-  if (!updatedCreator) {
-    throw new ApiError(404, "Creator not found");
-  }
+    if (!updatedCreator) {
+        throw new ApiError(404, "Creator not found");
+    }
 
-  return res
-    .status(200)
-    .json(new ApiResponse(200, updatedCreator, "Creator updated successfully"));
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200, updatedCreator, "Creator updated successfully")
+        );
 });
 
 const deleteCreator = asyncHandler(async (req, res) => {
-  const { creatorId } = req.params;
+    const { creatorId } = req.params;
 
-  isValidId(creatorId);
+    isValidId(creatorId);
 
-  const creator = await deleteById(Creator, creatorId);
+    const creator = await deleteById(Creator, creatorId);
 
-  return res
-    .status(200)
-    .json(new ApiResponse(200, creator, "Creator deleted successfully"));
+    return res
+        .status(200)
+        .json(new ApiResponse(200, creator, "Creator deleted successfully"));
 });
 
 const getSingleCreator = asyncHandler(async (req, res) => {
-  const { creatorId } = req.params;
+    const { creatorId } = req.params;
 
-  isValidId(creatorId);
+    isValidId(creatorId);
 
-  const creator = await findById(Creator, creatorId);
+    const creator = await findById(Creator, creatorId);
 
-  return res
-    .status(200)
-    .json(new ApiResponse(200, creator, "Creator retrieved"));
+    return res
+        .status(200)
+        .json(new ApiResponse(200, creator, "Creator retrieved"));
 });
 
 const getAllCreators = asyncHandler(async (req, res) => {
-  const creators = await findAll(Creator);
-  return res
-    .status(200)
-    .json(new ApiResponse(200, creators, "Creators retrieved"));
+    const creators = await findAll(Creator);
+    return res
+        .status(200)
+        .json(new ApiResponse(200, creators, "Creators retrieved"));
 });
 
 export {
-  createCreator,
-  getSingleCreator,
-  updateCreator,
-  deleteCreator,
-  getAllCreators,
+    createCreator,
+    getSingleCreator,
+    updateCreator,
+    deleteCreator,
+    getAllCreators,
 };
