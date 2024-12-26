@@ -317,7 +317,7 @@ const changePassword = asyncHandler(async (req, res) => {
 });
 
 const applyForOrder = asyncHandler(async (req, res) => {
-    const { orderId } = req.body;
+    const { orderId } = req.params;
 
     if (!orderId) {
         throw new ApiError(400, "Please provide orderId");

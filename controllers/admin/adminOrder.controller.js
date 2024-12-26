@@ -191,6 +191,11 @@ const approveCreatorOnOrder = asyncHandler(async (req, res) => {
     isValidId(orderId);
     isValidId(creatorId);
 
+    const creator = await findById(Creator, creatorId);
+    if (!creator) {
+        throw new ApiError(404, "Creator not found");
+    }
+
     const order = await findById(Order, orderId);
 
     if (!order) {
@@ -207,6 +212,10 @@ const approveCreatorOnOrder = asyncHandler(async (req, res) => {
 
     order.assignedCreators.push(creatorId);
     order.numberOfRequests = order.assignedCreators.length;
+
+    order.appliedCreators = order.appliedCreators.filter(
+        (id) => id.toString() !== creator._id.toString()
+    );
 
     const updatedOrder = await updateById(Order, orderId, {
         assignedCreators: order.assignedCreators,

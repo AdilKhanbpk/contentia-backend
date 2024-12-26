@@ -10,6 +10,8 @@ import {
     getOrderById,
     getOrders,
     updateOrder,
+    approveCreatorOnOrder,
+    rejectCreatorOnOrder,
 } from "../../controllers/admin/adminOrder.controller.js";
 
 const router = express.Router();
@@ -24,6 +26,18 @@ router.get(
     isAuthenticated,
     isAdmin,
     getAppliedCreatorsOnOrders
+);
+router.patch(
+    "/approve-creator/:orderId/:creatorId",
+    isAuthenticated,
+    isAdmin,
+    approveCreatorOnOrder
+);
+router.patch(
+    "/reject-creator/:orderId/:creatorId",
+    isAuthenticated,
+    isAdmin,
+    rejectCreatorOnOrder
 );
 
 export default router;
