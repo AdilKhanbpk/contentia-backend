@@ -185,18 +185,18 @@ const deleteOrder = asyncHandler(async (req, res) => {
 });
 
 const approveCreatorOnOrder = asyncHandler(async (req, res) => {
-    const { orderId } = req.params;
-    const { creatorId } = req.body;
+    const { orderId, creatorId } = req.params;
+    // const { creatorId } = req.body;
 
     isValidId(orderId);
     isValidId(creatorId);
 
-    const creator = await findById(Creator, creatorId);
+    const creator = await Creator.findById(creatorId);
     if (!creator) {
         throw new ApiError(404, "Creator not found");
     }
 
-    const order = await findById(Order, orderId);
+    const order = await Order.findById(orderId);
 
     if (!order) {
         throw new ApiError(404, "Order not found");
@@ -230,11 +230,17 @@ const approveCreatorOnOrder = asyncHandler(async (req, res) => {
 });
 
 const rejectCreatorOnOrder = asyncHandler(async (req, res) => {
-    const { orderId } = req.params;
-    const { creatorId } = req.body;
+    const { orderId, creatorId } = req.params;
+    // const { creatorId } = req.body;
 
     isValidId(orderId);
     isValidId(creatorId);
+
+    const creator = await Creator.findById(creatorId);
+
+    if (!creator) {
+        throw new ApiError(404, "Creator not found");
+    }
 
     const order = await findById(Order, orderId);
 
@@ -251,7 +257,7 @@ const rejectCreatorOnOrder = asyncHandler(async (req, res) => {
     }
 
     order.assignedCreators = order.assignedCreators.filter(
-        (id) => id !== creatorId
+        (id) => id.toString() !== creator._id.toString()
     );
 
     order.numberOfRequests = order.assignedCreators.length;
@@ -284,7 +290,7 @@ const getAppliedCreatorsOnOrders = asyncHandler(async (req, res) => {
         .json(
             new ApiResponse(
                 200,
-                order.appliedCreators,
+                order,
                 "Creators applied to order retrieved successfully"
             )
         );
