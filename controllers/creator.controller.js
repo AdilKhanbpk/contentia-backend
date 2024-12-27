@@ -388,10 +388,6 @@ const myAssignedOrders = asyncHandler(async (req, res) => {
         orderStatus: "active",
     });
 
-    if (!assignedOrders || assignedOrders.length === 0) {
-        throw new ApiError(404, "No active orders found");
-    }
-
     return res
         .status(200)
         .json(

@@ -186,7 +186,6 @@ const deleteOrder = asyncHandler(async (req, res) => {
 
 const approveCreatorOnOrder = asyncHandler(async (req, res) => {
     const { orderId, creatorId } = req.params;
-    // const { creatorId } = req.body;
 
     isValidId(orderId);
     isValidId(creatorId);
@@ -231,7 +230,6 @@ const approveCreatorOnOrder = asyncHandler(async (req, res) => {
 
 const rejectCreatorOnOrder = asyncHandler(async (req, res) => {
     const { orderId, creatorId } = req.params;
-    // const { creatorId } = req.body;
 
     isValidId(orderId);
     isValidId(creatorId);
