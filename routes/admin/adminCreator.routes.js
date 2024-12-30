@@ -18,7 +18,7 @@ router.use(isAuthenticated);
 
 router.post("/", isAuthenticated, isAdmin, createCreator);
 router.get("/", isAuthenticated, isAdmin, getAllCreators);
-router.get("/:creatorId", isA8uthenticated, isAdmin, getSingleCreator);
+router.get("/:creatorId", isAuthenticated, isAdmin, getSingleCreator);
 router.patch("/:creatorId", isAuthenticated, isAdmin, updateCreator);
 router.delete("/:creatorId", isAuthenticated, isAdmin, deleteCreator);
 
