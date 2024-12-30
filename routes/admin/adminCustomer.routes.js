@@ -1,14 +1,14 @@
 import express from "express";
 import {
-  createCustomer,
-  updateCustomer,
-  getCustomers,
-  getCustomerById,
-  deleteCustomer,
+    createCustomer,
+    updateCustomer,
+    getCustomers,
+    getCustomerById,
+    deleteCustomer,
 } from "../../controllers/admin/adminCustomers.controller.js";
 import {
-  isAuthenticated,
-  isAdmin,
+    isAuthenticated,
+    isAdmin,
 } from "../../middlewares/authentication.middleware.js";
 
 const router = express.Router();

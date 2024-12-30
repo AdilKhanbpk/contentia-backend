@@ -8,16 +8,16 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const { CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_SECRET_KEY } =
-  process.env;
+    process.env;
 
 if (!CLOUDINARY_CLOUD_NAME || !CLOUDINARY_API_KEY || !CLOUDINARY_SECRET_KEY) {
-  console.error("Missing Cloudinary configuration in environment variables.");
+    console.error("Missing Cloudinary configuration in environment variables.");
 }
 
 cloudinary.config({
-  cloud_name: CLOUDINARY_CLOUD_NAME,
-  api_key: CLOUDINARY_API_KEY,
-  api_secret: CLOUDINARY_SECRET_KEY,
+    cloud_name: CLOUDINARY_CLOUD_NAME,
+    api_key: CLOUDINARY_API_KEY,
+    api_secret: CLOUDINARY_SECRET_KEY,
 });
 
 /**
@@ -25,9 +25,9 @@ cloudinary.config({
  * @param {string} filePath - The local path of the file to delete.
  */
 const deleteLocalFile = (filePath) => {
-  if (fs.existsSync(filePath)) {
-    fs.unlinkSync(filePath);
-  }
+    if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+    }
 };
 
 /**
@@ -37,22 +37,22 @@ const deleteLocalFile = (filePath) => {
  * @returns {object|null} - Uploaded file info or null on failure.
  */
 const uploadFileToCloudinary = async (filePath, options = {}) => {
-  try {
-    if (!filePath) return null;
+    try {
+        if (!filePath) return null;
 
-    const uploadedFile = await cloudinary.uploader.upload(filePath, {
-      resource_type: "auto",
-      folder: "general",
-      ...options,
-    });
-    deleteLocalFile(filePath);
+        const uploadedFile = await cloudinary.uploader.upload(filePath, {
+            resource_type: "auto",
+            folder: "general",
+            ...options,
+        });
+        deleteLocalFile(filePath);
 
-    return uploadedFile;
-  } catch (error) {
-    console.error(`Cloudinary File Upload Error ==> ${error.message}`);
-    deleteLocalFile(filePath);
-    return null;
-  }
+        return uploadedFile;
+    } catch (error) {
+        console.error(`Cloudinary File Upload Error ==> ${error.message}`);
+        deleteLocalFile(filePath);
+        return null;
+    }
 };
 
 /**
@@ -62,18 +62,18 @@ const uploadFileToCloudinary = async (filePath, options = {}) => {
  * @returns {object|null} - Deletion result or null on failure.
  */
 const deleteFileFromCloudinary = async (fileUrl, resourceType = "image") => {
-  const publicId = extractPublicId(fileUrl);
+    const publicId = extractPublicId(fileUrl);
 
-  try {
-    const deletedFile = await cloudinary.uploader.destroy(publicId, {
-      resource_type: resourceType,
-    });
+    try {
+        const deletedFile = await cloudinary.uploader.destroy(publicId, {
+            resource_type: resourceType,
+        });
 
-    return deletedFile;
-  } catch (error) {
-    console.error(`Cloudinary File Delete Error ==> ${error.message}`);
-    return null;
-  }
+        return deletedFile;
+    } catch (error) {
+        console.error(`Cloudinary File Delete Error ==> ${error.message}`);
+        return null;
+    }
 };
 
 /**
@@ -83,30 +83,33 @@ const deleteFileFromCloudinary = async (fileUrl, resourceType = "image") => {
  * @returns {Array<object|null>} - Array of uploaded file info or nulls for failures.
  */
 const uploadMultipleFilesToCloudinary = async (filePaths, options = {}) => {
-  try {
-    if (!Array.isArray(filePaths) || filePaths.length === 0) return null;
+    try {
+        if (!Array.isArray(filePaths) || filePaths.length === 0) return null;
 
-    const uploadPromises = filePaths.map(async (filePath) => {
-      try {
-        const uploadedFile = await cloudinary.uploader.upload(filePath, {
-          resource_type: "auto",
-          folder: "general",
-          ...options,
+        const uploadPromises = filePaths.map(async (filePath) => {
+            try {
+                const uploadedFile = await cloudinary.uploader.upload(
+                    filePath,
+                    {
+                        resource_type: "auto",
+                        folder: "general",
+                        ...options,
+                    }
+                );
+                deleteLocalFile(filePath);
+                return uploadedFile;
+            } catch (error) {
+                console.error(`Error uploading ${filePath}: ${error.message}`);
+                deleteLocalFile(filePath);
+                return null;
+            }
         });
-        deleteLocalFile(filePath);
-        return uploadedFile;
-      } catch (error) {
-        console.error(`Error uploading ${filePath}: ${error.message}`);
-        deleteLocalFile(filePath);
-        return null;
-      }
-    });
 
-    return await Promise.all(uploadPromises);
-  } catch (error) {
-    console.error(`Cloudinary Bulk Upload Error ==> ${error.message}`);
-    return null;
-  }
+        return await Promise.all(uploadPromises);
+    } catch (error) {
+        console.error(`Cloudinary Bulk Upload Error ==> ${error.message}`);
+        return null;
+    }
 };
 
 /**
@@ -116,40 +119,43 @@ const uploadMultipleFilesToCloudinary = async (filePaths, options = {}) => {
  * @returns {Array<object|null>} - Array of deletion results or nulls for failures.
  */
 const deleteMultipleFilesFromCloudinary = async (
-  fileUrls,
-  resourceType = "image"
+    fileUrls,
+    resourceType = "image"
 ) => {
-  try {
-    if (!Array.isArray(fileUrls) || fileUrls.length === 0) return null;
+    try {
+        if (!Array.isArray(fileUrls) || fileUrls.length === 0) return null;
 
-    const deletePromises = fileUrls.map(async (fileUrl) => {
-      const publicId = extractPublicId(fileUrl);
-      try {
-        const deletedFile = await cloudinary.uploader.destroy(publicId, {
-          resource_type: resourceType,
+        const deletePromises = fileUrls.map(async (fileUrl) => {
+            const publicId = extractPublicId(fileUrl);
+            try {
+                const deletedFile = await cloudinary.uploader.destroy(
+                    publicId,
+                    {
+                        resource_type: resourceType,
+                    }
+                );
+                console.log(
+                    deletedFile.result === "ok"
+                        ? `File ${publicId} deleted successfully.`
+                        : `Failed to delete file ${publicId}.`
+                );
+                return deletedFile;
+            } catch (error) {
+                console.error(`Error deleting ${publicId}: ${error.message}`);
+                return null;
+            }
         });
-        console.log(
-          deletedFile.result === "ok"
-            ? `File ${publicId} deleted successfully.`
-            : `Failed to delete file ${publicId}.`
-        );
-        return deletedFile;
-      } catch (error) {
-        console.error(`Error deleting ${publicId}: ${error.message}`);
-        return null;
-      }
-    });
 
-    return await Promise.all(deletePromises);
-  } catch (error) {
-    console.error(`Cloudinary Bulk Deletion Error ==> ${error.message}`);
-    return null;
-  }
+        return await Promise.all(deletePromises);
+    } catch (error) {
+        console.error(`Cloudinary Bulk Deletion Error ==> ${error.message}`);
+        return null;
+    }
 };
 
 export {
-  uploadFileToCloudinary,
-  uploadMultipleFilesToCloudinary,
-  deleteFileFromCloudinary,
-  deleteMultipleFilesFromCloudinary,
+    uploadFileToCloudinary,
+    uploadMultipleFilesToCloudinary,
+    deleteFileFromCloudinary,
+    deleteMultipleFilesFromCloudinary,
 };

@@ -1,14 +1,14 @@
 import express from "express";
 import {
-  isAuthenticated,
-  isAdmin,
+    isAuthenticated,
+    isAdmin,
 } from "../../middlewares/authentication.middleware.js";
 import {
-  createPricePlan,
-  deletePricePlan,
-  getPricePlanById,
-  getPricePlans,
-  updatePricePlan,
+    createPricePlan,
+    deletePricePlan,
+    getPricePlanById,
+    getPricePlans,
+    updatePricePlan,
 } from "../../controllers/admin/adminPricing.controller.js";
 
 const router = express.Router();

@@ -12,16 +12,19 @@ import { fileURLToPath } from "url";
  *
  */
 const checkOwnership = (model, ownerFieldName, userId) => {
-  if (!model || !ownerFieldName || !userId) {
-    throw new ApiError(400, "Invalid Arguments");
-  }
+    if (!model || !ownerFieldName || !userId) {
+        throw new ApiError(400, "Invalid Arguments");
+    }
 
-  if (
-    !model[ownerFieldName] ||
-    model[ownerFieldName].toString() !== userId.toString()
-  ) {
-    throw new ApiError(403, "You are not authorized to perform this action");
-  }
+    if (
+        !model[ownerFieldName] ||
+        model[ownerFieldName].toString() !== userId.toString()
+    ) {
+        throw new ApiError(
+            403,
+            "You are not authorized to perform this action"
+        );
+    }
 };
 
 /**
@@ -36,16 +39,16 @@ const checkOwnership = (model, ownerFieldName, userId) => {
  * @returns {boolean} - Returns true if the ID is valid.
  */
 const isValidId = (id) => {
-  if (!id) {
-    throw new ApiError(400, "Provide an Id to validate");
-  }
-  const isValid = isValidObjectId(id);
+    if (!id) {
+        throw new ApiError(400, "Provide an Id to validate");
+    }
+    const isValid = isValidObjectId(id);
 
-  if (!isValid) {
-    throw new ApiError(400, "Invalid Id");
-  }
+    if (!isValid) {
+        throw new ApiError(400, "Invalid Id");
+    }
 
-  return isValid;
+    return isValid;
 };
 
 /**
@@ -54,9 +57,9 @@ const isValidId = (id) => {
  * @returns - The resolved path.
  */
 const resolvePath = (filePath) => {
-  const __filename = fileURLToPath(import.meta.url);
-  const __dirname = path.dirname(__filename);
-  return path.join(__dirname, filePath);
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(__filename);
+    return path.join(__dirname, filePath);
 };
 
 export { checkOwnership, isValidId, resolvePath };

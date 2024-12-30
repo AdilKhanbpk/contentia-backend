@@ -1,13 +1,13 @@
 import express from "express";
 import {
-  isAuthenticated,
-  isAdmin,
+    isAuthenticated,
+    isAdmin,
 } from "../../middlewares/authentication.middleware.js";
 import {
-  createFaq,
-  deleteFaq,
-  getFaqs,
-  updateFaq,
+    createFaq,
+    deleteFaq,
+    getFaqs,
+    updateFaq,
 } from "../../controllers/admin/adminFaq.controller.js";
 
 const router = express.Router();

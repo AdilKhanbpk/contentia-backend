@@ -125,7 +125,7 @@ const createCreator = asyncHandler(async (req, res) => {
     }
 
     if (accountType === "individual") {
-        console.log("Account type:", accountType);
+        // console.log("Account type:", accountType);
 
         if (!paymentInformation?.ibanNumber || !paymentInformation?.address) {
             throw new ApiError(
@@ -141,7 +141,7 @@ const createCreator = asyncHandler(async (req, res) => {
             );
         }
     } else if (accountType === "institutional") {
-        console.log("Account type:", accountType);
+        // console.log("Account type:", accountType);
         if (
             !paymentInformation?.companyName ||
             !paymentInformation?.taxNumber ||
@@ -160,8 +160,8 @@ const createCreator = asyncHandler(async (req, res) => {
     }
 
     if (invoiceType === "individual") {
-        console.log("Invoice type:", invoiceType);
-        console.log(billingInformation);
+        // console.log("Invoice type:", invoiceType);
+        // console.log(billingInformation);
 
         if (
             !billingInformation?.invoiceStatus ||
@@ -180,7 +180,7 @@ const createCreator = asyncHandler(async (req, res) => {
             );
         }
     } else if (invoiceType === "institutional") {
-        console.log("Invoice type:", invoiceType);
+        // console.log("Invoice type:", invoiceType);
         if (
             !billingInformation?.companyName ||
             !billingInformation?.taxNumber ||

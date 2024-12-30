@@ -11,15 +11,15 @@ import ApiError from "./ApiError.js";
  * @throws {ApiError} - Throws a 404 error if document not found, or 500 error for any server issue.
  */
 const findById = async (model, id) => {
-  try {
-    const document = await model.findById(id);
-    if (!document) {
-      throw new ApiError(404, "Document not found");
+    try {
+        const document = await model.findById(id);
+        if (!document) {
+            throw new ApiError(404, "Document not found");
+        }
+        return document;
+    } catch (error) {
+        throw new ApiError(500, `Error finding document: ${error.message}`);
     }
-    return document;
-  } catch (error) {
-    throw new ApiError(500, `Error finding document: ${error.message}`);
-  }
 };
 
 /**
@@ -31,15 +31,15 @@ const findById = async (model, id) => {
  * @throws {ApiError} - Throws a 500 error for any server issue.
  * */
 const createADocument = async (model, data) => {
-  try {
-    const document = await model.create(data);
-    if (!document) {
-      throw new ApiError(500, "Failed to create document");
+    try {
+        const document = await model.create(data);
+        if (!document) {
+            throw new ApiError(500, "Failed to create document");
+        }
+        return document;
+    } catch (error) {
+        throw new ApiError(500, `Error creating document: ${error.message}`);
     }
-    return document;
-  } catch (error) {
-    throw new ApiError(500, `Error creating document: ${error.message}`);
-  }
 };
 
 /**
@@ -50,13 +50,13 @@ const createADocument = async (model, data) => {
  * @throws {ApiError} - Throws a 500 error for any server issue.
  */
 const findAll = async (model) => {
-  try {
-    const documents = await model.find();
+    try {
+        const documents = await model.find();
 
-    return documents;
-  } catch (error) {
-    throw new ApiError(500, `Error finding documents: ${error.message}`);
-  }
+        return documents;
+    } catch (error) {
+        throw new ApiError(500, `Error finding documents: ${error.message}`);
+    }
 };
 
 /**
@@ -68,15 +68,15 @@ const findAll = async (model) => {
  * @throws {ApiError} - Throws a 404 error if document not found, or 500 error for any server issue.
  */
 const findOne = async (model, query) => {
-  try {
-    const document = await model.findOne(query);
-    if (!document) {
-      throw new ApiError(404, "Document not found");
+    try {
+        const document = await model.findOne(query);
+        if (!document) {
+            throw new ApiError(404, "Document not found");
+        }
+        return document;
+    } catch (error) {
+        throw new ApiError(500, `Error finding document: ${error.message}`);
     }
-    return document;
-  } catch (error) {
-    throw new ApiError(500, `Error finding document: ${error.message}`);
-  }
 };
 
 /**
@@ -88,15 +88,15 @@ const findOne = async (model, query) => {
  * @throws {ApiError} - Throws a 500 error for any server issue.
  */
 const findByQuery = async (model, query) => {
-  try {
-    const documents = await model.find(query);
-    if (!documents || documents.length === 0) {
-      throw new ApiError(404, "No documents found");
+    try {
+        const documents = await model.find(query);
+        if (!documents || documents.length === 0) {
+            throw new ApiError(404, "No documents found");
+        }
+        return documents;
+    } catch (error) {
+        throw new ApiError(500, `Error finding documents: ${error.message}`);
     }
-    return documents;
-  } catch (error) {
-    throw new ApiError(500, `Error finding documents: ${error.message}`);
-  }
 };
 
 /**
@@ -108,15 +108,15 @@ const findByQuery = async (model, query) => {
  * @throws {ApiError} - Throws a 404 error if document not found, or 500 error for any server issue.
  */
 const deleteById = async (model, id) => {
-  try {
-    const deletedDocument = await model.findByIdAndDelete(id);
-    if (!deletedDocument) {
-      throw new ApiError(404, "Document not found");
+    try {
+        const deletedDocument = await model.findByIdAndDelete(id);
+        if (!deletedDocument) {
+            throw new ApiError(404, "Document not found");
+        }
+        return deletedDocument;
+    } catch (error) {
+        throw new ApiError(500, `Error deleting document: ${error.message}`);
     }
-    return deletedDocument;
-  } catch (error) {
-    throw new ApiError(500, `Error deleting document: ${error.message}`);
-  }
 };
 
 /**
@@ -129,25 +129,25 @@ const deleteById = async (model, id) => {
  * @throws {ApiError} - Throws a 404 error if document not found, or 500 error for any server issue.
  */
 const updateById = async (model, id, updateData) => {
-  try {
-    const updatedDocument = await model.findByIdAndUpdate(id, updateData, {
-      new: true,
-    });
-    if (!updatedDocument) {
-      throw new ApiError(404, "Document not found");
+    try {
+        const updatedDocument = await model.findByIdAndUpdate(id, updateData, {
+            new: true,
+        });
+        if (!updatedDocument) {
+            throw new ApiError(404, "Document not found");
+        }
+        return updatedDocument;
+    } catch (error) {
+        throw new ApiError(500, `Error updating document: ${error.message}`);
     }
-    return updatedDocument;
-  } catch (error) {
-    throw new ApiError(500, `Error updating document: ${error.message}`);
-  }
 };
 
 export {
-  findById,
-  createADocument,
-  findAll,
-  findOne,
-  findByQuery,
-  deleteById,
-  updateById,
+    findById,
+    createADocument,
+    findAll,
+    findOne,
+    findByQuery,
+    deleteById,
+    updateById,
 };

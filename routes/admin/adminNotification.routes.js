@@ -1,15 +1,15 @@
 import express from "express";
 
 import {
-  isAuthenticated,
-  isAdmin,
+    isAuthenticated,
+    isAdmin,
 } from "../../middlewares/authentication.middleware.js";
 import {
-  createNotification,
-  deleteNotification,
-  getNotificationById,
-  getNotifications,
-  updateNotification,
+    createNotification,
+    deleteNotification,
+    getNotificationById,
+    getNotifications,
+    updateNotification,
 } from "../../controllers/admin/adminNotification.controller.js";
 
 const router = express.Router();

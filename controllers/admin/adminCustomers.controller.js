@@ -40,8 +40,8 @@ const createCustomer = asyncHandler(async (req, res) => {
     }
 
     if (invoiceType === "individual") {
-        console.log("Invoice type:", invoiceType);
-        console.log(billingInformation);
+        // console.log("Invoice type:", invoiceType);
+        // console.log(billingInformation);
 
         if (
             !billingInformation?.invoiceStatus ||
@@ -61,7 +61,7 @@ const createCustomer = asyncHandler(async (req, res) => {
             );
         }
     } else if (invoiceType === "institutional") {
-        console.log("Invoice type:", invoiceType);
+        // console.log("Invoice type:", invoiceType);
         if (
             !billingInformation?.companyName ||
             !billingInformation?.taxNumber ||
@@ -109,6 +109,12 @@ const updateCustomer = asyncHandler(async (req, res) => {
     } = req.body;
 
     isValidId(customerId);
+
+    const customer = await findById(User, customerId);
+
+    if (!customer) {
+        throw new ApiError(404, "Customer not found");
+    }
 
     if (
         invoiceType === "individual" &&
