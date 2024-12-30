@@ -42,22 +42,22 @@ import ApiError from "./utils/ApiError.js";
 const app = express();
 
 app.use(
-  expressSession({
-    name: "ammari",
-    secret: process.env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: false,
-  })
+    expressSession({
+        name: "ammari",
+        secret: process.env.SESSION_SECRET,
+        resave: false,
+        saveUninitialized: false,
+    })
 );
 passportSetup(passport);
 app.use(passport.initialize());
 app.use(passport.session());
 
 const corsOptions = {
-  origin: ["https://contentia-frontend.vercel.app", "http://localhost:3000"],
-  methods: "GET,POST,PUT,DELETE,OPTIONS,PATCH",
-  allowedHeaders: "X-Requested-With, Content-Type, Authorization",
-  credentials: true,
+    origin: ["https://contentia-frontend.vercel.app", "http://localhost:3000"],
+    methods: "GET,POST,PUT,DELETE,OPTIONS,PATCH",
+    allowedHeaders: "X-Requested-With, Content-Type, Authorization",
+    credentials: true,
 };
 
 app.use(cors(corsOptions));
@@ -106,8 +106,8 @@ app.use("/api/v1/admin/emailNotifications", adminEmailNotificationRoute);
 app.use("/api/v1/admin/dashboard", adminDashboardRoute);
 
 app.all("*", (req, res) => {
-  const message = `Can't find ${req.originalUrl} on this server!`;
-  throw new ApiError(404, message);
+    const message = `Can't find ${req.originalUrl} on this server!`;
+    throw new ApiError(404, message);
 });
 
 export { app, server };

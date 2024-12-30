@@ -8,46 +8,45 @@ import { generateTokens } from "../../controllers/user.controller.js";
 dotenv.config();
 
 export const passportSetup = () => {
-  passport.use(
-    new GoogleStrategy(
-      {
-        clientID: process.env.GOOGLE_CLIENT_ID,
-        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-        callbackURL: process.env.GOOGLE_CALLBACK_URL,
-        scope: ["profile", "email"],
-      },
-      async (accessToken, refreshToken, profile, done) => {
-        try {
-          const email = profile.emails[0].value;
-          const fullName = profile.displayName;
+    passport.use(
+        new GoogleStrategy(
+            {
+                clientID: process.env.GOOGLE_CLIENT_ID,
+                clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+                callbackURL: process.env.GOOGLE_CALLBACK_URL,
+                scope: ["profile", "email"],
+            },
+            async (accessToken, refreshToken, profile, done) => {
+                try {
+                    const email = profile.emails[0].value;
+                    const fullName = profile.displayName;
 
-          let user = await User.findOne({ email });
+                    let user = await User.findOne({ email });
 
-          if (!user) {
-            user = await User.create({
-              email,
-              fullName,
-              authProvider: "google",
-            });
-          }
+                    if (!user) {
+                        user = await User.create({
+                            email,
+                            fullName,
+                            authProvider: "google",
+                        });
+                    }
 
-          const { accessToken: appAccessToken } = await generateTokens(
-            user._id
-          );
+                    const { accessToken: appAccessToken } =
+                        await generateTokens(user._id);
 
-          return done(null, { user, appAccessToken });
-        } catch (error) {
-          done(error);
-        }
-      }
-    )
-  );
+                    return done(null, { user, appAccessToken });
+                } catch (error) {
+                    done(error);
+                }
+            }
+        )
+    );
 
-  passport.serializeUser((user, done) => {
-    done(null, user);
-  });
+    passport.serializeUser((user, done) => {
+        done(null, user);
+    });
 
-  passport.deserializeUser((user, done) => {
-    done(null, user);
-  });
+    passport.deserializeUser((user, done) => {
+        done(null, user);
+    });
 };

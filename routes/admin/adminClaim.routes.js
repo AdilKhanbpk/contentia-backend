@@ -1,15 +1,15 @@
 import express from "express";
 
 import {
-  isAuthenticated,
-  isAdmin,
+    isAuthenticated,
+    isAdmin,
 } from "../../middlewares/authentication.middleware.js";
 import {
-  createClaim,
-  deleteClaim,
-  getClaimById,
-  getClaims,
-  updateClaim,
+    createClaim,
+    deleteClaim,
+    getClaimById,
+    getClaims,
+    updateClaim,
 } from "../../controllers/admin/adminClaims.controller.js";
 
 const router = express.Router();

@@ -4,97 +4,97 @@ import ApiResponse from "../../utils/ApiResponse.js";
 import asyncHandler from "../../utils/asyncHandler.js";
 import { isValidId } from "../../utils/commonHelpers.js";
 import {
-  createADocument,
-  deleteById,
-  findAll,
-  findById,
-  updateById,
+    createADocument,
+    deleteById,
+    findAll,
+    findById,
+    updateById,
 } from "../../utils/dbHelpers.js";
 import Claims from "../../models/admin/adminClaims.model.js";
 import Order from "../../models/orders.model.js";
 import User from "../../models/user.model.js";
 
 const createClaim = asyncHandler(async (req, res) => {
-  const { claimContent, customerId, orderId, claimDate } = req.body;
+    const { claimContent, customerId, orderId, claimDate } = req.body;
 
-  if (!claimContent) {
-    throw new ApiError(400, "Please provide claim content");
-  }
+    if (!claimContent) {
+        throw new ApiError(400, "Please provide claim content");
+    }
 
-  isValidId(customerId);
-  isValidId(orderId);
+    isValidId(customerId);
+    isValidId(orderId);
 
-  const checkCustomer = await User.findById(customerId);
-  const checkOrder = await Order.findById(orderId);
+    const checkCustomer = await User.findById(customerId);
+    const checkOrder = await Order.findById(orderId);
 
-  if (!checkCustomer) {
-    throw new ApiError(404, "Customer not found");
-  }
+    if (!checkCustomer) {
+        throw new ApiError(404, "Customer not found");
+    }
 
-  if (!checkOrder) {
-    throw new ApiError(404, "Order not found");
-  }
+    if (!checkOrder) {
+        throw new ApiError(404, "Order not found");
+    }
 
-  const createdClaim = await createADocument(Claims, {
-    claimContent,
-    claimDate,
-    customer: checkCustomer._id,
-    order: checkOrder._id,
-  });
+    const createdClaim = await createADocument(Claims, {
+        claimContent,
+        claimDate,
+        customer: checkCustomer._id,
+        order: checkOrder._id,
+    });
 
-  return res
-    .status(201)
-    .json(new ApiResponse(201, createdClaim, "Claim created successfully"));
+    return res
+        .status(201)
+        .json(new ApiResponse(201, createdClaim, "Claim created successfully"));
 });
 
 const getClaims = asyncHandler(async (req, res) => {
-  const claims = await Claims.find().populate("customer").populate("order");
-  return res
-    .status(200)
-    .json(new ApiResponse(200, claims, "Claims retrieved successfully"));
+    const claims = await Claims.find().populate("customer").populate("order");
+    return res
+        .status(200)
+        .json(new ApiResponse(200, claims, "Claims retrieved successfully"));
 });
 
 const getClaimById = asyncHandler(async (req, res) => {
-  const { claimId } = req.params;
+    const { claimId } = req.params;
 
-  isValidId(claimId);
+    isValidId(claimId);
 
-  const claim = await Claims.findById(claimId)
-    .populate("customer")
-    .populate("order");
+    const claim = await Claims.findById(claimId)
+        .populate("customer")
+        .populate("order");
 
-  return res
-    .status(200)
-    .json(new ApiResponse(200, claim, "Claim retrieved successfully"));
+    return res
+        .status(200)
+        .json(new ApiResponse(200, claim, "Claim retrieved successfully"));
 });
 
 const updateClaim = asyncHandler(async (req, res) => {
-  const { claimId } = req.params;
-  const { claimContent, claimDate, status } = req.body;
+    const { claimId } = req.params;
+    const { claimContent, claimDate, status } = req.body;
 
-  isValidId(claimId);
+    isValidId(claimId);
 
-  const updatedClaim = await updateById(Claims, claimId, {
-    status,
-    claimContent,
-    claimDate,
-  });
+    const updatedClaim = await updateById(Claims, claimId, {
+        status,
+        claimContent,
+        claimDate,
+    });
 
-  return res
-    .status(200)
-    .json(new ApiResponse(200, updatedClaim, "Claim updated successfully"));
+    return res
+        .status(200)
+        .json(new ApiResponse(200, updatedClaim, "Claim updated successfully"));
 });
 
 const deleteClaim = asyncHandler(async (req, res) => {
-  const { claimId } = req.params;
+    const { claimId } = req.params;
 
-  isValidId(claimId);
+    isValidId(claimId);
 
-  const deletedClaim = await deleteById(Claims, claimId);
+    const deletedClaim = await deleteById(Claims, claimId);
 
-  return res
-    .status(200)
-    .json(new ApiResponse(200, deletedClaim, "Claim deleted successfully"));
+    return res
+        .status(200)
+        .json(new ApiResponse(200, deletedClaim, "Claim deleted successfully"));
 });
 
 export { createClaim, getClaims, getClaimById, updateClaim, deleteClaim };

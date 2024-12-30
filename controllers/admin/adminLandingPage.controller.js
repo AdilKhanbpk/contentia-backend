@@ -3,144 +3,159 @@ import ApiError from "../../utils/ApiError.js";
 import ApiResponse from "../../utils/ApiResponse.js";
 import asyncHandler from "../../utils/asyncHandler.js";
 import {
-  deleteFileFromCloudinary,
-  deleteMultipleFilesFromCloudinary,
-  uploadMultipleFilesToCloudinary,
+    deleteFileFromCloudinary,
+    deleteMultipleFilesFromCloudinary,
+    uploadMultipleFilesToCloudinary,
 } from "../../utils/Cloudinary.js";
 import { isValidId } from "../../utils/commonHelpers.js";
 import { createADocument, updateById } from "../../utils/dbHelpers.js";
 
 const createLandingPage = asyncHandler(async (req, res) => {
-  const { carouselHeroTitle, staticHeroTitle, heroSubTitle } = req.body;
+    const { carouselHeroTitle, staticHeroTitle, heroSubTitle } = req.body;
 
-  if (!carouselHeroTitle || !staticHeroTitle || !heroSubTitle) {
-    throw new ApiError(400, "Please provide all the required fields");
-  }
-
-  const videoPaths = [];
-  for (let i = 1; i <= 10; i++) {
-    const videoPath = req.files?.[`video${i}`]?.[0]?.path;
-    if (!videoPath) {
-      throw new ApiError(400, `Video ${i} is required`);
+    if (!carouselHeroTitle || !staticHeroTitle || !heroSubTitle) {
+        throw new ApiError(400, "Please provide all the required fields");
     }
-    videoPaths.push(videoPath);
-  }
 
-  console.log(videoPaths);
+    const videoPaths = [];
+    for (let i = 1; i <= 10; i++) {
+        const videoPath = req.files?.[`video${i}`]?.[0]?.path;
+        if (!videoPath) {
+            throw new ApiError(400, `Video ${i} is required`);
+        }
+        videoPaths.push(videoPath);
+    }
 
-  const uploadedVideos = await uploadMultipleFilesToCloudinary(videoPaths, {
-    resource_type: "video",
-    folder: "videos",
-  });
+    // console.log(videoPaths);
 
-  if (!uploadedVideos || uploadedVideos.length !== 10) {
-    throw new ApiError(400, "Video upload failed, please try again");
-  }
+    const uploadedVideos = await uploadMultipleFilesToCloudinary(videoPaths, {
+        resource_type: "video",
+        folder: "videos",
+    });
 
-  const videoUrls = uploadedVideos.map((video) => video?.secure_url);
+    if (!uploadedVideos || uploadedVideos.length !== 10) {
+        throw new ApiError(400, "Video upload failed, please try again");
+    }
 
-  const newLandingPage = await createADocument(LandingPageModel, {
-    carouselHeroTitle,
-    staticHeroTitle,
-    heroSubTitle,
-    videos: videoUrls, // Storing video URLs as an array
-  });
+    const videoUrls = uploadedVideos.map((video) => video?.secure_url);
 
-  return res
-    .status(201)
-    .json(
-      new ApiResponse(201, newLandingPage, "Landing page created successfully")
-    );
+    const newLandingPage = await createADocument(LandingPageModel, {
+        carouselHeroTitle,
+        staticHeroTitle,
+        heroSubTitle,
+        videos: videoUrls, // Storing video URLs as an array
+    });
+
+    return res
+        .status(201)
+        .json(
+            new ApiResponse(
+                201,
+                newLandingPage,
+                "Landing page created successfully"
+            )
+        );
 });
 
 const getLandingPage = asyncHandler(async (req, res) => {
-  const landingPage = await LandingPageModel.findOne();
+    const landingPage = await LandingPageModel.findOne();
 
-  if (!landingPage) {
-    throw new ApiError(404, "Landing page not found");
-  }
+    if (!landingPage) {
+        throw new ApiError(404, "Landing page not found");
+    }
 
-  return res
-    .status(200)
-    .json(
-      new ApiResponse(200, landingPage, "Landing page fetched successfully")
-    );
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                landingPage,
+                "Landing page fetched successfully"
+            )
+        );
 });
 
 const updateLandingPage = asyncHandler(async (req, res) => {
-  const { landingPageId } = req.params;
-  const { carouselHeroTitle, staticHeroTitle, heroSubTitle } = req.body;
+    const { landingPageId } = req.params;
+    const { carouselHeroTitle, staticHeroTitle, heroSubTitle } = req.body;
 
-  isValidId(landingPageId);
+    isValidId(landingPageId);
 
-  const landingPage = await LandingPageModel.findById(landingPageId);
+    const landingPage = await LandingPageModel.findById(landingPageId);
 
-  if (!landingPage) {
-    throw new ApiError(404, "Landing page not found");
-  }
-
-  let updatedVideos = landingPage.videos || [];
-
-  for (let i = 1; i <= 10; i++) {
-    const videoField = `video${i}`;
-
-    if (req.files?.[videoField]) {
-      const newVideoPath = req.files[videoField]?.[0]?.path;
-
-      if (!newVideoPath) {
-        throw new ApiError(400, `${videoField} is required`);
-      }
-
-      if (updatedVideos[i - 1]) {
-        try {
-          await deleteFileFromCloudinary(updatedVideos[i - 1], "video");
-        } catch (error) {
-          console.error(
-            `Failed to delete ${videoField} from Cloudinary:`,
-            error
-          );
-          throw new ApiError(
-            500,
-            `Failed to delete ${videoField} from Cloudinary`
-          );
-        }
-      }
-
-      const uploadedVideo = await uploadMultipleFilesToCloudinary(
-        [newVideoPath],
-        {
-          resource_type: "video",
-          folder: "videos",
-        }
-      );
-
-      if (!uploadedVideo || uploadedVideo.length !== 1) {
-        throw new ApiError(
-          400,
-          `${videoField} upload failed, please try again`
-        );
-      }
-
-      updatedVideos[i - 1] = uploadedVideo[0]?.secure_url;
+    if (!landingPage) {
+        throw new ApiError(404, "Landing page not found");
     }
-  }
 
-  const updatedLandingPage = await updateById(LandingPageModel, landingPageId, {
-    carouselHeroTitle,
-    staticHeroTitle,
-    heroSubTitle,
-    videos: updatedVideos,
-  });
+    let updatedVideos = landingPage.videos || [];
 
-  return res
-    .status(200)
-    .json(
-      new ApiResponse(
-        200,
-        updatedLandingPage,
-        "Landing page updated successfully"
-      )
+    for (let i = 1; i <= 10; i++) {
+        const videoField = `video${i}`;
+
+        if (req.files?.[videoField]) {
+            const newVideoPath = req.files[videoField]?.[0]?.path;
+
+            if (!newVideoPath) {
+                throw new ApiError(400, `${videoField} is required`);
+            }
+
+            if (updatedVideos[i - 1]) {
+                try {
+                    await deleteFileFromCloudinary(
+                        updatedVideos[i - 1],
+                        "video"
+                    );
+                } catch (error) {
+                    console.error(
+                        `Failed to delete ${videoField} from Cloudinary:`,
+                        error
+                    );
+                    throw new ApiError(
+                        500,
+                        `Failed to delete ${videoField} from Cloudinary`
+                    );
+                }
+            }
+
+            const uploadedVideo = await uploadMultipleFilesToCloudinary(
+                [newVideoPath],
+                {
+                    resource_type: "video",
+                    folder: "videos",
+                }
+            );
+
+            if (!uploadedVideo || uploadedVideo.length !== 1) {
+                throw new ApiError(
+                    400,
+                    `${videoField} upload failed, please try again`
+                );
+            }
+
+            updatedVideos[i - 1] = uploadedVideo[0]?.secure_url;
+        }
+    }
+
+    const updatedLandingPage = await updateById(
+        LandingPageModel,
+        landingPageId,
+        {
+            carouselHeroTitle,
+            staticHeroTitle,
+            heroSubTitle,
+            videos: updatedVideos,
+        }
     );
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                updatedLandingPage,
+                "Landing page updated successfully"
+            )
+        );
 });
 
 export { createLandingPage, getLandingPage, updateLandingPage };

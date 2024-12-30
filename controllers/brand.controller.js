@@ -102,7 +102,7 @@ const getMyBrands = asyncHandler(async (req, res) => {
 const changeBrandPic = asyncHandler(async (req, res) => {
     const { brandId } = req.params;
     const filePath = req.file.path;
-    console.log(filePath);
+    // console.log(filePath);
 
     isValidId(brandId);
 
@@ -122,7 +122,7 @@ const changeBrandPic = asyncHandler(async (req, res) => {
 
     const uploadedFile = await uploadFileToCloudinary(filePath);
 
-    console.log(uploadedFile);
+    // console.log(uploadedFile);
 
     await brand.updateOne({
         $set: {

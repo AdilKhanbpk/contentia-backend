@@ -1,14 +1,14 @@
 import express from "express";
 import {
-  createAbout,
-  deleteAbout,
-  getAbout,
-  updateAbout,
-  updateAboutImage,
+    createAbout,
+    deleteAbout,
+    getAbout,
+    updateAbout,
+    updateAboutImage,
 } from "../../controllers/admin/adminAbout.controller.js";
 import {
-  isAdmin,
-  isAuthenticated,
+    isAdmin,
+    isAuthenticated,
 } from "../../middlewares/authentication.middleware.js";
 import { uploadOnMulter } from "../../middlewares/multer.middleware.js";
 
@@ -17,18 +17,18 @@ const router = express.Router();
 router.get("/", isAuthenticated, getAbout);
 router.patch("/:aboutId", isAuthenticated, isAdmin, updateAbout);
 router.patch(
-  "/:aboutId/change-image",
-  isAuthenticated,
-  isAdmin,
-  uploadOnMulter.single("aboutImage"),
-  updateAboutImage
+    "/:aboutId/change-image",
+    isAuthenticated,
+    isAdmin,
+    uploadOnMulter.single("aboutImage"),
+    updateAboutImage
 );
 router.post(
-  "/",
-  uploadOnMulter.single("aboutImage"),
-  isAuthenticated,
-  isAdmin,
-  createAbout
+    "/",
+    uploadOnMulter.single("aboutImage"),
+    isAuthenticated,
+    isAdmin,
+    createAbout
 );
 router.delete("/:aboutId", isAuthenticated, isAdmin, deleteAbout);
 
