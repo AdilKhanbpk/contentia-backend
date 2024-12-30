@@ -6,6 +6,7 @@ import {
     updateOrder,
     deleteOrder,
     createClaimOnOrder,
+    getMyOrders,
 } from "../controllers/orders.controller.js";
 import { isAuthenticated } from "../middlewares/authentication.middleware.js";
 import { applyForOrder } from "../controllers/creator.controller.js";
@@ -14,6 +15,7 @@ const router = express.Router();
 
 router.post("/", isAuthenticated, createOrder);
 router.get("/", isAuthenticated, getOrders);
+router.get("/my-orders", isAuthenticated, getMyOrders);
 router.get("/:orderId", isAuthenticated, getOrder);
 router.patch("/:orderId", isAuthenticated, updateOrder);
 router.delete("/:orderId", isAuthenticated, deleteOrder);

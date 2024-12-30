@@ -71,7 +71,7 @@ const createOrder = asyncHandler(async (req, res, next) => {
         .json(new ApiResponse(201, newOrder, "Order created successfully"));
 });
 
-const getOrders = asyncHandler(async (req, res) => {
+const getMyOrders = asyncHandler(async (req, res) => {
     const orders = await Orders.find({ orderOwner: req.user._id }).populate({
         path: "orderOwner",
         select: "-password",
@@ -84,6 +84,13 @@ const getOrders = asyncHandler(async (req, res) => {
     return res
         .status(200)
         .json(new ApiResponse(200, orders, "My Orders retrieved successfully"));
+});
+
+const getOrders = asyncHandler(async (req, res) => {
+    const orders = await Orders.find();
+    return res
+        .status(200)
+        .json(new ApiResponse(200, orders, "Orders retrieved successfully"));
 });
 
 const getOrder = asyncHandler(async (req, res) => {
@@ -208,6 +215,7 @@ export {
     updateOrder,
     deleteOrder,
     getOrder,
+    getMyOrders,
     getOrders,
     createClaimOnOrder,
 };
