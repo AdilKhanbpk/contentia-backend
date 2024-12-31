@@ -87,7 +87,10 @@ const getMyOrders = asyncHandler(async (req, res) => {
 });
 
 const getOrders = asyncHandler(async (req, res) => {
-    const orders = await Orders.find();
+    const orders = await Orders.find().populate({
+        path: "orderOwner",
+        select: "-password",
+    });
     return res
         .status(200)
         .json(new ApiResponse(200, orders, "Orders retrieved successfully"));
