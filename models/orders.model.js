@@ -10,6 +10,10 @@ const ordersProfileSchema = new Schema(
             type: Schema.Types.ObjectId,
             ref: "User",
         },
+        associatedBrands: {
+            type: Schema.Types.ObjectId,
+            ref: "brand",
+        },
         assignedCreators: [
             {
                 type: Schema.Types.ObjectId,
