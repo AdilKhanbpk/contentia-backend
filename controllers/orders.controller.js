@@ -31,31 +31,36 @@ const createOrder = asyncHandler(async (req, res, next) => {
         throw new ApiError(400, "Please provide all additional services");
     }
 
-    if (
-        !briefContent ||
-        !briefContent.brandName ||
-        !briefContent.brief ||
-        !briefContent.productServiceName ||
-        !briefContent.productServiceDesc
-    ) {
-        throw new ApiError(400, "Please provide all brief content");
-    }
+    // if (
+    //     !briefContent ||
+    //     !briefContent.brandName ||
+    //     !briefContent.brief ||
+    //     !briefContent.productServiceName ||
+    //     !briefContent.productServiceDesc
+    // ) {
+    //     throw new ApiError(400, "Please provide all brief content");
+    // }
 
     let fileUrls = [];
-    if (req.files && req.files["briefContent.uploadFiles"]) {
-        const filePaths = req.files["briefContent.uploadFiles"].map(
-            (file) => file.path
-        );
-        fileUrls = await uploadMultipleFilesToCloudinary(filePaths);
-    }
+    let brand;
+    if (briefContent) {
+        if (req.files && req.files["briefContent.uploadFiles"]) {
+            const filePaths = req.files["briefContent.uploadFiles"].map(
+                (file) => file.path
+            );
+            fileUrls = await uploadMultipleFilesToCloudinary(filePaths);
+        }
 
-    briefContent.brandName = briefContent.brandName.trim();
-    const brand = await BrandModel.findOne({
-        brandName: briefContent.brandName,
-    });
+        if (briefContent.brandName) {
+            briefContent.brandName = briefContent?.brandName.trim();
+            brand = await BrandModel.findOne({
+                brandName: briefContent?.brandName,
+            });
 
-    if (!brand) {
-        throw new ApiError(400, "Brand not found");
+            if (!brand) {
+                throw new ApiError(400, "Brand not found");
+            }
+        }
     }
 
     const newOrder = await Orders.create({
@@ -69,12 +74,12 @@ const createOrder = asyncHandler(async (req, res, next) => {
         preferences,
         briefContent: {
             ...briefContent,
-            brandName: brand.brandName,
-            uploadFiles: fileUrls.map((file) => file.secure_url),
+            brandName: brand?.brandName,
+            uploadFiles: fileUrls?.map((file) => file.secure_url),
         },
         orderQuota,
         numberOfRequests,
-        associatedBrands: brand._id,
+        associatedBrands: brand?._id,
     });
 
     brand.associatedOrders.push(newOrder._id);
