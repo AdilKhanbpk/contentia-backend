@@ -123,9 +123,11 @@ const ordersProfileSchema = new Schema(
             caseStudy: {
                 type: String,
             },
-            uploadFiles: {
-                type: String,
-            },
+            uploadFiles: [
+                {
+                    type: String,
+                },
+            ],
             uploadFileDate: {
                 type: String,
             },
