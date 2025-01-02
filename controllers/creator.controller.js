@@ -378,6 +378,27 @@ const getAllAppliedOrders = asyncHandler(async (req, res) => {
         );
 });
 
+const myRejectedOrders = asyncHandler(async (req, res) => {
+    const creatorId = req.user._id;
+
+    isValidId(creatorId);
+
+    const rejectedOrders = await Orders.find({
+        appliedCreators: creatorId,
+        orderStatus: "rejected",
+    });
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                rejectedOrders,
+                "Rejected orders retrieved successfully"
+            )
+        );
+});
+
 const myAssignedOrders = asyncHandler(async (req, res) => {
     const creatorId = req.user._id;
 
@@ -646,6 +667,7 @@ export {
     changeProfilePicture,
     addOrderToFavorites,
     myAssignedOrders,
+    myRejectedOrders,
     uploadContentToOrder,
     getAllAppliedOrders,
     removeOrderFromFavorites,
