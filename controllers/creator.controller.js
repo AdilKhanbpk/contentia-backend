@@ -356,12 +356,10 @@ const applyForOrder = asyncHandler(async (req, res) => {
 const getAllAppliedOrders = asyncHandler(async (req, res) => {
     const creatorId = req.user._id;
 
+    console.log("Creator ID:", creatorId);
     isValidId(creatorId);
 
-    const appliedOrders = await Orders.find({
-        appliedCreators: creatorId,
-        orderStatus: "pending",
-    });
+    const appliedOrders = await Orders.find();
 
     if (!appliedOrders || appliedOrders.length === 0) {
         throw new ApiError(404, "No pending orders found");
@@ -384,8 +382,7 @@ const myRejectedOrders = asyncHandler(async (req, res) => {
     isValidId(creatorId);
 
     const rejectedOrders = await Orders.find({
-        appliedCreators: creatorId,
-        orderStatus: "rejected",
+        rejectedCreators: creatorId,
     });
 
     return res
@@ -406,7 +403,6 @@ const myAssignedOrders = asyncHandler(async (req, res) => {
 
     const assignedOrders = await Orders.find({
         assignedCreators: creatorId,
-        orderStatus: "active",
     });
 
     return res

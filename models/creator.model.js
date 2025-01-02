@@ -7,6 +7,7 @@ const CreatorFormSchema = new mongoose.Schema(
         identityNo: {
             type: Number,
         },
+
         favoriteOrders: {
             type: [mongoose.Types.ObjectId],
             ref: "Order",

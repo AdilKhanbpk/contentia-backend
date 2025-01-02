@@ -54,6 +54,6 @@ router.patch(
     isAuthenticated,
     changeProfilePicture
 );
-router.post("/:creatorId/apply-for-order", isAuthenticated, applyForOrder);
+router.post("/apply-for-order/:orderId", isAuthenticated, applyForOrder);
 
 export default router;
