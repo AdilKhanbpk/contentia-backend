@@ -134,6 +134,10 @@ userSchema.methods.AccessToken = function () {
         {
             _id: this._id,
             email: this.email,
+            role: this.role,
+            userType: this.userType,
+            profilePic: this.profilePic,
+            authProvider: this.authProvider,
         },
         process.env.JWT_ACCESS_TOKEN_SECRET,
         {

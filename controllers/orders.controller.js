@@ -5,6 +5,7 @@ import ApiResponse from "../utils/ApiResponse.js";
 import ApiError from "../utils/ApiError.js";
 import { isValidId } from "../utils/commonHelpers.js";
 import BrandModel from "../models/brand.model.js";
+import { uploadMultipleFilesToCloudinary } from "../utils/Cloudinary.js";
 
 const createOrder = asyncHandler(async (req, res, next) => {
     const {
@@ -58,7 +59,10 @@ const createOrder = asyncHandler(async (req, res, next) => {
         contentsDelivered,
         additionalServices,
         preferences,
-        briefContent: { ...briefContent, brandName: brand.brandName },
+        briefContent: {
+            ...briefContent,
+            brandName: brand.brandName,
+        },
         orderQuota,
         numberOfRequests,
         associatedBrands: brand._id,
