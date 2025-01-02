@@ -10,10 +10,16 @@ import {
 } from "../controllers/orders.controller.js";
 import { isAuthenticated } from "../middlewares/authentication.middleware.js";
 import { applyForOrder } from "../controllers/creator.controller.js";
+import { uploadOnMulter } from "../middlewares/multer.middleware.js";
 
 const router = express.Router();
 
-router.post("/", isAuthenticated, createOrder);
+router.post(
+    "/",
+    isAuthenticated,
+    uploadOnMulter.fields([{ name: "briefContent.uploadFiles" }]),
+    createOrder
+);
 router.get("/", isAuthenticated, getOrders);
 router.get("/my-orders", isAuthenticated, getMyOrders);
 router.get("/:orderId", isAuthenticated, getOrder);

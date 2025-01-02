@@ -25,9 +25,13 @@ cloudinary.config({
  * @param {string} filePath - The local path of the file to delete.
  */
 const deleteLocalFile = (filePath) => {
-    if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
-    }
+    fs.unlink(filePath, (err) => {
+        if (err) {
+            console.error(`Error deleting file: ${filePath}`, err);
+        } else {
+            console.log(`Successfully deleted file: ${filePath}`);
+        }
+    });
 };
 
 /**
@@ -107,6 +111,8 @@ const uploadMultipleFilesToCloudinary = async (filePaths, options = {}) => {
 
         return await Promise.all(uploadPromises);
     } catch (error) {
+        console.log(filePaths);
+        deleteLocalFile(filePaths);
         console.error(`Cloudinary Bulk Upload Error ==> ${error.message}`);
         return null;
     }

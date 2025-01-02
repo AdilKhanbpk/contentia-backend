@@ -19,9 +19,9 @@ import { isAuthenticated } from "../middlewares/authentication.middleware.js";
 const router = express.Router();
 
 // Route to create or update OrdersProfile
-router.get("/:creatorId/applied-orders", isAuthenticated, getAllAppliedOrders);
-router.get("/:creatorId/my-assigned-orders", isAuthenticated, myAssignedOrders);
-router.get("/:creatorId/get-notifications", isAuthenticated, getNotifications);
+router.get("/applied-orders", isAuthenticated, getAllAppliedOrders);
+router.get("/my-assigned-orders", isAuthenticated, myAssignedOrders);
+router.get("/get-notifications", isAuthenticated, getNotifications);
 router.get(
     "/:creatorId/get-my-order-folder-to-upload-content",
     isAuthenticated,

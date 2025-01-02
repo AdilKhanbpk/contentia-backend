@@ -41,6 +41,14 @@ const createOrder = asyncHandler(async (req, res, next) => {
         throw new ApiError(400, "Please provide all brief content");
     }
 
+    let fileUrls = [];
+    if (req.files && req.files["briefContent.uploadFiles"]) {
+        const filePaths = req.files["briefContent.uploadFiles"].map(
+            (file) => file.path
+        );
+        fileUrls = await uploadMultipleFilesToCloudinary(filePaths);
+    }
+
     briefContent.brandName = briefContent.brandName.trim();
     const brand = await BrandModel.findOne({
         brandName: briefContent.brandName,
@@ -62,6 +70,7 @@ const createOrder = asyncHandler(async (req, res, next) => {
         briefContent: {
             ...briefContent,
             brandName: brand.brandName,
+            uploadFiles: fileUrls.map((file) => file.secure_url),
         },
         orderQuota,
         numberOfRequests,
