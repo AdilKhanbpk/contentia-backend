@@ -31,16 +31,6 @@ const createOrder = asyncHandler(async (req, res, next) => {
         throw new ApiError(400, "Please provide all additional services");
     }
 
-    // if (
-    //     !briefContent ||
-    //     !briefContent.brandName ||
-    //     !briefContent.brief ||
-    //     !briefContent.productServiceName ||
-    //     !briefContent.productServiceDesc
-    // ) {
-    //     throw new ApiError(400, "Please provide all brief content");
-    // }
-
     let fileUrls = [];
     let brand;
     if (briefContent) {

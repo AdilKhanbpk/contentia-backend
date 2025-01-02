@@ -26,6 +26,12 @@ const ordersProfileSchema = new Schema(
                 ref: "Creator",
             },
         ],
+        rejectedCreators: [
+            {
+                type: Schema.Types.ObjectId,
+                ref: "Creator",
+            },
+        ],
 
         noOfUgc: {
             type: Number,

@@ -254,6 +254,8 @@ const rejectCreatorOnOrder = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Creator is not assigned to the order");
     }
 
+    order.rejectedCreators.push(creatorId);
+
     order.assignedCreators = order.assignedCreators.filter(
         (id) => id.toString() !== creator._id.toString()
     );
