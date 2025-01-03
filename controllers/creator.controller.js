@@ -18,6 +18,7 @@ import {
     uploadFileToCloudinary,
     uploadMultipleFilesToCloudinary,
 } from "../utils/Cloudinary.js";
+import { sendNotification } from "./admin/adminNotification.controller.js";
 
 /**
  * Generates and returns a new access token for the given creator user ID
@@ -353,6 +354,21 @@ const applyForOrder = asyncHandler(async (req, res) => {
     order.appliedCreators.push(creator._id);
 
     await order.save();
+
+    const allAdminIds = await User.find({ role: "admin" }).select("_id");
+
+    // Send notification to admins
+    await sendNotification({
+        userType: "admin",
+        title: "New Order Application",
+        details: `Creator ${creator.fullName} has applied for order ${orderId}`,
+        users: [allAdminIds.map((admin) => admin._id)],
+        eventType: "order_application",
+        metadata: {
+            creatorId: creator._id,
+            orderId: order._id,
+        },
+    });
 
     return res
         .status(200)
