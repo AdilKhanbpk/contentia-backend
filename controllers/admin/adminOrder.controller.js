@@ -221,6 +221,22 @@ const approveCreatorOnOrder = asyncHandler(async (req, res) => {
         numberOfRequests: order.numberOfRequests,
     });
 
+    // Send notification for approval
+    const notification = {
+        userType: "creator",
+        eventType: "orderApproval",
+        title: "Order Approved",
+        details: `Your request for order ${orderId} has been approved.`,
+        users: [creatorId],
+        metadata: {
+            message: "This is an order approval notification",
+            author: req.user.fullName,
+            author_role: req.user.role,
+        },
+    };
+
+    await sendNotification(notification);
+
     return res
         .status(200)
         .json(
@@ -266,6 +282,22 @@ const rejectCreatorOnOrder = asyncHandler(async (req, res) => {
         assignedCreators: order.assignedCreators,
         numberOfRequests: order.numberOfRequests,
     });
+
+    // Send notification for rejection
+    const notification = {
+        userType: "creator",
+        eventType: "orderRejection",
+        title: "Order Rejected",
+        details: `Your request for order ${orderId} has been rejected.`,
+        users: [creatorId],
+        metadata: {
+            message: "This is an order rejection notification",
+            author: req.user.fullName,
+            author_role: req.user.role,
+        },
+    };
+
+    await sendNotification(notification);
 
     return res
         .status(200)
