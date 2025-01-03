@@ -344,6 +344,12 @@ const applyForOrder = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Creator not found");
     }
 
+    const alreadyApplied = order.appliedCreators.includes(creator._id);
+
+    if (alreadyApplied) {
+        throw new ApiError(400, "You have already applied for this order");
+    }
+
     order.appliedCreators.push(creator._id);
 
     await order.save();
