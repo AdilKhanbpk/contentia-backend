@@ -6,6 +6,8 @@ import ApiError from "../utils/ApiError.js";
 import { isValidId } from "../utils/commonHelpers.js";
 import BrandModel from "../models/brand.model.js";
 import { uploadMultipleFilesToCloudinary } from "../utils/Cloudinary.js";
+import { sendNotification } from "./admin/adminNotification.controller.js";
+import User from "../models/user.model.js";
 
 const createOrder = asyncHandler(async (req, res, next) => {
     const {
@@ -53,6 +55,9 @@ const createOrder = asyncHandler(async (req, res, next) => {
         }
     }
 
+    const allAdminIds = await User.find({ role: "admin" }).select("_id");
+    console.log(allAdminIds);
+
     const newOrder = await Orders.create({
         orderOwner: req.user._id,
         noOfUgc,
@@ -74,6 +79,21 @@ const createOrder = asyncHandler(async (req, res, next) => {
 
     brand.associatedOrders.push(newOrder._id);
     await brand.save();
+
+    const notification = {
+        userType: "customer",
+        eventType: "order",
+        title: "New Order",
+        details: `A new order has been created for customer ${req.user._id} with Order ID ${newOrder._id} which includes ${noOfUgc} UGCs with a total price of ${totalPrice}.`,
+        users: allAdminIds.map((admin) => admin._id),
+        metadata: {
+            message: "This is an order notification",
+            author: req.user.fullName,
+            author_role: req.user.role,
+        },
+    };
+
+    sendNotification(notification);
 
     return res
         .status(201)

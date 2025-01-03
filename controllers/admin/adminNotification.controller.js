@@ -24,6 +24,8 @@ const sendNotification = async ({
     eventType,
     metadata,
 }) => {
+    console.log("🚀 ~ users:", users);
+
     try {
         const userRefPath =
             userType === "creator"
@@ -44,9 +46,10 @@ const sendNotification = async ({
 
         users.forEach((userId) => {
             const socketId = connectedSocket.get(userId.toString());
-            console.log("Sending Notification to Socket ID:", socketId);
+            console.log("Sending Notification to  Socket ID:", socketId);
             if (socketId) {
                 io.to(socketId).emit("newNotification", notification);
+                console.log("Notification sent to Socket ID:", socketId);
             } else {
                 console.log(`User ${userId} is not connected.`);
             }
