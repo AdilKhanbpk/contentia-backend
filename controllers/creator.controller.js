@@ -346,30 +346,29 @@ const applyForOrder = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Creator not found");
     }
 
+    const allAdminIds = await User.find({ role: "admin" }).select("_id");
+
     const alreadyApplied = order.appliedCreators.includes(creator._id);
 
     if (alreadyApplied) {
         throw new ApiError(400, "You have already applied for this order");
     }
 
-    order.appliedCreators.push(creator._id);
-
-    await order.save();
-
-    const allAdminIds = await User.find({ role: "admin" }).select("_id");
-
-    // Send notification to admins
     await sendNotification({
-        userType: "admin",
+        userType: "customer",
         title: "New Order Application",
         details: `Creator ${creator.fullName} has applied for order ${orderId}`,
-        users: [allAdminIds.map((admin) => admin._id)],
-        eventType: "order_application",
+        users: allAdminIds.map((admin) => admin._id),
+        eventType: "order",
         metadata: {
             creatorId: creator._id,
             orderId: order._id,
         },
     });
+
+    order.appliedCreators.push(creator._id);
+
+    await order.save();
 
     return res
         .status(200)

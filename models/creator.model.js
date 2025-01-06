@@ -30,6 +30,10 @@ const CreatorFormSchema = new mongoose.Schema(
             enum: ["customer", "creator"],
             default: "creator",
         },
+        profilePic: {
+            type: String,
+            default: "https://avatars.dicebear.com/api/avataaars/1234.svg",
+        },
         addressDetails: {
             addressOne: {
                 type: String,

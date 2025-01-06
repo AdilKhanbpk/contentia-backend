@@ -15,6 +15,7 @@ import User from "../../models/user.model.js";
 import Notification from "../../models/admin/adminNotification.model.js";
 import { connectedSocket } from "../../socket/socket.js";
 import { io } from "../../app.js";
+import mongoose from "mongoose";
 
 const sendNotification = async ({
     userType,
@@ -32,13 +33,19 @@ const sendNotification = async ({
                 ? "Creator"
                 : userType === "customer"
                 ? "User"
-                : "Admin";
+                : null;
+
+        if (!userRefPath && userType !== "all") {
+            throw new ApiError(400, "Invalid user type provided");
+        }
 
         const notification = await Notification.create({
             userType,
             title,
             details,
-            users,
+            users: users.map((id) =>
+                mongoose.Types.ObjectId.createFromHexString(id)
+            ),
             eventType,
             metadata,
             userRefPath: userType === "all" ? null : userRefPath,
