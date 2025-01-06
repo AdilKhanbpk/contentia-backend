@@ -15,7 +15,6 @@ import User from "../../models/user.model.js";
 import Notification from "../../models/admin/adminNotification.model.js";
 import { connectedSocket } from "../../socket/socket.js";
 import { io } from "../../app.js";
-import mongoose from "mongoose";
 
 const sendNotification = async ({
     userType,
@@ -43,9 +42,7 @@ const sendNotification = async ({
             userType,
             title,
             details,
-            users: users.map((id) =>
-                mongoose.Types.ObjectId.createFromHexString(id)
-            ),
+            users,
             eventType,
             metadata,
             userRefPath: userType === "all" ? null : userRefPath,

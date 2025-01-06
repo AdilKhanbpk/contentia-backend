@@ -30,7 +30,6 @@ const createOrder = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Assigned creators must be a non-empty array");
     }
 
-    // Validate creator IDs and check if they exist in the database
     const validatedCreators = assignedCreators.map((id) => {
         if (!mongoose.isValidObjectId(id)) {
             throw new ApiError(400, `Invalid creator ID: ${id}`);
@@ -77,7 +76,7 @@ const createOrder = asyncHandler(async (req, res) => {
         throw new ApiError(500, "Failed to create order");
     }
 
-    const notification = {
+    const customerNotification = {
         userType: "customer",
         eventType: "order",
         title: "New Order",
@@ -90,7 +89,25 @@ const createOrder = asyncHandler(async (req, res) => {
         },
     };
 
-    await sendNotification(notification);
+    const creatorNotifications = validatedCreators.map((creatorId) => ({
+        userType: "creator",
+        eventType: "order",
+        title: "New Order Assignment",
+        details: `You have been assigned to a new order with ID ${newOrder._id}. The order includes ${noOfUgc} UGCs with a total price of ${totalPrice}.`,
+        users: [creatorId],
+        metadata: {
+            message: "This is an order assignment notification",
+            author: req.user.fullName,
+            author_role: req.user.role,
+        },
+    }));
+
+    await Promise.all([
+        sendNotification(customerNotification),
+        ...creatorNotifications.map((notification) =>
+            sendNotification(notification)
+        ),
+    ]);
 
     return res
         .status(201)
@@ -196,46 +213,61 @@ const approveCreatorOnOrder = asyncHandler(async (req, res) => {
     }
 
     const order = await Order.findById(orderId);
-
     if (!order) {
         throw new ApiError(404, "Order not found");
     }
 
     if (order.orderStatus !== "pending") {
-        throw new ApiError(400, "Order is not pending");
+        throw new ApiError(400, "Order is not in a pending state");
     }
 
     if (order.assignedCreators.includes(creatorId)) {
-        throw new ApiError(400, "Creator is already assigned to the order");
+        throw new ApiError(400, "Creator is already assigned to this order");
     }
 
-    order.assignedCreators.push(creatorId);
-    order.numberOfRequests = order.assignedCreators.length;
-
-    order.appliedCreators = order.appliedCreators.filter(
-        (id) => id.toString() !== creator._id.toString()
+    const updatedOrder = await Order.findByIdAndUpdate(
+        orderId,
+        {
+            $addToSet: { assignedCreators: creatorId },
+            $pull: { appliedCreators: creatorId },
+        },
+        { new: true }
     );
 
-    const updatedOrder = await updateById(Order, orderId, {
-        assignedCreators: order.assignedCreators,
-        numberOfRequests: order.numberOfRequests,
-    });
+    if (!updatedOrder) {
+        throw new ApiError(500, "Failed to update order");
+    }
 
-    // Send notification for approval
-    const notification = {
-        userType: "creator",
-        eventType: "order",
-        title: "Order Approved",
-        details: `Your request for order ${orderId} has been approved.`,
-        users: [creatorId],
-        metadata: {
-            message: "This is an order approval notification",
-            author: req.user.fullName,
-            author_role: req.user.role,
+    const notifications = [
+        {
+            userType: "creator",
+            eventType: "order",
+            title: "Order Approved",
+            details: `Your request for order ${orderId} has been approved.`,
+            users: [creatorId],
+            metadata: {
+                message: "This is an order approval notification",
+                author: req.user.fullName,
+                author_role: req.user.role,
+            },
         },
-    };
+        {
+            userType: "customer",
+            eventType: "order",
+            title: "Order Assigned",
+            details: `Your order ${orderId} has been assigned to a creator.`,
+            users: [order.orderOwner],
+            metadata: {
+                message: "This is an order assignment notification",
+                author: req.user.fullName,
+                author_role: req.user.role,
+            },
+        },
+    ];
 
-    await sendNotification(notification);
+    await Promise.all(
+        notifications.map((notification) => sendNotification(notification))
+    );
 
     return res
         .status(200)
