@@ -19,6 +19,7 @@ import {
     uploadMultipleFilesToCloudinary,
 } from "../utils/Cloudinary.js";
 import { sendNotification } from "./admin/adminNotification.controller.js";
+import User from "../models/user.model.js";
 
 /**
  * Generates and returns a new access token for the given creator user ID
