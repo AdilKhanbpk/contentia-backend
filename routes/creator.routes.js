@@ -16,6 +16,7 @@ import {
     getMyOrderFolderToUploadContent,
 } from "../controllers/creator.controller.js";
 import { isAuthenticated } from "../middlewares/authentication.middleware.js";
+import { uploadOnMulter } from "../middlewares/multer.middleware.js";
 
 const router = express.Router();
 
@@ -50,8 +51,9 @@ router.post(
 router.patch("/", isAuthenticated, updateCreator);
 router.patch("/:creatorId/change-password", isAuthenticated, changePassword);
 router.patch(
-    "/:creatorId/change-profilePicture",
+    "/change-profilePicture",
     isAuthenticated,
+    uploadOnMulter.single("profilePic"),
     changeProfilePicture
 );
 router.post("/apply-for-order/:orderId", isAuthenticated, applyForOrder);
