@@ -99,9 +99,11 @@ const ordersProfileSchema = new Schema(
             interests: {
                 type: [String],
             },
-            contentType: {
-                type: String,
-            },
+            contentType: [
+                {
+                    type: String,
+                },
+            ],
             locationAddress: {
                 country: { type: String },
                 city: { type: String },

@@ -224,7 +224,7 @@ const approveCreatorOnOrder = asyncHandler(async (req, res) => {
     // Send notification for approval
     const notification = {
         userType: "creator",
-        eventType: "orderApproval",
+        eventType: "order",
         title: "Order Approved",
         details: `Your request for order ${orderId} has been approved.`,
         users: [creatorId],
@@ -264,10 +264,6 @@ const rejectCreatorOnOrder = asyncHandler(async (req, res) => {
 
     if (order.orderStatus !== "pending") {
         throw new ApiError(400, "Order is not pending");
-    }
-
-    if (!order.assignedCreators.includes(creatorId)) {
-        throw new ApiError(400, "Creator is not assigned to the order");
     }
 
     order.rejectedCreators.push(creatorId);
