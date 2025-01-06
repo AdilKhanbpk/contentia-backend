@@ -12,6 +12,7 @@ import {
 } from "../../utils/dbHelpers.js";
 import { isValidId } from "../../utils/commonHelpers.js";
 import { sendNotification } from "../admin/adminNotification.controller.js";
+import User from "../../models/user.model.js";
 
 const createOrder = asyncHandler(async (req, res) => {
     const {
@@ -28,6 +29,12 @@ const createOrder = asyncHandler(async (req, res) => {
 
     if (!Array.isArray(assignedCreators) || !assignedCreators.length) {
         throw new ApiError(400, "Assigned creators must be a non-empty array");
+    }
+
+    const customerExists = await User.findById(customer);
+
+    if (!customerExists) {
+        throw new ApiError(404, "Customer not found");
     }
 
     const validatedCreators = assignedCreators.map((id) => {
@@ -64,7 +71,7 @@ const createOrder = asyncHandler(async (req, res) => {
     }
 
     const newOrder = await Order.create({
-        orderOwner: customer,
+        orderOwner: customerExists._id,
         assignedCreators: validatedCreators,
         noOfUgc,
         totalPrice,
@@ -80,8 +87,8 @@ const createOrder = asyncHandler(async (req, res) => {
         userType: "customer",
         eventType: "order",
         title: "New Order",
-        details: `A new order has been created for customer ${customer} with ID ${newOrder._id}. The order is assigned to ${validatedCreators.length} creators and includes ${noOfUgc} UGCs with a total price of ${totalPrice}.`,
-        users: [customer],
+        details: `A new order has been created for customer ${customerExists.fullName} with ID ${newOrder._id}. The order is assigned to ${validatedCreators.length} creators and includes ${noOfUgc} UGCs with a total price of ${totalPrice}.`,
+        users: [customerExists._id],
         metadata: {
             message: "This is an order notification",
             author: req.user.fullName,
