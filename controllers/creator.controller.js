@@ -400,11 +400,9 @@ const getAllAppliedOrders = asyncHandler(async (req, res) => {
     console.log("Creator ID:", creatorId);
     isValidId(creatorId);
 
-    const appliedOrders = await Orders.find();
-
-    if (!appliedOrders || appliedOrders.length === 0) {
-        throw new ApiError(404, "No pending orders found");
-    }
+    const appliedOrders = await Orders.find({
+        appliedCreators: creatorId,
+    });
 
     return res
         .status(200)
