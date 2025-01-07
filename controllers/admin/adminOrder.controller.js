@@ -13,6 +13,7 @@ import {
 import { isValidId } from "../../utils/commonHelpers.js";
 import { sendNotification } from "../admin/adminNotification.controller.js";
 import User from "../../models/user.model.js";
+import { notificationTemplates } from "../../helpers/notificationTemplates.js";
 
 const createOrder = asyncHandler(async (req, res) => {
     const {
@@ -83,31 +84,28 @@ const createOrder = asyncHandler(async (req, res) => {
         throw new ApiError(500, "Failed to create order");
     }
 
-    const customerNotification = {
-        userType: "customer",
-        eventType: "order",
-        title: "New Order",
-        details: `A new order has been created for customer ${customerExists.fullName} with ID ${newOrder._id}. The order is assigned to ${validatedCreators.length} creators and includes ${noOfUgc} UGCs with a total price of ${totalPrice}.`,
-        users: [customerExists._id],
-        metadata: {
-            message: "This is an order notification",
-            author: req.user.fullName,
-            author_role: req.user.role,
-        },
-    };
+    const customerNotification =
+        notificationTemplates.orderCreationByAdminForCustomer({
+            customerName: customerExists.fullName,
+            customerEmail: customerExists.email,
+            customerPhoneNumber: customerExists.phoneNumber,
+            targetUsers: [customerExists._id],
+            metadata: {
+                message: "This is a new order notification",
+            },
+        });
 
-    const creatorNotifications = validatedCreators.map((creatorId) => ({
-        userType: "creator",
-        eventType: "order",
-        title: "New Order Assignment",
-        details: `You have been assigned to a new order with ID ${newOrder._id}. The order includes ${noOfUgc} UGCs with a total price of ${totalPrice}.`,
-        users: [creatorId],
-        metadata: {
-            message: "This is an order assignment notification",
-            author: req.user.fullName,
-            author_role: req.user.role,
-        },
-    }));
+    const creatorNotifications = existingCreators.map((creator) => {
+        return notificationTemplates.creatorApprovalForOrderByAdmin({
+            creatorName: creator.fullName,
+            creatorEmail: creator.email,
+            creatorPhoneNumber: creator.phoneNumber,
+            targetUsers: [creator._id],
+            metadata: {
+                message: "This is a new order notification",
+            },
+        });
+    });
 
     await Promise.all([
         sendNotification(customerNotification),
