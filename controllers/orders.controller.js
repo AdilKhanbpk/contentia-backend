@@ -8,6 +8,7 @@ import BrandModel from "../models/brand.model.js";
 import { uploadMultipleFilesToCloudinary } from "../utils/Cloudinary.js";
 import { sendNotification } from "./admin/adminNotification.controller.js";
 import User from "../models/user.model.js";
+import { notificationTemplates } from "../helpers/notificationTemplates.js";
 
 const createOrder = asyncHandler(async (req, res, next) => {
     const {
@@ -56,7 +57,19 @@ const createOrder = asyncHandler(async (req, res, next) => {
     }
 
     const allAdminIds = await User.find({ role: "admin" }).select("_id");
-    console.log(allAdminIds);
+
+    const notificationData = notificationTemplates.orderCreationByCustomer({
+        customerName: req.user.fullName,
+        customerEmail: req.user.email,
+        customerPhoneNumber: req.user.phoneNumber,
+        targetUsers: allAdminIds,
+        metadata: {
+            status: `The order has been in ${orderStatus} status`,
+        },
+    });
+
+    console.log("🚀 ~ createOrder ~ notificationData:", notificationData);
+    await sendNotification(notificationData);
 
     const newOrder = await Orders.create({
         orderOwner: req.user._id,
@@ -79,21 +92,6 @@ const createOrder = asyncHandler(async (req, res, next) => {
 
     brand.associatedOrders.push(newOrder._id);
     await brand.save();
-
-    const notification = {
-        userType: "customer",
-        eventType: "order",
-        title: "New Order",
-        details: `A new order has been created for customer ${req.user._id} with Order ID ${newOrder._id} which includes ${noOfUgc} UGCs with a total price of ${totalPrice}.`,
-        users: allAdminIds.map((admin) => admin._id),
-        metadata: {
-            message: "This is an order notification",
-            author: req.user.fullName,
-            author_role: req.user.role,
-        },
-    };
-
-    sendNotification(notification);
 
     return res
         .status(201)
@@ -229,6 +227,18 @@ const createClaimOnOrder = asyncHandler(async (req, res) => {
     if (!order) {
         throw new ApiError(404, "Order not found");
     }
+
+    const notificationData = notificationTemplates.reportAnOrderFromCustomer({
+        customerName: req.user.fullName,
+        customerEmail: req.user.email,
+        customerPhoneNumber: req.user.phoneNumber,
+        targetUsers: [order.orderOwner],
+        metadata: {
+            status: `The order has been in ${order.orderStatus} status`,
+        },
+    });
+
+    await sendNotification(notificationData);
 
     const claim = await Claims.create({
         customer: req.user._id,

@@ -9,6 +9,8 @@ import {
 } from "../../utils/dbHelpers.js";
 import Creator from "../../models/creator.model.js";
 import { isValidId } from "../../utils/commonHelpers.js";
+import { notificationTemplates } from "../../helpers/notificationTemplates.js";
+import { sendNotification } from "./adminNotification.controller.js";
 
 // FOR CREATORS
 
@@ -67,6 +69,15 @@ const createCreator = asyncHandler(async (req, res) => {
         userAgreement: true,
         approvedCommercial: true,
     });
+
+    const notificationData = notificationTemplates.creatorRegistrationByAdmin({
+        creatorName: newUser.fullName,
+        creatorEmail: newUser.email,
+        creatorPhoneNumber: newUser.phoneNumber,
+        targetUsers: [newUser._id],
+        metadata: {},
+    });
+    await sendNotification(notificationData);
 
     return res.status(201).json({
         status: 201,
