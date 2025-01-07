@@ -20,6 +20,7 @@ import {
 } from "../utils/Cloudinary.js";
 import { sendNotification } from "./admin/adminNotification.controller.js";
 import User from "../models/user.model.js";
+import { notificationTemplates } from "../helpers/notificationTemplates.js";
 
 /**
  * Generates and returns a new access token for the given creator user ID
@@ -211,6 +212,21 @@ const createCreator = asyncHandler(async (req, res) => {
             );
         }
     }
+
+    const allAdminIds = await User.find({ role: "admin" }).select("_id");
+
+    const notificationData = notificationTemplates.creatorRegistration({
+        creatorName: fullName,
+        creatorEmail: email,
+        creatorPhoneNumber: phoneNumber,
+        targetUsers: allAdminIds.map((admin) => admin._id),
+        metadata: {
+            creatorId: "creator._id",
+            creatorAddress: addressDetails,
+        },
+    });
+
+    await sendNotification(notificationData);
 
     const newUser = await createADocument(Creator, {
         fullName,
@@ -449,7 +465,7 @@ const changeProfilePicture = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Creator not found");
     }
 
-    const profilePath = req.files.path;
+    const profilePath = req.file.path;
 
     const uploadedImage = await uploadFileToCloudinary(profilePath, {
         folder: "creator-profile",
