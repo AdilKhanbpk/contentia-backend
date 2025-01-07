@@ -226,6 +226,7 @@ const createCreator = asyncHandler(async (req, res) => {
         },
     });
 
+    console.log("🚀 ~ createCreator ~ notificationData:", notificationData);
     await sendNotification(notificationData);
 
     const newUser = await createADocument(Creator, {
@@ -370,17 +371,19 @@ const applyForOrder = asyncHandler(async (req, res) => {
         throw new ApiError(400, "You have already applied for this order");
     }
 
-    await sendNotification({
-        userType: "customer",
-        title: "New Order Application",
-        details: `Creator ${creator.fullName} has applied for order ${orderId}`,
-        users: allAdminIds.map((admin) => admin._id),
-        eventType: "order",
+    const notificationData = notificationTemplates.creatorApplyForOrder({
+        creatorName: creator.fullName,
+        creatorEmail: creator.email,
+        creatorPhoneNumber: creator.phoneNumber,
+        targetUsers: allAdminIds.map((admin) => admin._id),
         metadata: {
             creatorId: creator._id,
             orderId: order._id,
         },
     });
+
+    console.log("🚀 ~ applyForOrder ~ notificationData:", notificationData);
+    await sendNotification(notificationData);
 
     order.appliedCreators.push(creator._id);
 
