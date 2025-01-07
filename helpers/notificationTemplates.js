@@ -7,14 +7,15 @@ export const notificationTemplates = {
         metadata = {},
     }) => {
         return {
-            title: "Creator Registration",
-            details: `A new creator with name ${creatorName}, email ${creatorEmail} and phone no ${creatorPhoneNumber}  has registered`,
+            title: "New Creator Registration",
+            details: `A new creator has successfully registered. Details:\nName: ${creatorName}\nEmail: ${creatorEmail}\nPhone Number: ${creatorPhoneNumber}`,
             userType: "customer",
             eventType: "admin",
             users: targetUsers,
             metadata,
         };
     },
+
     creatorApplyForOrder: ({
         creatorName,
         creatorEmail,
@@ -23,14 +24,15 @@ export const notificationTemplates = {
         metadata = {},
     }) => {
         return {
-            title: "Creator Apply For Order",
-            details: `A creator with name ${creatorName}, email ${creatorEmail} and phone no ${creatorPhoneNumber} has applied for an order`,
+            title: "Creator Application for Order",
+            details: `A creator has applied for an order. Details:\nName: ${creatorName}\nEmail: ${creatorEmail}\nPhone Number: ${creatorPhoneNumber}`,
             userType: "customer",
             eventType: "admin",
             users: targetUsers,
             metadata,
         };
     },
+
     creatorApprovalForOrderByAdmin: ({
         creatorName,
         creatorEmail,
@@ -39,14 +41,15 @@ export const notificationTemplates = {
         metadata = {},
     }) => {
         return {
-            title: "Creator Approval For Order By Admin",
-            details: `A creator with name ${creatorName}, email ${creatorEmail} and phone no ${creatorPhoneNumber} has been approved for an order`,
+            title: "Order Approval Notification",
+            details: `The following creator has been approved for an order:\nName: ${creatorName}\nEmail: ${creatorEmail}\nPhone Number: ${creatorPhoneNumber}`,
             userType: "creator",
             eventType: "creator",
             users: targetUsers,
             metadata,
         };
     },
+
     creatorRejectionForOrder: ({
         creatorName,
         creatorEmail,
@@ -55,8 +58,8 @@ export const notificationTemplates = {
         metadata = {},
     }) => {
         return {
-            title: "Creator Rejection For Order",
-            details: `A creator with name ${creatorName}, email ${creatorEmail} and phone no ${creatorPhoneNumber} has been rejected for an order`,
+            title: "Order Rejection Notification",
+            details: `The following creator has been rejected for an order:\nName: ${creatorName}\nEmail: ${creatorEmail}\nPhone Number: ${creatorPhoneNumber}`,
             userType: "creator",
             eventType: "creator",
             users: targetUsers,
@@ -71,8 +74,8 @@ export const notificationTemplates = {
         metadata = {},
     }) => {
         return {
-            title: "Creator Registration By Admin",
-            details: `A new creator with name ${creatorName}, email ${creatorEmail} and phone no ${creatorPhoneNumber} has been registered by admin`,
+            title: "Admin-Initiated Creator Registration",
+            details: `An admin has registered a new creator. Details:\nName: ${creatorName}\nEmail: ${creatorEmail}\nPhone Number: ${creatorPhoneNumber}`,
             userType: "creator",
             eventType: "creator",
             users: targetUsers,
@@ -87,8 +90,8 @@ export const notificationTemplates = {
         metadata = {},
     }) => {
         return {
-            title: "Creator Approval",
-            details: `A creator with name ${creatorName}, email ${creatorEmail} and phone no ${creatorPhoneNumber} has been approved by admin`,
+            title: "Creator Approval Notification",
+            details: `The following creator has been approved by an admin:\nName: ${creatorName}\nEmail: ${creatorEmail}\nPhone Number: ${creatorPhoneNumber}`,
             userType: "creator",
             eventType: "creator",
             users: targetUsers,
@@ -103,8 +106,8 @@ export const notificationTemplates = {
         metadata = {},
     }) => {
         return {
-            title: "Creator Rejection",
-            details: `A creator with name ${creatorName}, email ${creatorEmail} and phone no ${creatorPhoneNumber} has been rejected by admin`,
+            title: "Creator Rejection Notification",
+            details: `The following creator has been rejected by an admin:\nName: ${creatorName}\nEmail: ${creatorEmail}\nPhone Number: ${creatorPhoneNumber}`,
             userType: "creator",
             eventType: "creator",
             users: targetUsers,
@@ -119,8 +122,8 @@ export const notificationTemplates = {
         metadata = {},
     }) => {
         return {
-            title: "Order Creation By Customer",
-            details: `A new order has been created by customer with name ${customerName}, email ${customerEmail} and phone no ${customerPhoneNumber}`,
+            title: "New Order Created",
+            details: `A customer has created a new order. Details:\nName: ${customerName}\nEmail: ${customerEmail}\nPhone Number: ${customerPhoneNumber}`,
             userType: "customer",
             eventType: "admin",
             users: targetUsers,
@@ -135,14 +138,15 @@ export const notificationTemplates = {
         metadata = {},
     }) => {
         return {
-            title: "Order Creation By Admin",
-            details: `A new order has been created by admin with name ${customerName}, email ${customerEmail} and phone no ${customerPhoneNumber}`,
+            title: "Order Created by Admin",
+            details: `An admin has created a new order on behalf of a customer. Details:\nCustomer Name: ${customerName}\nCustomer Email: ${customerEmail}\nCustomer Phone Number: ${customerPhoneNumber}`,
             userType: "customer",
             eventType: "admin",
             users: targetUsers,
             metadata,
         };
     },
+
     reportAnOrderFromCustomer: ({
         customerName,
         customerEmail,
@@ -151,14 +155,15 @@ export const notificationTemplates = {
         metadata = {},
     }) => {
         return {
-            title: "Report An Order From Customer",
-            details: `An order has been reported by customer with name ${customerName}, email ${customerEmail} and phone no ${customerPhoneNumber}`,
+            title: "Order Issue Reported",
+            details: `A customer has reported an issue with an order. Details:\nName: ${customerName}\nEmail: ${customerEmail}\nPhone Number: ${customerPhoneNumber}`,
             userType: "customer",
             eventType: "admin",
             users: targetUsers,
             metadata,
         };
     },
+
     packageCreationByAdmin: ({
         customerName,
         customerEmail,
@@ -167,8 +172,8 @@ export const notificationTemplates = {
         metadata = {},
     }) => {
         return {
-            title: "Package Creation By Admin",
-            details: `A new package has been created by admin with name ${customerName}, email ${customerEmail} and phone no ${customerPhoneNumber}`,
+            title: "New Package Created",
+            details: `A new package has been created by an admin. Customer Details:\nName: ${customerName}\nEmail: ${customerEmail}\nPhone Number: ${customerPhoneNumber}`,
             userType: "customer",
             eventType: "admin",
             users: targetUsers,
