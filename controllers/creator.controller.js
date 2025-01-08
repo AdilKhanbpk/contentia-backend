@@ -21,6 +21,7 @@ import {
 import { sendNotification } from "./admin/adminNotification.controller.js";
 import User from "../models/user.model.js";
 import { notificationTemplates } from "../helpers/notificationTemplates.js";
+import Order from "../models/orders.model.js";
 
 /**
  * Generates and returns a new access token for the given creator user ID
@@ -226,7 +227,6 @@ const createCreator = asyncHandler(async (req, res) => {
         },
     });
 
-    console.log("🚀 ~ createCreator ~ notificationData:", notificationData);
     await sendNotification(notificationData);
 
     const newUser = await createADocument(Creator, {
@@ -344,7 +344,7 @@ const applyForOrder = asyncHandler(async (req, res) => {
 
     isValidId(orderId);
 
-    const order = await findById(Orders, orderId);
+    const order = await Orders.findById(orderId);
 
     if (!order) {
         throw new ApiError(404, "Order not found");

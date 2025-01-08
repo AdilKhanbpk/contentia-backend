@@ -15,6 +15,7 @@ import User from "../../models/user.model.js";
 import Notification from "../../models/admin/adminNotification.model.js";
 import { connectedSocket } from "../../socket/socket.js";
 import { io } from "../../app.js";
+import { notificationTemplates } from "../../helpers/notificationTemplates.js";
 
 const sendNotification = async ({
     userType,
@@ -106,18 +107,19 @@ const createNotification = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Invalid user type provided");
     }
 
-    const createdNotification = await sendNotification({
-        userType,
+    const notificationData = notificationTemplates.generalNotification({
         title,
         details,
+        userType,
         users: userIds,
-        eventType: "general",
         metadata: {
             message: "This is a general notification",
             author: req.user.fullName,
             author_role: req.user.role,
         },
     });
+
+    const createdNotification = await sendNotification(notificationData);
 
     if (!createdNotification) {
         throw new ApiError(500, "Failed to create notification");
