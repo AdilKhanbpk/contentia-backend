@@ -239,7 +239,7 @@ const createCreator = asyncHandler(async (req, res) => {
         creatorPhoneNumber: phoneNumber,
         targetUsers: allAdminIds.map((admin) => admin._id),
         metadata: {
-            creatorId: creator._id,
+            creatorId: newUser._id,
             creatorAddress: addressDetails,
         },
     });
