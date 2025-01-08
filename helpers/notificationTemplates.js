@@ -1,4 +1,21 @@
 export const notificationTemplates = {
+    generalNotification: ({
+        title,
+        details,
+        userType = "all",
+        eventType = "general",
+        targetUsers = [],
+        metadata = {},
+    }) => {
+        return {
+            title,
+            details: `This is a general notification from admin ${req.user.fullName} with the following details: ${details}`,
+            userType,
+            eventType,
+            users: targetUsers,
+            metadata,
+        };
+    },
     creatorRegistration: ({
         creatorName,
         creatorEmail,
@@ -45,6 +62,23 @@ export const notificationTemplates = {
             details: `The following creator has been approved for an order:\nName: ${creatorName}\nEmail: ${creatorEmail}\nPhone Number: ${creatorPhoneNumber}`,
             userType: "creator",
             eventType: "creator",
+            users: targetUsers,
+            metadata,
+        };
+    },
+
+    customerNotificationForOrderAssignedToCreator: ({
+        creatorName,
+        creatorEmail,
+        creatorPhoneNumber,
+        targetUsers = [],
+        metadata = {},
+    }) => {
+        return {
+            title: "Order Assigned Notification",
+            details: `The following creator has been assigned to your order:\nName: ${creatorName}\nEmail: ${creatorEmail}\nPhone Number: ${creatorPhoneNumber}`,
+            userType: "customer",
+            eventType: "customer",
             users: targetUsers,
             metadata,
         };

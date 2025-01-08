@@ -227,7 +227,6 @@ const createCreator = asyncHandler(async (req, res) => {
         },
     });
 
-    console.log("🚀 ~ createCreator ~ notificationData:", notificationData);
     await sendNotification(notificationData);
 
     const newUser = await createADocument(Creator, {

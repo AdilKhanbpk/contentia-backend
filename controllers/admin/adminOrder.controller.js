@@ -243,36 +243,32 @@ const approveCreatorOnOrder = asyncHandler(async (req, res) => {
         throw new ApiError(500, "Failed to update order");
     }
 
-    const notifications = [
-        {
-            userType: "creator",
-            eventType: "order",
-            title: "Order Approved",
-            details: `Your request for order ${orderId} has been approved.`,
-            users: [creatorId],
+    const creatorNotification =
+        notificationTemplates.creatorApprovalForOrderByAdmin({
+            creatorName: creator.fullName,
+            creatorEmail: creator.email,
+            creatorPhoneNumber: creator.phoneNumber,
+            targetUsers: [creator._id],
             metadata: {
                 message: "This is an order approval notification",
-                author: req.user.fullName,
-                author_role: req.user.role,
             },
-        },
-        {
-            userType: "customer",
-            eventType: "order",
-            title: "Order Assigned",
-            details: `Your order ${orderId} has been assigned to a creator.`,
-            users: [order.orderOwner],
-            metadata: {
-                message: "This is an order assignment notification",
-                author: req.user.fullName,
-                author_role: req.user.role,
-            },
-        },
-    ];
+        });
 
-    await Promise.all(
-        notifications.map((notification) => sendNotification(notification))
-    );
+    const customerNotification =
+        notificationTemplates.customerNotificationForOrderAssignedToCreator({
+            creatorName: creator.fullName,
+            creatorEmail: creator.email,
+            creatorPhoneNumber: creator.phoneNumber,
+            targetUsers: [order.orderOwner],
+            metadata: {
+                message: "This is an order approval notification",
+            },
+        });
+
+    await Promise.all([
+        sendNotification(creatorNotification),
+        sendNotification(customerNotification),
+    ]);
 
     return res
         .status(200)
@@ -316,21 +312,17 @@ const rejectCreatorOnOrder = asyncHandler(async (req, res) => {
         numberOfRequests: order.numberOfRequests,
     });
 
-    // Send notification for rejection
-    const notification = {
-        userType: "creator",
-        eventType: "orderRejection",
-        title: "Order Rejected",
-        details: `Your request for order ${orderId} has been rejected.`,
-        users: [creatorId],
+    const notificationData = notificationTemplates.creatorRejectionForOrder({
+        creatorName: creator.fullName,
+        creatorEmail: creator.email,
+        creatorPhoneNumber: creator.phoneNumber,
+        targetUsers: [creator._id],
         metadata: {
             message: "This is an order rejection notification",
-            author: req.user.fullName,
-            author_role: req.user.role,
         },
-    };
+    });
 
-    await sendNotification(notification);
+    await sendNotification(notificationData);
 
     return res
         .status(200)
