@@ -216,19 +216,6 @@ const createCreator = asyncHandler(async (req, res) => {
 
     const allAdminIds = await User.find({ role: "admin" }).select("_id");
 
-    const notificationData = notificationTemplates.creatorRegistration({
-        creatorName: fullName,
-        creatorEmail: email,
-        creatorPhoneNumber: phoneNumber,
-        targetUsers: allAdminIds.map((admin) => admin._id),
-        metadata: {
-            creatorId: creator._id,
-            creatorAddress: addressDetails,
-        },
-    });
-
-    await sendNotification(notificationData);
-
     const newUser = await createADocument(Creator, {
         fullName,
         password,
@@ -245,6 +232,19 @@ const createCreator = asyncHandler(async (req, res) => {
         preferences,
         ...rest,
     });
+
+    const notificationData = notificationTemplates.creatorRegistration({
+        creatorName: fullName,
+        creatorEmail: email,
+        creatorPhoneNumber: phoneNumber,
+        targetUsers: allAdminIds.map((admin) => admin._id),
+        metadata: {
+            creatorId: creator._id,
+            creatorAddress: addressDetails,
+        },
+    });
+
+    await sendNotification(notificationData);
 
     return res.status(201).json({
         status: 201,
