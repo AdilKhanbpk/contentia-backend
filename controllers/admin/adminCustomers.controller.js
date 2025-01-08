@@ -1,4 +1,3 @@
-import { notificationTemplates } from "../../helpers/notificationTemplates.js";
 import User from "../../models/user.model.js";
 import ApiError from "../../utils/ApiError.js";
 import ApiResponse from "../../utils/ApiResponse.js";
@@ -11,7 +10,6 @@ import {
     findById,
     updateById,
 } from "../../utils/dbHelpers.js";
-import { sendNotification } from "./adminNotification.controller.js";
 
 const createCustomer = asyncHandler(async (req, res) => {
     const {
@@ -80,19 +78,6 @@ const createCustomer = asyncHandler(async (req, res) => {
             "Invoice type must be 'individual' or 'institutional'"
         );
     }
-
-    const allAdminIds = await User.find({ role: "admin" }).select("_id");
-
-    const notificationData = notificationTemplates.customerRegistration({
-        customerName: fullName,
-        customerEmail: email,
-        customerPhoneNumber: phoneNumber,
-        targetUsers: allAdminIds.map((admin) => admin._id),
-        metadata: {
-            status: "New customer registered",
-        },
-    });
-    await sendNotification(notificationData);
 
     const newUser = await createADocument(User, {
         fullName,

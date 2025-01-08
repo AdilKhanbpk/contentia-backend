@@ -13,6 +13,7 @@ import {
 import Claims from "../../models/admin/adminClaims.model.js";
 import Order from "../../models/orders.model.js";
 import User from "../../models/user.model.js";
+import { notificationTemplates } from "../../helpers/notificationTemplates.js";
 
 const createClaim = asyncHandler(async (req, res) => {
     const { claimContent, customerId, orderId, claimDate } = req.body;
@@ -25,7 +26,9 @@ const createClaim = asyncHandler(async (req, res) => {
     isValidId(orderId);
 
     const checkCustomer = await User.findById(customerId);
-    const checkOrder = await Order.findById(orderId);
+    const checkOrder = await Order.findById(orderId).populate(
+        "assignedCreators"
+    );
 
     if (!checkCustomer) {
         throw new ApiError(404, "Customer not found");
@@ -42,9 +45,29 @@ const createClaim = asyncHandler(async (req, res) => {
         order: checkOrder._id,
     });
 
-    return res
-        .status(201)
-        .json(new ApiResponse(201, createdClaim, "Claim created successfully"));
+    if (
+        Array.isArray(checkOrder.assignedCreators) &&
+        checkOrder.assignedCreators.length > 0
+    ) {
+        checkOrder.assignedCreators.forEach((creator) => {
+            const notificationData =
+                notificationTemplates.reportAnOrderFromAdmin({
+                    creatorName: creator.fullName,
+                    creatorEmail: creator.email,
+                    creatorPhoneNumber: creator.phoneNumber,
+                    targetUsers: [checkCustomer._id],
+                    metadata: {
+                        orderId: checkOrder._id,
+                        customerId: checkCustomer._id,
+                    },
+                });
+            sendNotification(notificationData);
+        });
+    }
+
+    res.status(201).json(
+        new ApiResponse(201, createdClaim, "Claim created successfully")
+    );
 });
 
 const getClaims = asyncHandler(async (req, res) => {
