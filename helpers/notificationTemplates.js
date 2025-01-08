@@ -197,6 +197,22 @@ export const notificationTemplates = {
             metadata,
         };
     },
+    reportAnOrderFromAdmin: ({
+        creatorName,
+        creatorEmail,
+        creatorPhoneNumber,
+        targetUsers = [],
+        metadata = {},
+    }) => {
+        return {
+            title: "Order Issue Reported by Admin",
+            details: `An admin has reported an issue with an order. Details:\nName: ${creatorName}\nEmail: ${creatorEmail}\nPhone Number: ${creatorPhoneNumber}`,
+            userType: "creator",
+            eventType: "creator",
+            users: targetUsers,
+            metadata,
+        };
+    },
 
     packageCreationByAdmin: ({
         customerName,

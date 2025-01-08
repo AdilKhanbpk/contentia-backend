@@ -75,7 +75,9 @@ const createCreator = asyncHandler(async (req, res) => {
         creatorEmail: newUser.email,
         creatorPhoneNumber: newUser.phoneNumber,
         targetUsers: [newUser._id],
-        metadata: {},
+        metadata: {
+            user: newUser,
+        },
     });
     await sendNotification(notificationData);
 
