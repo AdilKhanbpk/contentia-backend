@@ -63,10 +63,10 @@ const createOrder = asyncHandler(async (req, res) => {
 
     if (
         !additionalServices ||
-        !additionalServices.platform ||
-        !additionalServices.duration ||
-        !additionalServices.edit ||
-        !additionalServices.aspectRatio
+        !("platform" in additionalServices) ||
+        !("duration" in additionalServices) ||
+        !("edit" in additionalServices) ||
+        !("aspectRatio" in additionalServices)
     ) {
         throw new ApiError(400, "Please provide all additional services");
     }
@@ -250,7 +250,7 @@ const approveCreatorOnOrder = asyncHandler(async (req, res) => {
             creatorPhoneNumber: creator.phoneNumber,
             targetUsers: [creator._id],
             metadata: {
-                message: "This is an order approval notification",
+                message: "You have been approved for the order",
             },
         });
 
@@ -261,7 +261,7 @@ const approveCreatorOnOrder = asyncHandler(async (req, res) => {
             creatorPhoneNumber: creator.phoneNumber,
             targetUsers: [order.orderOwner],
             metadata: {
-                message: "This is an order approval notification",
+                message: "A creator has been assigned to your order",
             },
         });
 
@@ -284,13 +284,11 @@ const rejectCreatorOnOrder = asyncHandler(async (req, res) => {
     isValidId(creatorId);
 
     const creator = await Creator.findById(creatorId);
-
     if (!creator) {
         throw new ApiError(404, "Creator not found");
     }
 
-    const order = await findById(Order, orderId);
-
+    const order = await Order.findById(orderId);
     if (!order) {
         throw new ApiError(404, "Order not found");
     }
@@ -299,15 +297,18 @@ const rejectCreatorOnOrder = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Creator is not applied to this order");
     }
 
-    order.rejectedCreators.push(creatorId);
-
-    order.appliedCreators = order.appliedCreators.filter(
-        (id) => !id.equals(creatorId)
+    const updatedOrder = await Order.findByIdAndUpdate(
+        orderId,
+        {
+            $addToSet: { rejectedCreators: creatorId },
+            $pull: { appliedCreators: creatorId },
+        },
+        { new: true }
     );
 
-    order.numberOfRequests = order.assignedCreators.length;
-
-    const updatedOrder = await order.save();
+    if (!updatedOrder) {
+        throw new ApiError(500, "Failed to update order");
+    }
 
     const notificationData = notificationTemplates.creatorRejectionForOrder({
         creatorName: creator.fullName,
@@ -315,7 +316,7 @@ const rejectCreatorOnOrder = asyncHandler(async (req, res) => {
         creatorPhoneNumber: creator.phoneNumber,
         targetUsers: [creator._id],
         metadata: {
-            message: "This is an order rejection notification",
+            message: "You have been rejected for the order",
         },
     });
 
