@@ -108,6 +108,7 @@ const createNotification = asyncHandler(async (req, res) => {
     }
 
     const notificationData = notificationTemplates.generalNotification({
+        adminName: req.user.fullName,
         title,
         details,
         userType,

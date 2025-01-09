@@ -1,5 +1,6 @@
 export const notificationTemplates = {
     generalNotification: ({
+        adminName,
         title,
         details,
         userType = "all",
@@ -9,7 +10,7 @@ export const notificationTemplates = {
     }) => {
         return {
             title,
-            details: `This is a general notification from admin ${req.user.fullName} with the following details: ${details}`,
+            details: `This is a general notification from admin ${adminName} with the following details: ${details}`,
             userType,
             eventType,
             users: targetUsers,
