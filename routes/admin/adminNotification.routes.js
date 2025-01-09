@@ -7,6 +7,7 @@ import {
 import {
     createNotification,
     deleteNotification,
+    getMyNotifications,
     getNotificationById,
     getNotifications,
     updateNotification,
@@ -15,6 +16,7 @@ import {
 const router = express.Router();
 
 router.get("", isAuthenticated, getNotifications);
+router.get("/my-notifications", isAuthenticated, getMyNotifications);
 router.post("/", isAuthenticated, isAdmin, createNotification);
 router.patch("/:notificationId", isAuthenticated, isAdmin, updateNotification);
 router.delete("/:notificationId", isAuthenticated, isAdmin, deleteNotification);
