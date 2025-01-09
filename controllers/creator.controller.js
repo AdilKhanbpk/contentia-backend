@@ -351,26 +351,35 @@ const applyForOrder = asyncHandler(async (req, res) => {
     }
 
     if (order.orderStatus !== "pending") {
-        throw new ApiError(
-            400,
-            "Order is assigned to someone or is not pending"
-        );
+        throw new ApiError(400, "Order is not in a pending state");
     }
 
-    const creator = await findById(Creator, req.user._id);
+    const creator = await Creator.findById(req.user._id);
 
     if (!creator) {
         throw new ApiError(404, "Creator not found");
     }
 
-    const allAdminIds = await User.find({ role: "admin" }).select("_id");
+    const isAlreadyApplied = order.appliedCreators.includes(creator._id);
+    const isAlreadyAssigned = order.assignedCreators.includes(creator._id);
+    const isAlreadyRejected = order.rejectedCreators.includes(creator._id);
 
-    const alreadyApplied = order.appliedCreators.includes(creator._id);
-
-    if (alreadyApplied) {
+    if (isAlreadyApplied) {
         throw new ApiError(400, "You have already applied for this order");
     }
 
+    if (isAlreadyAssigned) {
+        throw new ApiError(400, "You have already been assigned to this order");
+    }
+
+    if (isAlreadyRejected) {
+        throw new ApiError(
+            400,
+            "You have already been rejected for this order"
+        );
+    }
+
+    const allAdminIds = await User.find({ role: "admin" }).select("_id");
     const notificationData = notificationTemplates.creatorApplyForOrder({
         creatorName: creator.fullName,
         creatorEmail: creator.email,
