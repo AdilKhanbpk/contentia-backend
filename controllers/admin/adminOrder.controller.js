@@ -295,22 +295,19 @@ const rejectCreatorOnOrder = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Order not found");
     }
 
-    if (order.orderStatus !== "pending") {
-        throw new ApiError(400, "Order is not pending");
+    if (!order.appliedCreators.includes(creatorId)) {
+        throw new ApiError(400, "Creator is not applied to this order");
     }
 
     order.rejectedCreators.push(creatorId);
 
-    order.assignedCreators = order.assignedCreators.filter(
-        (id) => id.toString() !== creator._id.toString()
+    order.appliedCreators = order.appliedCreators.filter(
+        (id) => !id.equals(creatorId)
     );
 
     order.numberOfRequests = order.assignedCreators.length;
 
-    const updatedOrder = await updateById(Order, orderId, {
-        assignedCreators: order.assignedCreators,
-        numberOfRequests: order.numberOfRequests,
-    });
+    const updatedOrder = await order.save();
 
     const notificationData = notificationTemplates.creatorRejectionForOrder({
         creatorName: creator.fullName,
