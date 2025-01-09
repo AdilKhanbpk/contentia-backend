@@ -175,6 +175,21 @@ const getNotificationById = asyncHandler(async (req, res) => {
         );
 });
 
+const getMyNotifications = asyncHandler(async (req, res) => {
+    const userId = req.user._id;
+    const notifications = await Notification.find({ users: userId });
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                notifications,
+                "Notifications retrieved successfully"
+            )
+        );
+});
+
 const updateNotification = asyncHandler(async (req, res) => {
     const { notificationId } = req.params;
     const { title, details } = req.body;
@@ -222,4 +237,5 @@ export {
     getNotificationById,
     updateNotification,
     deleteNotification,
+    getMyNotifications,
 };
