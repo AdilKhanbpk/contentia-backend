@@ -292,19 +292,21 @@ const uploadFilesToFolder = async (folderId, filePaths) => {
  * @throws {ApiError} Throws an ApiError if there is an error while searching
  * for the folder.
  */
-const getFolderIdByName = async (folderName) => {
-    try {
-        const response = await drive.files.list({
-            q: `name='${folderName}' and mimeType='application/vnd.google-apps.folder' and '${process.env.GOOGLE_DRIVE_FOLDER_ID}' in parents`,
-            fields: "files(id, name)",
-            spaces: "drive",
-        });
+async function getFolderIdByName(
+    folderName,
+    parentFolderId = process.env.GOOGLE_DRIVE_FOLDER_ID
+) {
+    const query = `'${parentFolderId}' in parents and name = '${folderName}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false`;
+    const response = await drive.files.list({
+        q: query,
+        fields: "files(id, name)",
+    });
 
-        return response.data.files[0]?.id || null;
-    } catch (error) {
-        throw new ApiError(500, `Folder search error: ${error.message}`);
+    if (response.data.files.length > 0) {
+        return response.data.files[0].id; // Return the first matching folder
     }
-};
+    return null; // Folder not found
+}
 
 /**
  * Retrieves an array of file objects from a Google Drive folder, with the

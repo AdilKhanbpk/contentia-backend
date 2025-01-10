@@ -35,7 +35,7 @@ const createHelpSupport = asyncHandler(async (req, res) => {
         title,
         category,
         content,
-        icon: uploadedImage?.url,
+        icon: uploadedImage?.secure_url,
     });
 
     return res
@@ -129,7 +129,7 @@ const updateHelpSupportIcon = asyncHandler(async (req, res) => {
         HelpSupportModel,
         helpSupportId,
         {
-            icon: uploadedImage?.url,
+            icon: uploadedImage?.secure_url,
         }
     );
 
