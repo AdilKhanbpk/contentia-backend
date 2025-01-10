@@ -60,7 +60,7 @@ const createCreator = asyncHandler(async (req, res) => {
         fullName,
         identityNo,
         password,
-        email,
+        email: email.trim().toLowerCase(),
         dateOfBirth,
         gender,
         phoneNumber,

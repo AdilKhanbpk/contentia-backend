@@ -220,7 +220,7 @@ const createCreator = asyncHandler(async (req, res) => {
         fullName,
         password,
         tckn,
-        email,
+        email: email.trim().toLowerCase(),
         dateOfBirth,
         phoneNumber,
         userAgreement,
@@ -511,9 +511,6 @@ const uploadContentToOrder = asyncHandler(async (req, res) => {
     const order = await Order.findById(orderId);
     if (!order) {
         throw new ApiError(404, "Order not found");
-    }
-    if (order.orderStatus !== "pending") {
-        throw new ApiError(400, "Order is not pending");
     }
 
     const creator = await Creator.findById(creatorId);

@@ -126,7 +126,7 @@ const changeBrandPic = asyncHandler(async (req, res) => {
 
     await brand.updateOne({
         $set: {
-            brandImage: uploadedFile?.url,
+            brandImage: uploadedFile?.secure_url,
         },
     });
 
