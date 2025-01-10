@@ -91,11 +91,15 @@ const createNotification = asyncHandler(async (req, res) => {
         }
     };
 
-    if (userType === "creator" || userType === "customer") {
-        const model = userType === "creator" ? Creator : User;
+    if (userType === "some-creators" || userType === "some-customers") {
+        const model = userType === "some-creators" ? Creator : User;
         const usersFromDB = await model.find({ _id: { $in: users } });
         checkMissingIds(users, usersFromDB, userType);
         userIds = usersFromDB.map((user) => user._id);
+    } else if (userType === "all-creators" || userType === "all-customers") {
+        const model = userType === "all-creators" ? Creator : User;
+        const allUsers = await model.find();
+        userIds = allUsers.map((user) => user._id);
     } else if (userType === "all") {
         const creators = await Creator.find();
         const customers = await User.find();

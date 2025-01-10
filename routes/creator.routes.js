@@ -33,7 +33,12 @@ router.get(
 
 router.post("/create", createCreator);
 router.post("/login", loginCreator);
-router.post("/upload-content-to-order", isAuthenticated, uploadContentToOrder);
+router.post(
+    "/upload-content-to-order/:orderId",
+    isAuthenticated,
+    uploadOnMulter.array("uploadFiles"),
+    uploadContentToOrder
+);
 router.post(
     "/:creatorId/add-order-to-favorites",
     isAuthenticated,

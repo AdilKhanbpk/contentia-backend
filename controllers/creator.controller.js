@@ -508,7 +508,7 @@ const uploadContentToOrder = asyncHandler(async (req, res) => {
     isValidId(orderId);
     isValidId(creatorId);
 
-    const order = await findById(Orders, orderId);
+    const order = await Order.findById(orderId);
     if (!order) {
         throw new ApiError(404, "Order not found");
     }
@@ -516,7 +516,7 @@ const uploadContentToOrder = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Order is not pending");
     }
 
-    const creator = await findById(Creator, creatorId);
+    const creator = await Creator.findById(creatorId);
     if (!creator) {
         throw new ApiError(404, "Creator not found");
     }
@@ -524,39 +524,10 @@ const uploadContentToOrder = asyncHandler(async (req, res) => {
     if (!req.files || req.files.length === 0) {
         throw new ApiError(400, "No files uploaded");
     }
+
     const filesPath = req.files.map((file) => file.path);
 
-    // UPLOAD TO CLOUDINARY LOGIC
-
-    // let uploadedFiles;
-    // try {
-    //   uploadedFiles = await uploadMultipleFilesToCloudinary(filesPath, {
-    //     folder: `${creatorId}-${orderId}`,
-    //     resource_type: "file",
-    //   });
-    // } catch (error) {
-    //   throw new ApiError(500, "Failed to upload files");
-    // }
-
-    // if (!uploadedFiles || uploadedFiles.length === 0) {
-    //   throw new ApiError(500, "Failed to upload files");
-    // }
-
-    // const content = uploadedFiles.map((file) => ({
-    //   url: file.url,
-    //   publicId: file.public_id,
-    // }));
-
-    // order.uploadFiles = {
-    //   uploadedBy: creator._id,
-    //   fileUrls: content,
-    //   uploadedDate: Date.now(),
-    // };
-
-    // await order.save();
-
     // UPLOAD TO GOOGLE DRIVE LOGIC
-
     try {
         // Check or create order folder
         let orderFolderId = await getFolderIdByName(orderId);
@@ -565,7 +536,7 @@ const uploadContentToOrder = asyncHandler(async (req, res) => {
         }
 
         // Check or create creator folder within the order folder
-        let creatorFolderId = await getFolderIdByName(creatorId);
+        let creatorFolderId = await getFolderIdByName(creatorId, orderFolderId); // Pass the parent folder ID
         if (!creatorFolderId) {
             creatorFolderId = await createFolder(creatorId, orderFolderId);
         }
@@ -583,12 +554,25 @@ const uploadContentToOrder = asyncHandler(async (req, res) => {
             throw new ApiError(500, "Failed to upload files to Google Drive");
         }
 
+        const fileUrlsFromGoogleDrive = uploadedFilesToGoogleDrive.map(
+            (file) =>
+                `https://drive.google.com/uc?id=${file.id}&export=download`
+        );
+
+        console.log(fileUrlsFromGoogleDrive);
+
+        order.uploadFiles.push({
+            uploadedBy: creatorId,
+            fileUrls: fileUrlsFromGoogleDrive,
+            uploadedDate: new Date(),
+        });
+        await order.save();
+
         return res.status(200).json(
             new ApiResponse(
                 200,
                 {
                     order,
-                    uploadedFiles: uploadedFilesToGoogleDrive,
                 },
                 "Content uploaded successfully to Google Drive"
             )

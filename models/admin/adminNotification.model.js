@@ -4,7 +4,13 @@ const notificationSchema = new mongoose.Schema(
     {
         userType: {
             type: String,
-            enum: ["all", "creator", "customer"],
+            enum: [
+                "all",
+                "creator",
+                "customer",
+                "some-customers",
+                "some-creators",
+            ],
             required: true,
         },
         users: {
