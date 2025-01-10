@@ -512,9 +512,6 @@ const uploadContentToOrder = asyncHandler(async (req, res) => {
     if (!order) {
         throw new ApiError(404, "Order not found");
     }
-    if (order.orderStatus !== "pending") {
-        throw new ApiError(400, "Order is not pending");
-    }
 
     const creator = await Creator.findById(creatorId);
     if (!creator) {
