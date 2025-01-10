@@ -220,7 +220,7 @@ const createCreator = asyncHandler(async (req, res) => {
         fullName,
         password,
         tckn,
-        email,
+        email: email.trim().toLowerCase(),
         dateOfBirth,
         phoneNumber,
         userAgreement,
