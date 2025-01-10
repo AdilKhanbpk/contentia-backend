@@ -25,31 +25,71 @@ const sendNotification = async ({
     eventType,
     metadata,
 }) => {
+    console.log("🚀 ~ userType:", userType);
     console.log("🚀 ~ users:", users);
 
     try {
-        const userRefPath =
-            userType === "creator"
-                ? "Creator"
-                : userType === "customer"
-                ? "User"
-                : null;
+        let userIds = [];
+        const getModel = (type) =>
+            type === "creator" || type === "some-creators" ? Creator : User;
 
-        if (!userRefPath && userType !== "all") {
-            throw new ApiError(400, "Invalid user type provided");
+        if (userType === "some-creators" || userType === "some-customers") {
+            const model = getModel(userType);
+            const usersFromDB = await model.find({ _id: { $in: users } });
+
+            const foundIds = usersFromDB.map((user) => user._id.toString());
+            const missingIds = users.filter((id) => !foundIds.includes(id));
+
+            if (missingIds.length > 0) {
+                throw new ApiError(
+                    404,
+                    `The following ${userType} IDs were not found: ${missingIds.join(
+                        ", "
+                    )}`
+                );
+            }
+
+            userIds = foundIds;
+        } else if (userType === "all") {
+            const creators = await Creator.find();
+            const customers = await User.find();
+            userIds = [
+                ...creators.map((creator) => creator._id.toString()),
+                ...customers.map((customer) => customer._id.toString()),
+            ];
+        } else {
+            const userRefPath =
+                userType === "creator"
+                    ? "Creator"
+                    : userType === "customer"
+                    ? "User"
+                    : null;
+
+            if (!userRefPath) {
+                throw new ApiError(400, "Invalid user type provided");
+            }
+
+            const model = userRefPath === "Creator" ? Creator : User;
+            const usersFromDB = await model.find({ _id: { $in: users } });
+            userIds = usersFromDB.map((user) => user._id.toString());
         }
 
         const notification = await Notification.create({
             userType,
             title,
             details,
-            users,
+            users: userIds,
             eventType,
             metadata,
-            userRefPath: userType === "all" ? null : userRefPath,
+            userRefPath:
+                userType === "all" || userType.startsWith("some-")
+                    ? null
+                    : userType === "creator"
+                    ? "Creator"
+                    : "User",
         });
 
-        users.forEach((userId) => {
+        userIds.forEach((userId) => {
             const socketId = connectedSocket.get(userId.toString());
             console.log("Sending Notification to  Socket ID:", socketId);
             if (socketId) {
@@ -64,13 +104,15 @@ const sendNotification = async ({
     } catch (error) {
         throw new ApiError(
             500,
-            `Failed to send notification : ${error.message}`
+            `Failed to send notification: ${error.message}`
         );
     }
 };
 
 const createNotification = asyncHandler(async (req, res) => {
     const { userType, title, details, users } = req.body;
+    console.log("🚀 ~ createNotification ~ users:", users);
+    console.log("🚀 ~ createNotification ~ userType:", userType);
     if (!userType || !title || !details) {
         throw new ApiError(400, "Please provide all the required fields");
     }
@@ -96,8 +138,8 @@ const createNotification = asyncHandler(async (req, res) => {
         const usersFromDB = await model.find({ _id: { $in: users } });
         checkMissingIds(users, usersFromDB, userType);
         userIds = usersFromDB.map((user) => user._id);
-    } else if (userType === "all-creators" || userType === "all-customers") {
-        const model = userType === "all-creators" ? Creator : User;
+    } else if (userType === "creator" || userType === "customer") {
+        const model = userType === "creator" ? Creator : User;
         const allUsers = await model.find();
         userIds = allUsers.map((user) => user._id);
     } else if (userType === "all") {
@@ -111,11 +153,12 @@ const createNotification = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Invalid user type provided");
     }
 
+    console.log(`USERTYPE: ${userType}, USERIDS: ${userIds}`);
     const notificationData = notificationTemplates.generalNotification({
         adminName: req.user.fullName,
         title,
         details,
-        userType,
+        userType: userType,
         users: userIds,
         metadata: {
             message: "This is a general notification",

@@ -37,7 +37,7 @@ const createBanner = asyncHandler(async (req, res) => {
 
     const createdBanner = await createADocument(BannerModel, {
         bannerUrl,
-        bannerImage: uploadBanner?.url,
+        bannerImage: uploadBanner?.secure_url,
     });
 
     return res
