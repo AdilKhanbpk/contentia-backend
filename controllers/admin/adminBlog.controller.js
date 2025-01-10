@@ -44,7 +44,7 @@ const createBlog = asyncHandler(async (req, res) => {
         metaKeywords,
         metaDescription,
         content,
-        bannerImage: uploadImage?.url,
+        bannerImage: uploadImage?.secure_url,
     });
 
     return res

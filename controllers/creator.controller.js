@@ -486,7 +486,7 @@ const changeProfilePicture = asyncHandler(async (req, res) => {
         throw new ApiError(500, "Failed to upload profile picture");
     }
 
-    creator.profilePic = uploadedImage?.url;
+    creator.profilePic = uploadedImage?.secure_url;
 
     await creator.save();
 

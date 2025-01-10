@@ -134,7 +134,7 @@ export const changeProfilePic = asyncHandler(async (req, res) => {
 
     await user.updateOne({
         $set: {
-            profilePic: uploadedFile?.url,
+            profilePic: uploadedFile?.secure_url,
         },
     });
 
