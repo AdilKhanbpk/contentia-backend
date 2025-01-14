@@ -272,11 +272,16 @@ const uploadFilesToFolder = async (folderId, filePaths) => {
                 fields: "id, name, mimeType",
             });
 
+            fs.unlinkSync(filePath);
+
             return file.data;
         });
 
         return await Promise.all(uploadPromises);
     } catch (error) {
+        filePaths.forEach((filePath) => {
+            fs.unlinkSync(filePath);
+        });
         throw new ApiError(500, `File upload error: ${error.message}`);
     }
 };
