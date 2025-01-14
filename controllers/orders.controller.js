@@ -114,12 +114,21 @@ const getMyOrders = asyncHandler(async (req, res) => {
 });
 
 const getOrders = asyncHandler(async (req, res) => {
-    const orders = await Orders.find()
+    const creatorId = req.user._id;
+    const orders = await Orders.find({
+        appliedCreators: { $nin: [creatorId] },
+        assignedCreators: { $nin: [creatorId] },
+        rejectedCreators: { $nin: [creatorId] },
+    })
         .populate({
             path: "orderOwner",
             select: "-password",
         })
-        .populate({ path: "associatedBrands", select: "-associatedOrders" });
+        .populate({
+            path: "associatedBrands",
+            select: "-associatedOrders",
+        });
+
     return res
         .status(200)
         .json(new ApiResponse(200, orders, "Orders retrieved successfully"));
