@@ -579,6 +579,31 @@ const uploadContentToOrder = asyncHandler(async (req, res) => {
     }
 });
 
+const completeTheOrder = asyncHandler(async (req, res) => {
+    const { orderId } = req.params;
+    const creatorId = req.user._id;
+
+    isValidId(orderId);
+    isValidId(creatorId);
+
+    const order = await Order.findById(orderId);
+    if (!order) {
+        throw new ApiError(404, "Order not found");
+    }
+
+    const creator = await Creator.findById(creatorId);
+    if (!creator) {
+        throw new ApiError(404, "Creator not found");
+    }
+
+    order.orderStatus = "completed";
+    await order.save();
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, order, "Order completed successfully"));
+});
+
 const getNotifications = asyncHandler(async (req, res) => {
     const creatorId = req.user._id;
 
@@ -694,6 +719,7 @@ export {
     myAssignedOrders,
     myRejectedOrders,
     uploadContentToOrder,
+    completeTheOrder,
     getAllAppliedOrders,
     removeOrderFromFavorites,
     getMyOrderFolderToUploadContent,

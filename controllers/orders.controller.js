@@ -10,7 +10,7 @@ import { sendNotification } from "./admin/adminNotification.controller.js";
 import User from "../models/user.model.js";
 import { notificationTemplates } from "../helpers/notificationTemplates.js";
 
-const createOrder = asyncHandler(async (req, res, next) => {
+const createOrder = asyncHandler(async (req, res) => {
     const {
         noOfUgc,
         totalPrice,
