@@ -222,10 +222,6 @@ const approveCreatorOnOrder = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Order not found");
     }
 
-    if (order.orderStatus !== "pending") {
-        throw new ApiError(400, "Order is not in a pending state");
-    }
-
     if (order.assignedCreators.includes(creatorId)) {
         throw new ApiError(400, "Creator is already assigned to this order");
     }
@@ -233,6 +229,7 @@ const approveCreatorOnOrder = asyncHandler(async (req, res) => {
     const updatedOrder = await Order.findByIdAndUpdate(
         orderId,
         {
+            orderStatus: "active",
             $addToSet: { assignedCreators: creatorId },
             $pull: { appliedCreators: creatorId },
         },
