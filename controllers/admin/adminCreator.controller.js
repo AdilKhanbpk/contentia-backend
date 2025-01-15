@@ -1,12 +1,6 @@
 import ApiError from "../../utils/ApiError.js";
 import ApiResponse from "../../utils/ApiResponse.js";
 import asyncHandler from "../../utils/asyncHandler.js";
-import {
-    createADocument,
-    deleteById,
-    findAll,
-    findById,
-} from "../../utils/dbHelpers.js";
 import Creator from "../../models/creator.model.js";
 import { isValidId } from "../../utils/commonHelpers.js";
 import { notificationTemplates } from "../../helpers/notificationTemplates.js";
@@ -54,9 +48,7 @@ const createCreator = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Email address is already in use.");
     }
 
-    // TODO commented for admin form submission
-
-    const newUser = await createADocument(Creator, {
+    const newUser = await Creator.create({
         fullName,
         identityNo,
         password,
@@ -79,6 +71,7 @@ const createCreator = asyncHandler(async (req, res) => {
             user: newUser,
         },
     });
+
     await sendNotification(notificationData);
 
     return res.status(201).json({
@@ -125,7 +118,7 @@ const deleteCreator = asyncHandler(async (req, res) => {
 
     isValidId(creatorId);
 
-    const creator = await deleteById(Creator, creatorId);
+    const creator = await Creator.findByIdAndDelete(creatorId);
 
     return res
         .status(200)
@@ -145,7 +138,7 @@ const getSingleCreator = asyncHandler(async (req, res) => {
 });
 
 const getAllCreators = asyncHandler(async (req, res) => {
-    const creators = await findAll(Creator);
+    const creators = await Creator.find({});
     return res
         .status(200)
         .json(new ApiResponse(200, creators, "Creators retrieved"));

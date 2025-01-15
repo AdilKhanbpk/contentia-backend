@@ -3,13 +3,6 @@ import ApiError from "../../utils/ApiError.js";
 import ApiResponse from "../../utils/ApiResponse.js";
 import asyncHandler from "../../utils/asyncHandler.js";
 import { isValidId } from "../../utils/commonHelpers.js";
-import {
-    createADocument,
-    deleteById,
-    findAll,
-    findById,
-    updateById,
-} from "../../utils/dbHelpers.js";
 import Claims from "../../models/admin/adminClaims.model.js";
 import Order from "../../models/orders.model.js";
 import User from "../../models/user.model.js";
@@ -38,11 +31,11 @@ const createClaim = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Order not found");
     }
 
-    const createdClaim = await createADocument(Claims, {
-        claimContent,
-        claimDate,
+    const createdClaim = await Claims.create({
         customer: checkCustomer._id,
         order: checkOrder._id,
+        claimContent,
+        claimDate,
     });
 
     if (
@@ -97,11 +90,15 @@ const updateClaim = asyncHandler(async (req, res) => {
 
     isValidId(claimId);
 
-    const updatedClaim = await updateById(Claims, claimId, {
-        status,
-        claimContent,
-        claimDate,
-    });
+    const updatedClaim = await Claims.findByIdAndUpdate(
+        claimId,
+        {
+            claimContent,
+            claimDate,
+            status,
+        },
+        { new: true }
+    );
 
     return res
         .status(200)
@@ -113,7 +110,7 @@ const deleteClaim = asyncHandler(async (req, res) => {
 
     isValidId(claimId);
 
-    const deletedClaim = await deleteById(Claims, claimId);
+    const deletedClaim = await Claims.findByIdAndDelete(claimId);
 
     return res
         .status(200)

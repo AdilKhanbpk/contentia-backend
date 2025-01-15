@@ -5,13 +5,6 @@ import ApiError from "../../utils/ApiError.js";
 import ApiResponse from "../../utils/ApiResponse.js";
 import asyncHandler from "../../utils/asyncHandler.js";
 import { isValidId } from "../../utils/commonHelpers.js";
-import {
-    createADocument,
-    findAll,
-    updateById,
-    findById,
-    deleteById,
-} from "../../utils/dbHelpers.js";
 import sendEmail from "../../utils/email.js";
 
 const fetchUsersByType = async (users, userType) => {
@@ -71,7 +64,7 @@ const createEmailNotification = asyncHandler(async (req, res) => {
         userType
     );
 
-    const newEmailNotification = await createADocument(EmailNotification, {
+    const newEmailNotification = await EmailNotification.create({
         userType,
         emailTitle,
         emailContent,
@@ -96,7 +89,7 @@ const createEmailNotification = asyncHandler(async (req, res) => {
 });
 
 const getEmailNotifications = asyncHandler(async (req, res) => {
-    const emailNotifications = await findAll(EmailNotification);
+    const emailNotifications = await EmailNotification.find({});
 
     return res
         .status(200)
@@ -113,8 +106,7 @@ const getEmailNotificationById = asyncHandler(async (req, res) => {
     const { emailNotificationId } = req.params;
     isValidId(emailNotificationId);
 
-    const emailNotification = await findById(
-        EmailNotification,
+    const emailNotification = await EmailNotification.findById(
         emailNotificationId
     );
 
@@ -144,15 +136,15 @@ const updateEmailNotification = asyncHandler(async (req, res) => {
         userType
     );
 
-    const updatedEmailNotification = await updateById(
-        EmailNotification,
+    const updatedEmailNotification = await EmailNotification.findByIdAndUpdate(
         emailNotificationId,
         {
             userType,
             emailTitle,
             emailContent,
             users: userIds,
-        }
+        },
+        { new: true }
     );
 
     await sendEmail({
@@ -176,8 +168,7 @@ const deleteEmailNotification = asyncHandler(async (req, res) => {
     const { emailNotificationId } = req.params;
     isValidId(emailNotificationId);
 
-    const deletedEmailNotification = await deleteById(
-        EmailNotification,
+    const deletedEmailNotification = await EmailNotification.findByIdAndDelete(
         emailNotificationId
     );
 

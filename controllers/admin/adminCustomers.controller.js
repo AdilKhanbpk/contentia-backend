@@ -3,13 +3,6 @@ import ApiError from "../../utils/ApiError.js";
 import ApiResponse from "../../utils/ApiResponse.js";
 import asyncHandler from "../../utils/asyncHandler.js";
 import { isValidId } from "../../utils/commonHelpers.js";
-import {
-    createADocument,
-    deleteById,
-    findAll,
-    findById,
-    updateById,
-} from "../../utils/dbHelpers.js";
 
 const createCustomer = asyncHandler(async (req, res) => {
     const {
@@ -79,7 +72,7 @@ const createCustomer = asyncHandler(async (req, res) => {
         );
     }
 
-    const newUser = await createADocument(User, {
+    const newUser = await User.create({
         fullName,
         email,
         age,
@@ -111,7 +104,7 @@ const updateCustomer = asyncHandler(async (req, res) => {
 
     isValidId(customerId);
 
-    const customer = await findById(User, customerId);
+    const customer = await User.findById(customerId);
 
     if (!customer) {
         throw new ApiError(404, "Customer not found");
@@ -153,17 +146,21 @@ const updateCustomer = asyncHandler(async (req, res) => {
         );
     }
 
-    const updatedCustomer = await updateById(User, customerId, {
-        status,
-        userType,
-        role,
-        fullName,
-        email,
-        age,
-        phoneNumber,
-        invoiceType,
-        billingInformation,
-    });
+    const updatedCustomer = await User.findByIdAndUpdate(
+        customerId,
+        {
+            status,
+            userType,
+            role,
+            fullName,
+            email: email.toLowerCase().trim(),
+            age,
+            phoneNumber,
+            invoiceType,
+            billingInformation,
+        },
+        { new: true }
+    );
 
     return res
         .status(200)
@@ -177,7 +174,7 @@ const updateCustomer = asyncHandler(async (req, res) => {
 });
 
 const getCustomers = asyncHandler(async (req, res) => {
-    const customers = await findAll(User);
+    const customers = await User.find();
 
     return res
         .status(200)
@@ -191,7 +188,7 @@ const getCustomerById = asyncHandler(async (req, res) => {
 
     isValidId(customerId);
 
-    const customer = await findById(User, customerId);
+    const customer = await User.findById(customerId);
 
     return res
         .status(200)
@@ -203,7 +200,7 @@ const deleteCustomer = asyncHandler(async (req, res) => {
 
     isValidId(customerId);
 
-    const deletedCustomer = await deleteById(User, customerId);
+    const deletedCustomer = await User.findByIdAndDelete(customerId);
 
     return res
         .status(200)

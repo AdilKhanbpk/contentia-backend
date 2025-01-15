@@ -7,13 +7,6 @@ import {
     uploadFileToCloudinary,
 } from "../utils/Cloudinary.js";
 import { isValidId } from "../utils/commonHelpers.js";
-import {
-    createADocument,
-    deleteById,
-    findAll,
-    findById,
-    updateById,
-} from "../utils/dbHelpers.js";
 
 const createBrand = asyncHandler(async (req, res) => {
     const { brandName, brandCategory, brandWebsite, brandCountry } = req.body;
@@ -22,7 +15,7 @@ const createBrand = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Please provide all the required fields");
     }
 
-    const createdBrand = await createADocument(BrandModel, {
+    const createdBrand = await BrandModel.create({
         brandOwner: req.user._id,
         brandName,
         brandCategory,
@@ -36,7 +29,7 @@ const createBrand = asyncHandler(async (req, res) => {
 });
 
 const getBrands = asyncHandler(async (req, res) => {
-    const brands = await findAll(BrandModel);
+    const brands = await BrandModel.find().sort({ createdAt: -1 });
     return res
         .status(200)
         .json(new ApiResponse(200, brands, "Brands retrieved successfully"));
@@ -47,7 +40,7 @@ const getSingleBrand = asyncHandler(async (req, res) => {
 
     isValidId(brandId);
 
-    const brand = await findById(BrandModel, brandId);
+    const brand = await BrandModel.findById(brandId);
 
     return res
         .status(200)
@@ -60,12 +53,11 @@ const updateBrand = asyncHandler(async (req, res) => {
 
     isValidId(brandId);
 
-    const updatedBrand = await updateById(BrandModel, brandId, {
-        brandName,
-        brandCategory,
-        brandWebsite,
-        brandCountry,
-    });
+    const updatedBrand = await BrandModel.findByIdAndUpdate(
+        brandId,
+        { brandName, brandCategory, brandWebsite, brandCountry },
+        { new: true }
+    );
 
     return res
         .status(200)
@@ -77,7 +69,7 @@ const deleteBrand = asyncHandler(async (req, res) => {
 
     isValidId(brandId);
 
-    const deletedBrand = await deleteById(BrandModel, brandId);
+    const deletedBrand = await BrandModel.findByIdAndDelete(brandId);
 
     return res
         .status(200)

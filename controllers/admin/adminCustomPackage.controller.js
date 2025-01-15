@@ -2,16 +2,10 @@ import Package from "../../models/admin/adminCustomPackage.model.js";
 import ApiError from "../../utils/ApiError.js";
 import ApiResponse from "../../utils/ApiResponse.js";
 import asyncHandler from "../../utils/asyncHandler.js";
-import {
-    createADocument,
-    findByQuery,
-    updateById,
-    deleteById,
-    findById,
-} from "../../utils/dbHelpers.js";
 import { isValidId } from "../../utils/commonHelpers.js";
 import { sendNotification } from "./adminNotification.controller.js";
 import { notificationTemplates } from "../../helpers/notificationTemplates.js";
+import User from "../../models/user.model.js";
 
 const createCustomPackage = asyncHandler(async (req, res) => {
     const {
@@ -26,6 +20,11 @@ const createCustomPackage = asyncHandler(async (req, res) => {
 
     isValidId(customerId);
 
+    const customer = await User.findById(customerId);
+    if (!customer) {
+        throw new ApiError(404, "Customer not found");
+    }
+
     if (
         !packageAdditionalServices ||
         !packageAdditionalServices.platform ||
@@ -36,15 +35,15 @@ const createCustomPackage = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Please provide all additional services");
     }
 
-    const createdPackage = await createADocument(Package, {
-        packageCreator: req.user._id,
-        packageCustomer: customerId,
-        noOfUgc,
+    const createdPackage = await Package.create({
         packageType,
+        noOfUgc,
         packageTotalPrice,
         packageAdditionalServices,
         packageBriefContent,
         packagePreferences,
+        packageCreator: req.user._id,
+        packageCustomer: customer._id,
     });
 
     if (!createdPackage) {
@@ -55,7 +54,7 @@ const createCustomPackage = asyncHandler(async (req, res) => {
         customerName: req.user.fullName,
         customerEmail: req.user.email,
         customerPhoneNumber: req.user.phoneNumber,
-        targetUsers: [customerId],
+        targetUsers: [customer._id],
         metadata: { packageId: createdPackage._id },
     });
     await sendNotification(notificationData);
@@ -88,7 +87,7 @@ const getAllCustomPackages = asyncHandler(async (req, res) => {
 });
 
 const getAllCustomPackagesByCustomer = asyncHandler(async (req, res) => {
-    const customerId = req.user;
+    const customerId = req.user._id;
 
     isValidId(customerId);
 
@@ -129,7 +128,13 @@ const updateCustomPackage = asyncHandler(async (req, res) => {
     const { packageId } = req.params;
     const updateData = req.body;
 
-    const updatedPackage = await updateById(Package, packageId, updateData);
+    const updatedPackage = await Package.findByIdAndUpdate(
+        packageId,
+        {
+            $set: updateData,
+        },
+        { new: true }
+    );
 
     if (!updatedPackage) {
         throw new ApiError(404, "Package not found or failed to update");
@@ -145,7 +150,7 @@ const updateCustomPackage = asyncHandler(async (req, res) => {
 const deleteCustomPackage = asyncHandler(async (req, res) => {
     const { packageId } = req.params;
 
-    const deletedPackage = await deleteById(Package, packageId);
+    const deletedPackage = await Package.findByIdAndDelete(packageId);
 
     if (!deletedPackage) {
         throw new ApiError(404, "Package not found or failed to delete");

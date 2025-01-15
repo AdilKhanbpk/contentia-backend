@@ -8,13 +8,6 @@ import {
     deleteFileFromCloudinary,
     uploadFileToCloudinary,
 } from "../../utils/Cloudinary.js";
-import {
-    createADocument,
-    deleteById,
-    findAll,
-    findById,
-    updateById,
-} from "../../utils/dbHelpers.js";
 
 const createHelpSupport = asyncHandler(async (req, res) => {
     const { title, category, content } = req.body;
@@ -31,7 +24,7 @@ const createHelpSupport = asyncHandler(async (req, res) => {
 
     const uploadedImage = await uploadFileToCloudinary(icon);
 
-    const newHelpSupport = await createADocument(HelpSupportModel, {
+    const newHelpSupport = await HelpSupportModel.create({
         title,
         category,
         content,
@@ -50,7 +43,7 @@ const createHelpSupport = asyncHandler(async (req, res) => {
 });
 
 const getHelpSupports = asyncHandler(async (req, res) => {
-    const helpSupports = await findAll(HelpSupportModel);
+    const helpSupports = await HelpSupportModel.find();
     return res
         .status(200)
         .json(
@@ -66,7 +59,7 @@ const getHelpSupportById = asyncHandler(async (req, res) => {
     const { helpSupportId } = req.params;
     isValidId(helpSupportId);
 
-    const helpSupport = await findById(HelpSupportModel, helpSupportId);
+    const helpSupport = await HelpSupportModel.findById(helpSupportId);
 
     return res
         .status(200)
@@ -85,14 +78,14 @@ const updateHelpSupport = asyncHandler(async (req, res) => {
 
     isValidId(helpSupportId);
 
-    const updatedHelpSupport = await updateById(
-        HelpSupportModel,
+    const updatedHelpSupport = await HelpSupportModel.findByIdAndUpdate(
         helpSupportId,
         {
             title,
             category,
             content,
-        }
+        },
+        { new: true }
     );
 
     return res
@@ -111,7 +104,7 @@ const updateHelpSupportIcon = asyncHandler(async (req, res) => {
 
     isValidId(helpSupportId);
 
-    const helpSupport = await findById(HelpSupportModel, helpSupportId);
+    const helpSupport = await HelpSupportModel.findById(helpSupportId);
 
     if (helpSupport.icon) {
         await deleteFileFromCloudinary(helpSupport.icon);
@@ -125,12 +118,12 @@ const updateHelpSupportIcon = asyncHandler(async (req, res) => {
 
     const uploadedImage = await uploadFileToCloudinary(icon);
 
-    const updatedHelpSupport = await updateById(
-        HelpSupportModel,
+    const updatedHelpSupport = await HelpSupportModel.findByIdAndUpdate(
         helpSupportId,
         {
             icon: uploadedImage?.secure_url,
-        }
+        },
+        { new: true }
     );
 
     return res
@@ -149,14 +142,13 @@ const deleteHelpSupport = asyncHandler(async (req, res) => {
 
     isValidId(helpSupportId);
 
-    const helpSupport = await findById(HelpSupportModel, helpSupportId);
+    const helpSupport = await HelpSupportModel.findById(helpSupportId);
 
     const iconPath = helpSupport.icon;
 
     await deleteFileFromCloudinary(iconPath);
 
-    const deletedHelpSupport = await deleteById(
-        HelpSupportModel,
+    const deletedHelpSupport = await HelpSupportModel.findByIdAndDelete(
         helpSupportId
     );
 
