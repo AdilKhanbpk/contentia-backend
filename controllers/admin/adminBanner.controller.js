@@ -90,7 +90,11 @@ const updateBanner = asyncHandler(async (req, res) => {
         );
     }
 
-    const updatedBanner = await updateById(BannerModel, bannerId, updateData);
+    const updatedBanner = await BannerModel.findByIdAndUpdate(
+        bannerId,
+        updateData,
+        { new: true }
+    );
 
     return res
         .status(200)
