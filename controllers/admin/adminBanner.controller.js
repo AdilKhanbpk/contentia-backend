@@ -52,7 +52,7 @@ const getBannerById = asyncHandler(async (req, res) => {
     const { bannerId } = req.params;
     isValidId(bannerId);
 
-    const banner = await BrandModel.findById(bannerId);
+    const banner = await BannerModel.findById(bannerId);
 
     return res
         .status(200)
