@@ -266,10 +266,13 @@ const updateCreator = asyncHandler(async (req, res) => {
             if (!emailPattern.test(value)) {
                 throw new ApiError(400, "Invalid email format.");
             }
+
+            const trimmedEmail = value.trim().toLowerCase();
             const emailExists = await Creator.findOne({
-                email: value,
+                email: trimmedEmail,
                 _id: { $ne: creatorId },
             });
+
             if (emailExists) {
                 throw new ApiError(400, "Email already exists.");
             } else {
