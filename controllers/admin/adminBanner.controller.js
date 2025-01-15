@@ -80,7 +80,7 @@ const updateBanner = asyncHandler(async (req, res) => {
         }
 
         const uploadedImage = await uploadFileToCloudinary(bannerImage);
-        updateData.bannerImage = uploadedImage.url;
+        updateData.bannerImage = uploadedImage.secure_url;
     }
 
     if (!Object.keys(updateData).length) {
