@@ -2,12 +2,6 @@ import AdditionalServiceModel from "../../models/admin/adminAdditionalService.mo
 import ApiResponse from "../../utils/ApiResponse.js";
 import asyncHandler from "../../utils/asyncHandler.js";
 import { isValidId } from "../../utils/commonHelpers.js";
-import {
-    createADocument,
-    deleteById,
-    findById,
-    updateById,
-} from "../../utils/dbHelpers.js";
 
 const createAdditionalService = asyncHandler(async (req, res) => {
     const {
@@ -22,7 +16,7 @@ const createAdditionalService = asyncHandler(async (req, res) => {
         sixtySecondDurationPrice,
     } = req.body;
 
-    const additionalService = await createADocument(AdditionalServiceModel, {
+    const additionalService = await AdditionalServiceModel.create({
         platform,
         aspectRatio,
         editPrice,
@@ -64,8 +58,7 @@ const getAdditionalServiceById = asyncHandler(async (req, res) => {
 
     isValidId(additionalServicesId);
 
-    const additionalService = await findById(
-        AdditionalServiceModel,
+    const additionalService = await AdditionalServiceModel.findById(
         additionalServicesId
     );
 
@@ -96,10 +89,13 @@ const updateAdditionalService = asyncHandler(async (req, res) => {
 
     isValidId(additionalServicesId);
 
-    const additionalService = await findById(
-        AdditionalServiceModel,
+    const additionalService = await AdditionalServiceModel.findById(
         additionalServicesId
     );
+
+    if (!additionalService) {
+        throw new ApiError(404, "Additional service not found");
+    }
 
     const updateData = {
         platform,
@@ -113,11 +109,12 @@ const updateAdditionalService = asyncHandler(async (req, res) => {
         sixtySecondDurationPrice,
     };
 
-    const updatedAdditionalService = await updateById(
-        AdditionalServiceModel,
-        additionalServicesId,
-        updateData
-    );
+    const updatedAdditionalService =
+        await AdditionalServiceModel.findByIdAndUpdate(
+            additionalServicesId,
+            updateData,
+            { new: true }
+        );
 
     return res
         .status(200)
@@ -135,10 +132,8 @@ const deleteAdditionalService = asyncHandler(async (req, res) => {
 
     isValidId(additionalServicesId);
 
-    const deletedAdditionalService = await deleteById(
-        AdditionalServiceModel,
-        additionalServicesId
-    );
+    const deletedAdditionalService =
+        await AdditionalServiceModel.findByIdAndDelete(additionalServicesId);
 
     return res
         .status(200)

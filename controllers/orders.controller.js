@@ -99,10 +99,12 @@ const createOrder = asyncHandler(async (req, res) => {
 });
 
 const getMyOrders = asyncHandler(async (req, res) => {
-    const orders = await Orders.find({ orderOwner: req.user._id }).populate({
-        path: "orderOwner",
-        select: "-password",
-    });
+    const orders = await Orders.find({ orderOwner: req.user._id })
+        .populate({
+            path: "orderOwner",
+            select: "-password",
+        })
+        .sort({ createdAt: -1 });
 
     if (!orders) {
         throw new ApiError(404, "No orders found");
@@ -120,6 +122,7 @@ const getOrders = asyncHandler(async (req, res) => {
         assignedCreators: { $nin: [creatorId] },
         rejectedCreators: { $nin: [creatorId] },
     })
+        .sort({ createdAt: -1 })
         .populate({
             path: "orderOwner",
             select: "-password",

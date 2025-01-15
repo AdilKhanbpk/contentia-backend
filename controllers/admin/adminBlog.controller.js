@@ -7,14 +7,6 @@ import {
     uploadFileToCloudinary,
 } from "../../utils/Cloudinary.js";
 import { isValidId } from "../../utils/commonHelpers.js";
-import {
-    createADocument,
-    findByQuery,
-    updateById,
-    deleteById,
-    findById,
-    findAll,
-} from "../../utils/dbHelpers.js";
 
 const createBlog = asyncHandler(async (req, res) => {
     const { title, category, metaKeywords, metaDescription, content } =
@@ -37,14 +29,13 @@ const createBlog = asyncHandler(async (req, res) => {
 
     const uploadImage = await uploadFileToCloudinary(blogImage);
 
-    const createdBlog = await createADocument(BlogModel, {
-        author: req.user._id,
+    const createdBlog = await BlogModel.create({
         title,
         category,
         metaKeywords,
         metaDescription,
         content,
-        bannerImage: uploadImage?.secure_url,
+        blogImage: uploadImage?.secure_url,
     });
 
     return res
@@ -67,7 +58,10 @@ const getBlogById = asyncHandler(async (req, res) => {
 
     isValidId(blogId);
 
-    const blog = await findById(BlogModel, blogId);
+    const blog = await BlogModel.findById(blogId).populate({
+        path: "author",
+        select: "-password",
+    });
 
     return res
         .status(200)
@@ -86,13 +80,17 @@ const updateBlog = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Please provide all the required fields");
     }
 
-    const updatedBlog = await updateById(BlogModel, blogId, {
-        title,
-        category,
-        metaKeywords,
-        metaDescription,
-        content,
-    });
+    const updatedBlog = await BlogModel.findByIdAndUpdate(
+        blogId,
+        {
+            title,
+            category,
+            metaKeywords,
+            metaDescription,
+            content,
+        },
+        { new: true }
+    );
 
     return res
         .status(200)
@@ -112,9 +110,13 @@ const updateBannerImageOfBlog = asyncHandler(async (req, res) => {
 
     const uploadedImage = await uploadFileToCloudinary(blogImage);
 
-    const updatedBannerImageOfBlog = await updateById(BlogModel, blogId, {
-        bannerImage: uploadedImage.path,
-    });
+    const updatedBannerImageOfBlog = await BlogModel.findByIdAndUpdate(
+        blogId,
+        {
+            bannerImage: uploadedImage?.secure_url,
+        },
+        { new: true }
+    );
 
     return res
         .status(200)
@@ -132,13 +134,13 @@ const deleteBlog = asyncHandler(async (req, res) => {
 
     isValidId(blogId);
 
-    const blog = await findById(BlogModel, blogId);
+    const blog = await BlogModel.findById(blogId);
 
     const blogBannerImage = blog.bannerImage;
 
     await deleteFileFromCloudinary(blogBannerImage);
 
-    const deletedBlog = await deleteById(BlogModel, blogId);
+    const deletedBlog = await BlogModel.findByIdAndDelete(blogId);
 
     return res
         .status(200)

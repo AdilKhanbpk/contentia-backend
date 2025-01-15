@@ -1,15 +1,7 @@
-// controllers/adminClaimsController.js
 import ApiError from "../../utils/ApiError.js";
 import ApiResponse from "../../utils/ApiResponse.js";
 import asyncHandler from "../../utils/asyncHandler.js";
 import { isValidId } from "../../utils/commonHelpers.js";
-import {
-    createADocument,
-    deleteById,
-    findAll,
-    findById,
-    updateById,
-} from "../../utils/dbHelpers.js";
 import Creator from "../../models/creator.model.js";
 import User from "../../models/user.model.js";
 import Notification from "../../models/admin/adminNotification.model.js";
@@ -192,7 +184,7 @@ const createNotification = asyncHandler(async (req, res) => {
 });
 
 const getNotifications = asyncHandler(async (req, res) => {
-    const notifications = await findAll(Notification);
+    const notifications = await Notification.find();
 
     return res
         .status(200)
@@ -210,7 +202,7 @@ const getNotificationById = asyncHandler(async (req, res) => {
 
     isValidId(notificationId);
 
-    const notification = await findById(Notification, notificationId);
+    const notification = await Notification.findById(notificationId);
 
     return res
         .status(200)
@@ -244,10 +236,11 @@ const updateNotification = asyncHandler(async (req, res) => {
 
     isValidId(notificationId);
 
-    const updatedNotification = await updateById(Notification, notificationId, {
-        title,
-        details,
-    });
+    const updatedNotification = await Notification.findByIdAndUpdate(
+        notificationId,
+        { title, details },
+        { new: true }
+    );
 
     return res
         .status(200)
@@ -265,7 +258,9 @@ const deleteNotification = asyncHandler(async (req, res) => {
 
     isValidId(notificationId);
 
-    const deletedNotification = await deleteById(Notification, notificationId);
+    const deletedNotification = await Notification.findByIdAndDelete(
+        notificationId
+    );
 
     return res
         .status(200)

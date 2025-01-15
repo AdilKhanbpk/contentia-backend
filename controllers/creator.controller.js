@@ -3,7 +3,6 @@ import Creator from "../models/creator.model.js";
 import Orders from "../models/orders.model.js";
 import Notifications from "../models/admin/adminNotification.model.js";
 import ApiError from "../utils/ApiError.js";
-import { createADocument, findById } from "../utils/dbHelpers.js";
 import { cookieOptions } from "./user.controller.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import { isValidId } from "../utils/commonHelpers.js";
@@ -216,7 +215,7 @@ const createCreator = asyncHandler(async (req, res) => {
 
     const allAdminIds = await User.find({ role: "admin" }).select("_id");
 
-    const newUser = await createADocument(Creator, {
+    const newUser = await Creator.create({
         fullName,
         password,
         tckn,
@@ -316,7 +315,10 @@ const changePassword = asyncHandler(async (req, res) => {
 
     isValidId(req.user._id);
 
-    const creator = await findById(Creator, req.user._id);
+    const creator = await Creator.findById(req.user._id);
+    if (!creator) {
+        throw new ApiError(404, "Creator not found");
+    }
 
     const isPasswordCorrect = await creator.ComparePassword(currentPassword);
     if (!isPasswordCorrect) {
@@ -469,7 +471,7 @@ const changeProfilePicture = asyncHandler(async (req, res) => {
 
     isValidId(creatorId);
 
-    const creator = await findById(Creator, creatorId);
+    const creator = await Creator.findById(creatorId);
 
     if (!creator) {
         throw new ApiError(404, "Creator not found");
@@ -625,13 +627,13 @@ const addOrderToFavorites = asyncHandler(async (req, res) => {
 
     isValidId(creatorId);
 
-    const creator = await findById(Creator, creatorId);
+    const creator = await Creator.findById(creatorId);
 
     if (!creator) {
         throw new ApiError(404, "Creator not found");
     }
 
-    const order = await findById(Orders, orderId);
+    const order = await Orders.findById(orderId);
 
     if (!order) {
         throw new ApiError(404, "Order not found");
@@ -655,13 +657,13 @@ const removeOrderFromFavorites = asyncHandler(async (req, res) => {
 
     isValidId(creatorId);
 
-    const creator = await findById(Creator, creatorId);
+    const creator = await Creator.findById(creatorId);
 
     if (!creator) {
         throw new ApiError(404, "Creator not found");
     }
 
-    const order = await findById(Orders, orderId);
+    const order = await Orders.findById(orderId);
 
     if (!order) {
         throw new ApiError(404, "Order not found");
@@ -686,12 +688,12 @@ const getMyOrderFolderToUploadContent = asyncHandler(async (req, res) => {
 
     isValidId(orderId);
 
-    const order = await findById(Orders, orderId);
+    const order = await Orders.findById(orderId);
     if (!order) {
         throw new ApiError(404, "Order not found");
     }
 
-    const creator = await findById(Creator, creatorId);
+    const creator = await Creator.findById(creatorId);
     if (!creator) {
         throw new ApiError(404, "Creator not found");
     }

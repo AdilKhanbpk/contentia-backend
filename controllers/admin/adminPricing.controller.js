@@ -1,17 +1,8 @@
-// controllers/adminPricingController.js
 import PricePlanModel from "../../models/admin/adminPricing.model.js";
 import ApiError from "../../utils/ApiError.js";
 import ApiResponse from "../../utils/ApiResponse.js";
 import asyncHandler from "../../utils/asyncHandler.js";
 import { isValidId } from "../../utils/commonHelpers.js";
-import {
-    createADocument,
-    deleteById,
-    findAll,
-    findById,
-    findByQuery,
-    updateById,
-} from "../../utils/dbHelpers.js";
 
 const createPricePlan = asyncHandler(async (req, res) => {
     const { videoCount, strikeThroughPrice, finalPrice } = req.body;
@@ -20,7 +11,7 @@ const createPricePlan = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Video count and final price are required.");
     }
 
-    const newPricePlan = await createADocument(PricePlanModel, {
+    const newPricePlan = await PricePlanModel.create({
         videoCount,
         strikeThroughPrice,
         finalPrice,
@@ -64,7 +55,7 @@ const updatePricePlan = asyncHandler(async (req, res) => {
 
     isValidId(pricePlanId);
 
-    const existingPlan = await findById(PricePlanModel, pricePlanId);
+    const existingPlan = await PricePlanModel.findById(pricePlanId);
 
     if (!existingPlan) {
         throw new ApiError(404, "Price plan not found.");
@@ -82,10 +73,10 @@ const updatePricePlan = asyncHandler(async (req, res) => {
         updateData.finalPrice = finalPrice;
     }
 
-    const updatedPlan = await updateById(
-        PricePlanModel,
+    const updatedPlan = await PricePlanModel.findByIdAndUpdate(
         pricePlanId,
-        updateData
+        updateData,
+        { new: true }
     );
 
     return res
@@ -100,7 +91,9 @@ const deletePricePlan = asyncHandler(async (req, res) => {
 
     isValidId(pricePlanId);
 
-    const deletedPricePlan = await deleteById(PricePlanModel, pricePlanId);
+    const deletedPricePlan = await PricePlanModel.findByIdAndDelete(
+        pricePlanId
+    );
 
     return res
         .status(200)

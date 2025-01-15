@@ -3,7 +3,6 @@ import ApiError from "../../utils/ApiError.js";
 import ApiResponse from "../../utils/ApiResponse.js";
 import asyncHandler from "../../utils/asyncHandler.js";
 import { isValidId } from "../../utils/commonHelpers.js";
-import { updateById } from "../../utils/dbHelpers.js";
 
 const createFaq = asyncHandler(async (req, res, next) => {
     const { question, answer } = req.body;
@@ -45,7 +44,11 @@ const updateFaq = asyncHandler(async (req, res, next) => {
 
     isValidId(faqId);
 
-    const faq = await updateById(FaqModel, faqId, { question, answer });
+    const faq = await FaqModel.findByIdAndUpdate(
+        faqId,
+        { question, answer },
+        { new: true }
+    );
 
     return res
         .status(200)

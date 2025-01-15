@@ -1,14 +1,7 @@
-// controllers/adminHowItWorksController.js
 import ApiError from "../../utils/ApiError.js";
 import ApiResponse from "../../utils/ApiResponse.js";
 import asyncHandler from "../../utils/asyncHandler.js";
 import HowItWorkModel from "../../models/admin/adminHowItworks.model.js";
-import {
-    createADocument,
-    findAll,
-    findById,
-    updateById,
-} from "../../utils/dbHelpers.js";
 
 const createHowItWorks = asyncHandler(async (req, res) => {
     const { sectionTitle, sectionDescription, steps } = req.body;
@@ -25,7 +18,7 @@ const createHowItWorks = asyncHandler(async (req, res) => {
         );
     }
 
-    const newHowItWorks = await createADocument(HowItWorkModel, {
+    const newHowItWorks = await HowItWorkModel.create({
         sectionTitle,
         sectionDescription,
         steps,
@@ -43,7 +36,7 @@ const createHowItWorks = asyncHandler(async (req, res) => {
 });
 
 const getHowItWorks = asyncHandler(async (req, res) => {
-    const howItWorks = await findAll(HowItWorkModel);
+    const howItWorks = await HowItWorkModel.find({});
     return res
         .status(200)
         .json(
@@ -57,7 +50,7 @@ const getHowItWorks = asyncHandler(async (req, res) => {
 
 const getHowItWorksById = asyncHandler(async (req, res) => {
     const { howItWorksId } = req.params;
-    const howItWorks = await findById(HowItWorkModel, howItWorksId);
+    const howItWorks = await HowItWorkModel.findById(howItWorksId);
     return res
         .status(200)
         .json(
@@ -92,9 +85,11 @@ const updateStepInHowItWorks = asyncHandler(async (req, res) => {
 
     if (steps) updateFields.steps = steps;
 
-    const updatedHowItWorks = await updateById(HowItWorkModel, howItWorksId, {
-        ...updateFields,
-    });
+    const updatedHowItWorks = await HowItWorkModel.findByIdAndUpdate(
+        howItWorksId,
+        updateFields,
+        { new: true }
+    );
 
     if (!updatedHowItWorks) {
         throw new ApiError(

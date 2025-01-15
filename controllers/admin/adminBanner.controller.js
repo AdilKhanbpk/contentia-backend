@@ -7,13 +7,6 @@ import {
     uploadFileToCloudinary,
 } from "../../utils/Cloudinary.js";
 import { isValidId } from "../../utils/commonHelpers.js";
-import {
-    createADocument,
-    deleteById,
-    findAll,
-    findById,
-    updateById,
-} from "../../utils/dbHelpers.js";
 
 const createBanner = asyncHandler(async (req, res) => {
     const { bannerUrl } = req.body;
@@ -27,7 +20,7 @@ const createBanner = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Please provide a banner image");
     }
 
-    const banners = await findAll(BannerModel);
+    const banners = await BranchModel.find();
 
     if (banners.length >= 3) {
         throw new ApiError(400, "You can only have 3 banners");
@@ -35,7 +28,7 @@ const createBanner = asyncHandler(async (req, res) => {
 
     const uploadBanner = await uploadFileToCloudinary(bannerImage);
 
-    const createdBanner = await createADocument(BannerModel, {
+    const createdBanner = await BannerModel.create({
         bannerUrl,
         bannerImage: uploadBanner?.secure_url,
     });
@@ -48,7 +41,7 @@ const createBanner = asyncHandler(async (req, res) => {
 });
 
 const getBanners = asyncHandler(async (req, res) => {
-    const banners = await findAll(BannerModel);
+    const banners = await BranchModel.find();
 
     return res
         .status(200)
@@ -59,7 +52,7 @@ const getBannerById = asyncHandler(async (req, res) => {
     const { bannerId } = req.params;
     isValidId(bannerId);
 
-    const banner = await findById(BannerModel, bannerId);
+    const banner = await BrandModel.findById(bannerId);
 
     return res
         .status(200)
@@ -73,7 +66,7 @@ const updateBanner = asyncHandler(async (req, res) => {
 
     isValidId(bannerId);
 
-    const banner = await findById(BannerModel, bannerId);
+    const banner = await BannerModel.findById(bannerId);
 
     const updateData = {};
 
@@ -111,13 +104,13 @@ const deleteBanner = asyncHandler(async (req, res) => {
 
     isValidId(bannerId);
 
-    const banner = await findById(BannerModel, bannerId);
+    const banner = await BannerModel.findById(bannerId);
 
     const bannerImage = banner.bannerImage;
 
     await deleteFileFromCloudinary(bannerImage);
 
-    const deletedBanner = await deleteById(BannerModel, bannerId);
+    const deletedBanner = await BannerModel.findByIdAndDelete(bannerId);
 
     return res
         .status(200)

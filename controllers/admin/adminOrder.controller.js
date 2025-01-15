@@ -4,12 +4,6 @@ import Creator from "../../models/creator.model.js";
 import ApiError from "../../utils/ApiError.js";
 import ApiResponse from "../../utils/ApiResponse.js";
 import asyncHandler from "../../utils/asyncHandler.js";
-import {
-    deleteById,
-    findAll,
-    findById,
-    updateById,
-} from "../../utils/dbHelpers.js";
 import { isValidId } from "../../utils/commonHelpers.js";
 import { sendNotification } from "../admin/adminNotification.controller.js";
 import User from "../../models/user.model.js";
@@ -150,6 +144,8 @@ const getOrderById = asyncHandler(async (req, res) => {
 });
 
 const updateOrder = asyncHandler(async (req, res) => {
+    // TODO FILES FUNCTIONALITY NEEDS TO BE ADDED IN FUTURE
+    // TODO ASSIGNED CREATORS VALIDATION AND ORDER OWNER VALIDATION
     const { orderId } = req.params;
     const {
         noOfUgc,
@@ -173,20 +169,24 @@ const updateOrder = asyncHandler(async (req, res) => {
             .map((id) => mongoose.Types.ObjectId.createFromHexString(id));
     }
 
-    const order = await updateById(Order, orderId, {
-        noOfUgc,
-        orderOwner,
-        orderStatus,
-        assignedCreators: updatedAssignedCreator,
-        paymentStatus,
-        contentsDelivered,
-        additionalServices,
-        preferences,
-        briefContent,
-        orderQuota,
-        numberOfRequests: updatedAssignedCreator.length,
-        uploadFiles,
-    });
+    const order = await Order.findByIdAndUpdate(
+        orderId,
+        {
+            noOfUgc,
+            orderOwner,
+            orderStatus,
+            paymentStatus,
+            contentsDelivered,
+            additionalServices,
+            preferences,
+            briefContent,
+            orderQuota,
+            uploadFiles,
+            numberOfRequests: updatedAssignedCreator.length,
+            assignedCreators: updatedAssignedCreator,
+        },
+        { new: true }
+    );
 
     if (!order) {
         throw new ApiError(404, "Order not updated or not found");
@@ -199,7 +199,7 @@ const updateOrder = asyncHandler(async (req, res) => {
 
 const deleteOrder = asyncHandler(async (req, res) => {
     const { orderId } = req.params;
-    const deletedOrder = await deleteById(Order, orderId);
+    const deletedOrder = await Order.findByIdAndDelete(orderId);
 
     return res
         .status(200)

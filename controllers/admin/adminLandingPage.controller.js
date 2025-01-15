@@ -8,7 +8,6 @@ import {
     uploadMultipleFilesToCloudinary,
 } from "../../utils/Cloudinary.js";
 import { isValidId } from "../../utils/commonHelpers.js";
-import { createADocument, updateById } from "../../utils/dbHelpers.js";
 
 const createLandingPage = asyncHandler(async (req, res) => {
     const { carouselHeroTitle, staticHeroTitle, heroSubTitle } = req.body;
@@ -39,11 +38,11 @@ const createLandingPage = asyncHandler(async (req, res) => {
 
     const videoUrls = uploadedVideos.map((video) => video?.secure_url);
 
-    const newLandingPage = await createADocument(LandingPageModel, {
+    const newLandingPage = await LandingPageModel.create({
         carouselHeroTitle,
         staticHeroTitle,
         heroSubTitle,
-        videos: videoUrls, // Storing video URLs as an array
+        videos: videoUrls,
     });
 
     return res
@@ -136,15 +135,15 @@ const updateLandingPage = asyncHandler(async (req, res) => {
         }
     }
 
-    const updatedLandingPage = await updateById(
-        LandingPageModel,
+    const updatedLandingPage = await LandingPageModel.findByIdAndUpdate(
         landingPageId,
         {
             carouselHeroTitle,
             staticHeroTitle,
             heroSubTitle,
             videos: updatedVideos,
-        }
+        },
+        { new: true }
     );
 
     return res

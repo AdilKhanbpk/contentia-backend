@@ -3,14 +3,6 @@ import ApiResponse from "../../utils/ApiResponse.js";
 import asyncHandler from "../../utils/asyncHandler.js";
 import { isValidId } from "../../utils/commonHelpers.js";
 import PageModel from "../../models/admin/adminT&C.model.js";
-import {
-    createADocument,
-    deleteById,
-    findAll,
-    findById,
-    findByQuery,
-    updateById,
-} from "../../utils/dbHelpers.js";
 
 const createAPage = asyncHandler(async (req, res) => {
     const { pageTitle, pageContent, pageUrl } = req.body;
@@ -19,7 +11,7 @@ const createAPage = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Please provide all the required fields");
     }
 
-    const newPage = await createADocument(PageModel, {
+    const newPage = await PageModel.create({
         pageTitle,
         pageContent,
         pageUrl,
@@ -31,7 +23,7 @@ const createAPage = asyncHandler(async (req, res) => {
 });
 
 const getPages = asyncHandler(async (req, res) => {
-    const pages = await findAll(PageModel);
+    const pages = await PageModel.find().sort({ createdAt: -1 });
 
     return res
         .status(200)
@@ -43,7 +35,7 @@ const getPageById = asyncHandler(async (req, res) => {
 
     isValidId(pageId);
 
-    const page = await findById(PageModel, pageId);
+    const page = await PageModel.findById(pageId);
 
     return res
         .status(200)
@@ -57,11 +49,11 @@ const updatePage = asyncHandler(async (req, res) => {
 
     const { pageTitle, pageContent, pageUrl } = req.body;
 
-    const updatedPage = await updateById(PageModel, pageId, {
-        pageTitle,
-        pageContent,
-        pageUrl,
-    });
+    const updatedPage = await PageModel.findByIdAndUpdate(
+        pageId,
+        { pageTitle, pageContent, pageUrl },
+        { new: true }
+    );
 
     return res
         .status(200)
@@ -73,7 +65,7 @@ const deletePage = asyncHandler(async (req, res) => {
 
     isValidId(pageId);
 
-    const deletedPage = await deleteById(PageModel, pageId);
+    const deletedPage = await PageModel.findByIdAndDelete(pageId);
 
     return res
         .status(200)

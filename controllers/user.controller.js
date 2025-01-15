@@ -4,7 +4,6 @@ import ApiResponse from "../utils/ApiResponse.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import { uploadFileToCloudinary } from "../utils/Cloudinary.js";
 import { isValidId, resolvePath } from "../utils/commonHelpers.js";
-import { findById, updateById } from "../utils/dbHelpers.js";
 import { createFolder } from "../utils/googleDrive.js";
 
 export const cookieOptions = {
@@ -106,7 +105,11 @@ export const updateUser = asyncHandler(async (req, res) => {
 
     isValidId(req.user._id);
 
-    const updatedUser = await updateById(User, req.user._id, rest);
+    const updatedUser = await User.findByIdAndUpdate(
+        req.user._id,
+        { $set: rest },
+        { new: true }
+    );
     return res
         .status(200)
         .json(new ApiResponse(200, updatedUser, "User updated Successfully"));
@@ -154,7 +157,7 @@ export const changePassword = asyncHandler(async (req, res) => {
 
     isValidId(req.user._id);
 
-    const user = await findById(User, req.user._id);
+    const user = await User.findById(req.user._id);
 
     const isPasswordCorrect = await user.ComparePassword(currentPassword);
 

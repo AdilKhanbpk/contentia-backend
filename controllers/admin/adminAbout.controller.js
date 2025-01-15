@@ -8,13 +8,6 @@ import {
     uploadFileToCloudinary,
 } from "../../utils/Cloudinary.js";
 import { isValidId } from "../../utils/commonHelpers.js";
-import {
-    createADocument,
-    deleteById,
-    findById,
-    findOne,
-    updateById,
-} from "../../utils/dbHelpers.js";
 
 const createAbout = asyncHandler(async (req, res) => {
     const {
@@ -35,13 +28,13 @@ const createAbout = asyncHandler(async (req, res) => {
 
     const uploadImage = await uploadFileToCloudinary(aboutImage);
 
-    const lengthOfAbout = await findAll(AboutModel);
+    const lengthOfAbout = await AboutModel.find({});
 
     if (lengthOfAbout.length > 1) {
         throw new ApiError(400, "About cannot be created more than one");
     }
 
-    const newAbout = await createADocument(AboutModel, {
+    const newAbout = await AboutModel.create({
         title,
         content,
         contactTitle,
@@ -49,7 +42,7 @@ const createAbout = asyncHandler(async (req, res) => {
         contactPhone,
         contactAddress,
         buttonUrl,
-        aboutImage: uploadImage.url,
+        aboutImage: uploadImage?.secure_url,
     });
 
     return res
@@ -71,15 +64,19 @@ const updateAbout = asyncHandler(async (req, res) => {
 
     isValidId(aboutId);
 
-    const updatedAbout = await updateById(AboutModel, aboutId, {
-        title,
-        content,
-        contactTitle,
-        contactEmail,
-        contactPhone,
-        contactAddress,
-        buttonUrl,
-    });
+    const updatedAbout = await AboutModel.findOneAndUpdate(
+        { _id: aboutId },
+        {
+            title,
+            content,
+            contactTitle,
+            contactEmail,
+            contactPhone,
+            contactAddress,
+            buttonUrl,
+        },
+        { new: true }
+    );
 
     return res
         .status(200)
@@ -92,7 +89,7 @@ const updateAboutImage = asyncHandler(async (req, res) => {
 
     isValidId(aboutId);
 
-    const about = await findById(AboutModel, aboutId);
+    const about = await AboutModel.findById(aboutId);
 
     if (about.aboutImage) {
         await deleteFileFromCloudinary(about.aboutImage);
@@ -104,9 +101,13 @@ const updateAboutImage = asyncHandler(async (req, res) => {
 
     const uploadImage = await uploadFileToCloudinary(aboutImage);
 
-    const updatedAbout = await updateById(AboutModel, aboutId, {
-        aboutImage: uploadImage.url,
-    });
+    const updatedAbout = await AboutModel.findOneAndUpdate(
+        { _id: aboutId },
+        {
+            aboutImage: uploadImage?.secure_url,
+        },
+        { new: true }
+    );
 
     return res
         .status(200)
@@ -114,7 +115,7 @@ const updateAboutImage = asyncHandler(async (req, res) => {
 });
 
 const getAbout = asyncHandler(async (req, res) => {
-    const about = await findOne(AboutModel, {});
+    const about = await AboutModel.findOne({});
 
     return res
         .status(200)
@@ -126,13 +127,13 @@ const deleteAbout = asyncHandler(async (req, res) => {
 
     isValidId(aboutId);
 
-    const about = await findById(AboutModel, aboutId);
+    const about = await AboutModel.findById(aboutId);
 
     if (about.aboutImage) {
         await deleteFileFromCloudinary(about.aboutImage);
     }
 
-    const deletedAbout = await deleteById(AboutModel, aboutId);
+    const deletedAbout = await AboutModel.findByIdAndDelete(aboutId);
 
     return res
         .status(200)

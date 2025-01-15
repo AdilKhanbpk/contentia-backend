@@ -2,14 +2,6 @@ import Package from "../../models/admin/adminPackage.model.js";
 import ApiError from "../../utils/ApiError.js";
 import ApiResponse from "../../utils/ApiResponse.js";
 import asyncHandler from "../../utils/asyncHandler.js";
-import {
-    createADocument,
-    findByQuery,
-    updateById,
-    deleteById,
-    findById,
-    findAll,
-} from "../../utils/dbHelpers.js";
 import { isValidId } from "../../utils/commonHelpers.js";
 
 const createLandingPagePackage = asyncHandler(async (req, res) => {
@@ -24,18 +16,15 @@ const createLandingPagePackage = asyncHandler(async (req, res) => {
         throw new ApiError(400, "You can create only 3 packages");
     }
 
-    const newPackage = await createADocument(Package, {
-        title,
-        description,
-        price,
-    });
+    const newPackage = await Package.create({ title, description, price });
+
     return res
         .status(201)
         .json(new ApiResponse(201, newPackage, "Package created successfully"));
 });
 
 const getAllLandingPagePackages = asyncHandler(async (req, res) => {
-    const packages = await findAll(Package);
+    const packages = await Package.find().sort({ createdAt: -1 });
     return res
         .status(200)
         .json(new ApiResponse(200, packages, "Packages fetched successfully"));
@@ -45,7 +34,8 @@ const getLandingPagePackageById = asyncHandler(async (req, res) => {
     const { packageId } = req.params;
     isValidId(packageId);
 
-    const singlePackage = await findById(Package, packageId);
+    const singlePackage = await Package.findById(packageId);
+
     return res
         .status(200)
         .json(
@@ -58,11 +48,12 @@ const updateLandingPagePackage = asyncHandler(async (req, res) => {
     const { packageId } = req.params;
     isValidId(packageId);
 
-    const updatedPackage = await updateById(Package, packageId, {
-        title,
-        description,
-        price,
-    });
+    const updatedPackage = await Package.findByIdAndUpdate(
+        packageId,
+        { title, description, price },
+        { new: true }
+    );
+
     return res
         .status(200)
         .json(
@@ -74,7 +65,7 @@ const deleteLandingPagePackage = asyncHandler(async (req, res) => {
     const { packageId } = req.params;
     isValidId(packageId);
 
-    const deletedPackage = await deleteById(Package, packageId);
+    const deletedPackage = await Package.findByIdAndDelete(packageId);
 
     if (!deletedPackage) {
         throw new ApiError(404, "Package not found or failed to delete");
