@@ -14,16 +14,12 @@ const createOrder = asyncHandler(async (req, res) => {
         customer,
         noOfUgc,
         totalPrice,
-        assignedCreators,
+        assignedCreators = [],
         additionalServices,
     } = req.body;
 
     if (!customer || !noOfUgc) {
         throw new ApiError(400, "Please provide all order details");
-    }
-
-    if (!Array.isArray(assignedCreators) || !assignedCreators.length) {
-        throw new ApiError(400, "Assigned creators must be a non-empty array");
     }
 
     const customerExists = await User.findById(customer);
@@ -32,27 +28,33 @@ const createOrder = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Customer not found");
     }
 
-    const validatedCreators = assignedCreators.map((id) => {
-        if (!mongoose.isValidObjectId(id)) {
-            throw new ApiError(400, `Invalid creator ID: ${id}`);
+    let validatedCreators = [];
+    let existingCreators = [];
+
+    if (Array.isArray(assignedCreators) && assignedCreators.length > 0) {
+        validatedCreators = assignedCreators.map((id) => {
+            if (!mongoose.isValidObjectId(id)) {
+                throw new ApiError(400, `Invalid creator ID: ${id}`);
+            }
+            return mongoose.Types.ObjectId.createFromHexString(id);
+        });
+
+        existingCreators = await Creator.find({
+            _id: { $in: validatedCreators },
+        });
+
+        if (existingCreators.length !== validatedCreators.length) {
+            const missingCreators = validatedCreators.filter(
+                (id) =>
+                    !existingCreators.find((creator) => creator._id.equals(id))
+            );
+            throw new ApiError(
+                404,
+                `The following creator IDs were not found: ${missingCreators.join(
+                    ", "
+                )}`
+            );
         }
-        return mongoose.Types.ObjectId.createFromHexString(id);
-    });
-
-    const existingCreators = await Creator.find({
-        _id: { $in: validatedCreators },
-    });
-
-    if (existingCreators.length !== validatedCreators.length) {
-        const missingCreators = validatedCreators.filter(
-            (id) => !existingCreators.find((creator) => creator._id.equals(id))
-        );
-        throw new ApiError(
-            404,
-            `The following creator IDs were not found: ${missingCreators.join(
-                ", "
-            )}`
-        );
     }
 
     if (
@@ -78,6 +80,7 @@ const createOrder = asyncHandler(async (req, res) => {
         throw new ApiError(500, "Failed to create order");
     }
 
+    // Create customer notification
     const customerNotification =
         notificationTemplates.orderCreationByAdminForCustomer({
             customerName: customerExists.fullName,
@@ -89,24 +92,31 @@ const createOrder = asyncHandler(async (req, res) => {
             },
         });
 
-    const creatorNotifications = existingCreators.map((creator) => {
-        return notificationTemplates.creatorApprovalForOrderByAdmin({
-            creatorName: creator.fullName,
-            creatorEmail: creator.email,
-            creatorPhoneNumber: creator.phoneNumber,
-            targetUsers: [creator._id],
-            metadata: {
-                message: "This is a new order notification",
-            },
-        });
-    });
+    // Create creator notifications if there are valid creators
+    const creatorNotifications =
+        existingCreators.length > 0
+            ? existingCreators.map((creator) => {
+                  return notificationTemplates.creatorApprovalForOrderByAdmin({
+                      creatorName: creator.fullName,
+                      creatorEmail: creator.email,
+                      creatorPhoneNumber: creator.phoneNumber,
+                      targetUsers: [creator._id],
+                      metadata: {
+                          message: "This is a new order notification",
+                      },
+                  });
+              })
+            : [];
 
-    await Promise.all([
+    // Send notifications
+    const notificationPromises = [
         sendNotification(customerNotification),
         ...creatorNotifications.map((notification) =>
             sendNotification(notification)
         ),
-    ]);
+    ];
+
+    await Promise.all(notificationPromises);
 
     return res
         .status(201)
