@@ -20,7 +20,7 @@ const createBanner = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Please provide a banner image");
     }
 
-    const banners = await BranchModel.find();
+    const banners = await BannerModel.find();
 
     if (banners.length >= 3) {
         throw new ApiError(400, "You can only have 3 banners");
@@ -41,7 +41,7 @@ const createBanner = asyncHandler(async (req, res) => {
 });
 
 const getBanners = asyncHandler(async (req, res) => {
-    const banners = await BranchModel.find();
+    const banners = await BannerModel.find();
 
     return res
         .status(200)
