@@ -283,7 +283,21 @@ const updateCreator = asyncHandler(async (req, res) => {
                 400,
                 "Password updates are not allowed in this endpoint."
             );
-        } else if (typeof value === "object" && !Array.isArray(value)) {
+        }
+        //  else if (key === "dateOfBirth") {
+        //     const dateOfBirth = new Date(value);
+        //     const now = new Date();
+
+        //     if (dateOfBirth > now) {
+        //         throw new ApiError(
+        //             400,
+        //             "Date of birth cannot be in the future."
+        //         );
+        //     }
+
+        //     setFields[key] = dateOfBirth;
+        // }
+        else if (typeof value === "object" && !Array.isArray(value)) {
             for (const [nestedKey, nestedValue] of Object.entries(value)) {
                 setFields[`${key}.${nestedKey}`] = nestedValue;
             }
