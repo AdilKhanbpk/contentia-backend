@@ -19,16 +19,14 @@ export const facebookSetup = () => {
             async (accessToken, refreshToken, profile, done) => {
                 try {
                     console.log("🚀 ~ profile:", profile);
-
-                    const email = profile.emails[0].value;
-                    const fullName = `${profile.name.givenName} ${profile.name.familyName}`;
+                    const { name, email } = profile._json;
 
                     let user = await User.findOne({ email });
 
                     if (!user) {
                         user = await User.create({
                             email,
-                            fullName,
+                            fullName: name,
                             authProvider: "facebook",
                         });
                     }
