@@ -14,7 +14,8 @@ router.get(
     "/auth/facebook/callback",
     passport.authenticate("facebook", {
         session: false,
-        failureRedirect: process.env.FAILURE_REDIRECT_URL,
+        successRedirect: process.env.FACEBOOK_SUCCESS_URL,
+        failureRedirect: process.env.FACEBOOK_FAILURE_URL,
     }),
     facebookAuthCallback
 );
