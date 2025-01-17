@@ -369,10 +369,6 @@ const applyForOrder = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Order not found");
     }
 
-    if (order.orderStatus !== "pending") {
-        throw new ApiError(400, "Order is not in a pending state");
-    }
-
     const creator = await Creator.findById(req.user._id);
 
     if (!creator) {

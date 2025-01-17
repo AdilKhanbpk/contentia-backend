@@ -8,8 +8,11 @@ import http from "http";
 import initializeSocketSetup from "./socket/socket.js";
 
 import passport from "passport";
-import { passportSetup } from "./utils/googleAuthSetup/googleConfiguration.js";
+import { googleSetup } from "./utils/googleAuthSetup/googleConfiguration.js";
 import googleAuthRoutes from "./utils/googleAuthSetup/googleAuth.routes.js";
+
+import { facebookSetup } from "./utils/facebookAuthSetup/facebookConfiguration.js";
+import facebookAuthRoutes from "./utils/facebookAuthSetup/facebookAuth.routes.js";
 
 import userAuthRoutes from "./routes/user.routes.js";
 import ordersRoute from "./routes/orders.routes.js";
@@ -49,7 +52,8 @@ app.use(
         saveUninitialized: false,
     })
 );
-passportSetup(passport);
+googleSetup(passport);
+facebookSetup(passport);
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -78,6 +82,7 @@ export const io = initializeSocketSetup(server);
 app.set("io", io);
 
 app.use("/", googleAuthRoutes);
+app.use("/", facebookAuthRoutes);
 
 app.use("/api/v1/users", userAuthRoutes);
 app.use("/api/v1/orders", ordersRoute);

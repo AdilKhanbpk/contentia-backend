@@ -23,6 +23,7 @@ const CreatorFormSchema = new mongoose.Schema(
         },
         email: {
             type: String,
+            unique: true,
             required: [true, "Email is required."],
         },
         userType: {
@@ -171,7 +172,7 @@ const CreatorFormSchema = new mongoose.Schema(
             socialInformation: {
                 contentType: {
                     type: String,
-                    enum: ["product", "service"],
+                    enum: ["yes", "no"],
                 },
                 platforms: {
                     Instagram: {
