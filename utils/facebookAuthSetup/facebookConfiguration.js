@@ -3,6 +3,7 @@ import { Strategy as FacebookStrategy } from "passport-facebook";
 import dotenv from "dotenv";
 import User from "../../models/user.model.js";
 import { generateTokens } from "../../controllers/user.controller.js";
+import CreatorModel from "../../models/creator.model.js";
 
 dotenv.config();
 
@@ -21,10 +22,10 @@ export const facebookSetup = () => {
                     console.log("🚀 ~ profile:", profile);
                     const { name, email } = profile._json;
 
-                    let user = await User.findOne({ email });
+                    let user = await CreatorModel.findOne({ email });
 
                     if (!user) {
-                        user = await User.create({
+                        user = await CreatorModel.create({
                             email,
                             fullName: name,
                             authProvider: "facebook",
