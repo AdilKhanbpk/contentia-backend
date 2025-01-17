@@ -13,11 +13,11 @@ export const facebookSetup = () => {
                 clientID: process.env.FACEBOOK_CLIENT_ID,
                 clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
                 callbackURL: process.env.FACEBOOK_CALLBACK_URL,
-                profileFields: ["id", "emails", "name"],
             },
             async (accessToken, refreshToken, profile, done) => {
                 try {
                     console.log("🚀 ~ profile:", profile);
+
                     const email = profile.emails[0].value;
                     const fullName = `${profile.name.givenName} ${profile.name.familyName}`;
 
