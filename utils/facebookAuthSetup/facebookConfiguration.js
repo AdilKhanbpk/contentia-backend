@@ -29,6 +29,9 @@ export const facebookSetup = () => {
                             email,
                             fullName: name,
                             authProvider: "facebook",
+                            phoneNumber: "1234567890",
+                            dateOfBirth: "01/01/2000",
+                            userAgreement: true,
                         });
                     }
 
