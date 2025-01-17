@@ -130,9 +130,7 @@ const getOrders = asyncHandler(async (req, res) => {
 
     return res
         .status(200)
-        .json(
-            new ApiResponse(200, { orders }, "Orders retrieved successfully")
-        );
+        .json(new ApiResponse(200, orders, "Orders retrieved successfully"));
 });
 
 const getOrderById = asyncHandler(async (req, res) => {
