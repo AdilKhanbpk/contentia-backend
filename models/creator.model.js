@@ -14,7 +14,7 @@ const CreatorFormSchema = new mongoose.Schema(
         },
         authProvider: {
             type: String,
-            enum: ["google", "credentials"],
+            enum: ["google", "credentials", "facebook", "apple"],
             default: "credentials",
         },
         fullName: {
