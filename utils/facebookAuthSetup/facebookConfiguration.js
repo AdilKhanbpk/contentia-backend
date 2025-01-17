@@ -13,6 +13,8 @@ export const facebookSetup = () => {
                 clientID: process.env.FACEBOOK_CLIENT_ID,
                 clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
                 callbackURL: process.env.FACEBOOK_CALLBACK_URL,
+                profileFields: ["id", "displayName", "photos", "email"],
+                scope: ["email", "public_profile"],
             },
             async (accessToken, refreshToken, profile, done) => {
                 try {
