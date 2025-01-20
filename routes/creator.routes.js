@@ -14,6 +14,7 @@ import {
     addOrderToFavorites,
     removeOrderFromFavorites,
     getMyOrderFolderToUploadContent,
+    getAllMyFavoriteOrders,
 } from "../controllers/creator.controller.js";
 import { isAuthenticated } from "../middlewares/authentication.middleware.js";
 import { uploadOnMulter } from "../middlewares/multer.middleware.js";
@@ -21,6 +22,7 @@ import { uploadOnMulter } from "../middlewares/multer.middleware.js";
 const router = express.Router();
 
 // Route to create or update OrdersProfile
+router.get("/my-favorite-orders", isAuthenticated, getAllMyFavoriteOrders);
 router.get("/my-applied-orders", isAuthenticated, getAllAppliedOrders);
 router.get("/my-rejected-orders", isAuthenticated, myRejectedOrders);
 router.get("/my-assigned-orders", isAuthenticated, myAssignedOrders);

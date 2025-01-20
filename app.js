@@ -14,6 +14,9 @@ import googleAuthRoutes from "./utils/googleAuthSetup/googleAuth.routes.js";
 import { facebookSetup } from "./utils/facebookAuthSetup/facebookConfiguration.js";
 import facebookAuthRoutes from "./utils/facebookAuthSetup/facebookAuth.routes.js";
 
+// import { appleSetup } from "./utils/appleAuthSetup/appleConfiguration.js";
+// import appleAuthRoutes from "./utils/appleAuthSetup/appleAuth.routes.js";
+
 import userAuthRoutes from "./routes/user.routes.js";
 import ordersRoute from "./routes/orders.routes.js";
 import becomeCreatorRoute from "./routes/creator.routes.js";
@@ -54,6 +57,7 @@ app.use(
 );
 googleSetup(passport);
 facebookSetup(passport);
+// appleSetup(passport);
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -83,6 +87,7 @@ app.set("io", io);
 
 app.use("/", googleAuthRoutes);
 app.use("/", facebookAuthRoutes);
+// app.use("/", appleAuthRoutes);
 
 app.use("/api/v1/users", userAuthRoutes);
 app.use("/api/v1/orders", ordersRoute);
