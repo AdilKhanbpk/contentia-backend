@@ -693,6 +693,23 @@ const removeOrderFromFavorites = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, creator, "Order removed from favorites"));
 });
 
+// TODO  still work needed:
+const getAllMyFavoriteOrders = asyncHandler(async (req, res) => {
+    const creatorId = req.user._id;
+
+    isValidId(creatorId);
+
+    const favoriteOrders = await Creator.findById(creatorId).populate({
+        path: "favoriteOrders",
+    });
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200, favoriteOrders, "Favorite orders retrieved")
+        );
+});
+
 const getMyOrderFolderToUploadContent = asyncHandler(async (req, res) => {
     const creatorId = req.user._id;
     const { orderId } = req.params;
@@ -738,4 +755,5 @@ export {
     getAllAppliedOrders,
     removeOrderFromFavorites,
     getMyOrderFolderToUploadContent,
+    getAllMyFavoriteOrders,
 };
