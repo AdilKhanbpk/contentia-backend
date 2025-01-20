@@ -17,6 +17,10 @@ const CreatorFormSchema = new mongoose.Schema(
             enum: ["google", "credentials", "facebook", "apple"],
             default: "credentials",
         },
+
+        appleId: {
+            type: String,
+        },
         fullName: {
             type: String,
             required: [true, "Full name is required."],

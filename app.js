@@ -14,8 +14,8 @@ import googleAuthRoutes from "./utils/googleAuthSetup/googleAuth.routes.js";
 import { facebookSetup } from "./utils/facebookAuthSetup/facebookConfiguration.js";
 import facebookAuthRoutes from "./utils/facebookAuthSetup/facebookAuth.routes.js";
 
-// import { appleSetup } from "./utils/appleAuthSetup/appleConfiguration.js";
-// import appleAuthRoutes from "./utils/appleAuthSetup/appleAuth.routes.js";
+import { appleSetup } from "./utils/appleAuthSetup/appleConfiguration.js";
+import appleAuthRoutes from "./utils/appleAuthSetup/appleAuth.routes.js";
 
 import userAuthRoutes from "./routes/user.routes.js";
 import ordersRoute from "./routes/orders.routes.js";

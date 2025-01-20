@@ -1,54 +1,65 @@
-// import passport from "passport";
-// import { Strategy as AppleStrategy } from "passport-apple";
-// import dotenv from "dotenv";
-// import User from "../../models/user.model.js";
-// import { generateTokens } from "../../controllers/user.controller.js";
+import passport from "passport";
+import { Strategy as AppleStrategy } from "passport-apple";
+import dotenv from "dotenv";
+import jwt from "jsonwebtoken";
+import User from "../../models/user.model.js";
+import { generateTokens } from "../../controllers/user.controller.js";
+import CreatorModel from "../../models/creator.model.js";
 
-// dotenv.config();
+dotenv.config();
 
-// export const appleSetup = () => {
-//     passport.use(
-//         new AppleStrategy(
-//             {
-//                 clientID: process.env.APPLE_CLIENT_ID,
-//                 teamID: process.env.APPLE_TEAM_ID,
-//                 keyID: process.env.APPLE_KEY_ID,
-//                 privateKey: process.env.APPLE_PRIVATE_KEY.replace(/\\n/g, "\n"), // Ensure newlines are correctly formatted
-//                 callbackURL: process.env.APPLE_CALLBACK_URL,
-//             },
-//             async (accessToken, refreshToken, idToken, profile, done) => {
-//                 try {
-//                     const email = profile.email;
-//                     const fullName = profile.name
-//                         ? `${profile.name.firstName} ${profile.name.lastName}`
-//                         : null;
+export const appleSetup = () => {
+    passport.use(
+        new AppleStrategy(
+            {
+                clientID: process.env.APPLE_CLIENT_ID,
+                teamID: process.env.APPLE_TEAM_ID,
+                callbackURL: process.env.APPLE_CALLBACK_URL,
+                keyID: process.env.APPLE_KEY_ID,
+                privateKey: process.env.APPLE_PRIVATE_KEY,
+            },
+            async (accessToken, refreshToken, idToken, profile, done) => {
+                try {
+                    console.log("🚀 ~ profile:", profile);
+                    console.log("🚀 ~ idToken:", idToken);
 
-//                     let user = await User.findOne({ email });
+                    const decodedToken = jwt.decode(idToken, {
+                        complete: true,
+                    });
+                    console.log("🚀 ~ decodedToken:", decodedToken);
 
-//                     if (!user) {
-//                         user = await User.create({
-//                             email,
-//                             fullName,
-//                             authProvider: "apple",
-//                         });
-//                     }
+                    const { email, name, sub } = decodedToken.payload;
 
-//                     const { accessToken: appAccessToken } =
-//                         await generateTokens(user._id);
+                    let user = await CreatorModel.findOne({ email });
 
-//                     return done(null, { user, appAccessToken });
-//                 } catch (error) {
-//                     done(error);
-//                 }
-//             }
-//         )
-//     );
+                    if (!user) {
+                        user = await CreatorModel.create({
+                            email,
+                            appleId: sub,
+                            fullName: name,
+                            authProvider: "apple",
+                            phoneNumber: "1234567890",
+                            dateOfBirth: "01/01/2000",
+                            userAgreement: true,
+                        });
 
-//     passport.serializeUser((user, done) => {
-//         done(null, user);
-//     });
+                        const { accessToken: appAccessToken } =
+                            await generateTokens(user._id);
 
-//     passport.deserializeUser((user, done) => {
-//         done(null, user);
-//     });
-// };
+                        return done(null, { user, appAccessToken });
+                    }
+                } catch (error) {
+                    done(error);
+                }
+            }
+        )
+    );
+
+    passport.serializeUser((user, done) => {
+        done(null, user);
+    });
+
+    passport.deserializeUser((user, done) => {
+        done(null, user);
+    });
+};
