@@ -642,6 +642,12 @@ const addOrderToFavorites = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Order not found");
     }
 
+    const isAlreadyFavorite = creator.favoriteOrders.includes(order._id);
+
+    if (isAlreadyFavorite) {
+        throw new ApiError(400, "Order is already in favorites");
+    }
+
     creator.favoriteOrders.push(order._id);
 
     await creator.save();
@@ -672,6 +678,12 @@ const removeOrderFromFavorites = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Order not found");
     }
 
+    const isAlreadyFavorite = creator.favoriteOrders.includes(order._id);
+
+    if (!isAlreadyFavorite) {
+        throw new ApiError(400, "Order is not in favorites");
+    }
+
     creator.favoriteOrders = creator.favoriteOrders.filter(
         (id) => id.toString() !== orderId.toString()
     );
@@ -683,7 +695,6 @@ const removeOrderFromFavorites = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, creator, "Order removed from favorites"));
 });
 
-// TODO  still work needed:
 const getAllMyFavoriteOrders = asyncHandler(async (req, res) => {
     const creatorId = req.user._id;
 
