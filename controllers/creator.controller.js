@@ -622,7 +622,7 @@ const getNotifications = asyncHandler(async (req, res) => {
 });
 
 const addOrderToFavorites = asyncHandler(async (req, res) => {
-    const { orderId } = req.body;
+    const { orderId } = req.params;
 
     isValidId(orderId);
 
@@ -652,7 +652,7 @@ const addOrderToFavorites = asyncHandler(async (req, res) => {
 });
 
 const removeOrderFromFavorites = asyncHandler(async (req, res) => {
-    const { orderId } = req.body;
+    const { orderId } = req.params;
 
     isValidId(orderId);
 
