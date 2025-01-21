@@ -42,12 +42,12 @@ router.post(
     uploadContentToOrder
 );
 router.post(
-    "/:creatorId/add-order-to-favorites",
+    "/add-order-to-favorites/:orderId",
     isAuthenticated,
     addOrderToFavorites
 );
 router.post(
-    "/:creatorId/remove-order-from-favorites",
+    "/remove-order-from-favorites/:orderId",
     isAuthenticated,
     removeOrderFromFavorites
 );
