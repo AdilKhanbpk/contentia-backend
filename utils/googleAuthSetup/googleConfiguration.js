@@ -44,6 +44,10 @@ export const googleSetup = () => {
                                 await generateCreatorTokens(user._id);
 
                             return done(null, { user, appAccessToken });
+                        } else {
+                            const { accessToken: appAccessToken } =
+                                await generateCreatorTokens(user._id);
+                            return done(null, { user, appAccessToken });
                         }
                     } else {
                         user = await User.findOne({ email });
