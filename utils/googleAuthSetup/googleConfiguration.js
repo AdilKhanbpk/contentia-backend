@@ -78,6 +78,8 @@ export const googleSetup = () => {
                                 fullName,
                                 authProvider: "google",
                                 userAgreement: true,
+                                phoneNumber: "1234567890",
+                                dateOfBirth: "01/01/2000",
                             });
                         }
                     } else {
@@ -87,6 +89,8 @@ export const googleSetup = () => {
                                 email,
                                 fullName,
                                 authProvider: "google",
+                                phoneNumber: "1234567890",
+                                dateOfBirth: "01/01/2000",
                                 userAgreement: true,
                             });
                         }
