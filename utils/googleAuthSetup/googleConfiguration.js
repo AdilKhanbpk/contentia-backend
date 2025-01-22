@@ -77,6 +77,7 @@ export const googleSetup = () => {
                                 email,
                                 fullName,
                                 authProvider: "google",
+                                userAgreement: true,
                             });
                         }
                     } else {
@@ -86,6 +87,7 @@ export const googleSetup = () => {
                                 email,
                                 fullName,
                                 authProvider: "google",
+                                userAgreement: true,
                             });
                         }
                     }
