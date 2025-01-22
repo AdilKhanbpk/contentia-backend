@@ -7,6 +7,9 @@ import expressSession from "express-session";
 import http from "http";
 import initializeSocketSetup from "./socket/socket.js";
 
+import morgan from "morgan";
+import logger from "./utils/logger/logger.js";
+
 import passport from "passport";
 import { googleSetup } from "./utils/googleAuthSetup/googleConfiguration.js";
 import googleAuthRoutes from "./utils/googleAuthSetup/googleAuth.routes.js";
@@ -46,6 +49,38 @@ import adminDashboardRoute from "./routes/admin/adminDashboard.routes.js";
 import ApiError from "./utils/ApiError.js";
 
 const app = express();
+const morganFormat =
+    ":method :url :status :res[content-length] - :response-time ms :http-version - :user-agent";
+
+app.use(
+    morgan(morganFormat, {
+        stream: {
+            write: (message) => {
+                const [
+                    method,
+                    url,
+                    status,
+                    contentLength,
+                    responseTime,
+                    httpVersion,
+                    userAgent,
+                ] = message.match(/(\S+)/g);
+
+                const logObject = {
+                    method,
+                    url,
+                    status,
+                    contentLength: contentLength.replace(/[^0-9]/g, ""),
+                    responseTime: responseTime.replace("ms", "").trim(),
+                    httpVersion,
+                    userAgent,
+                };
+
+                logger.info("", logObject);
+            },
+        },
+    })
+);
 
 app.use(
     expressSession({
@@ -117,6 +152,7 @@ app.use("/api/v1/admin/dashboard", adminDashboardRoute);
 
 app.all("*", (req, res) => {
     const message = `Can't find ${req.originalUrl} on this server!`;
+    logger.warn(message);
     throw new ApiError(404, message);
 });
 
