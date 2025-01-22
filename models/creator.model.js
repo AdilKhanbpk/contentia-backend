@@ -4,7 +4,7 @@ import bcrypt from "bcrypt";
 
 const CreatorFormSchema = new mongoose.Schema(
     {
-        identityNo: {
+        tckn: {
             type: Number,
         },
 
