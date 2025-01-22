@@ -73,7 +73,7 @@ export const googleSetup = () => {
                     if (userType === "creator") {
                         user = await CreatorModel.findOne({ email });
                         if (!user) {
-                            user = await Creator.create({
+                            user = await CreatorModel.create({
                                 email,
                                 fullName,
                                 authProvider: "google",
