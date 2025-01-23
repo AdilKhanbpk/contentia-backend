@@ -26,24 +26,25 @@ export const googleAuthCallbackMobile = async (req, res) => {
         const email = payload.email;
         const fullName = payload.name;
 
+        const userData = {
+            email,
+            fullName,
+            authProvider: "google",
+            userAgreement: true,
+            phoneNumber: "1234567890",
+            dateOfBirth: "01/01/2000",
+        };
+
         let user;
         if (userType === "creator") {
             user = await Creator.findOne({ email });
             if (!user) {
-                user = await Creator.create({
-                    email,
-                    fullName,
-                    authProvider: "google",
-                });
+                user = await Creator.create(userData);
             }
         } else {
             user = await User.findOne({ email });
             if (!user) {
-                user = await User.create({
-                    email,
-                    fullName,
-                    authProvider: "google",
-                });
+                user = await User.create(userData);
             }
         }
 
