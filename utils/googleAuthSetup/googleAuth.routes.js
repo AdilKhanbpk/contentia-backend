@@ -5,6 +5,10 @@ import {
     logout,
 } from "./googleAuth.controller.js";
 import passport from "passport";
+import {
+    googleAuthCallbackMobile,
+    googleAuthMobile,
+} from "./mobile/googleAuthController.js";
 
 const router = express.Router();
 
@@ -19,5 +23,8 @@ router.get(
 );
 
 router.get("/auth/logout", logout);
+
+router.post("/auth/google/mobile", googleAuthMobile);
+router.post("/auth/google/mobile/callback", googleAuthCallbackMobile);
 
 export default router;
