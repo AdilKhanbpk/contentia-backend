@@ -6,7 +6,7 @@ import CreatorModel from "../../../models/creator.model.js";
 import { generateTokens as generateCreatorTokens } from "../../../controllers/creator.controller.js";
 import { generateTokens } from "../../../controllers/user.controller.js";
 
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const client = new OAuth2Client(process.env.GOOGLE_MOBILE_CLIENT_ID);
 
 export const googleAuthMobile = (req, res, next) => {
     const userType = req.body.userType;
@@ -22,7 +22,7 @@ export const googleAuthCallbackMobile = async (req, res) => {
     try {
         const ticket = await client.verifyIdToken({
             idToken,
-            audience: process.env.GOOGLE_CLIENT_ID,
+            audience: process.env.GOOGLE_MOBILE_CLIENT_ID,
         });
         const payload = ticket.getPayload();
         const email = payload.email;
