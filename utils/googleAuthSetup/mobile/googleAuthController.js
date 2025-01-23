@@ -1,9 +1,9 @@
 import passport from "passport";
 import { OAuth2Client } from "google-auth-library";
-import User from "../models/user.model.js";
-import Creator from "../models/creator.model.js";
 import { generateTokens } from "./user.controller.js";
 import ApiResponse from "../../ApiResponse.js";
+import User from "../../../models/user.model.js";
+import CreatorModel from "../../../models/creator.model.js";
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -38,9 +38,9 @@ export const googleAuthCallbackMobile = async (req, res) => {
 
         let user;
         if (userType === "creator") {
-            user = await Creator.findOne({ email });
+            user = await CreatorModel.findOne({ email });
             if (!user) {
-                user = await Creator.create(userData);
+                user = await CreatorModel.create(userData);
             }
         } else {
             user = await User.findOne({ email });
