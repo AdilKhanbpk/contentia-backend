@@ -3,6 +3,7 @@ import { OAuth2Client } from "google-auth-library";
 import User from "../models/user.model.js";
 import Creator from "../models/creator.model.js";
 import { generateTokens } from "./user.controller.js";
+import ApiResponse from "../../ApiResponse.js";
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -50,14 +51,13 @@ export const googleAuthCallbackMobile = async (req, res) => {
 
         const { accessToken: appAccessToken } = await generateTokens(user._id);
 
-        res.json({
-            success: true,
-            accessToken: appAccessToken,
-            redirectUrl:
-                userType === "creator"
-                    ? process.env.CREATOR_SUCCESS_REDIRECT_URL
-                    : process.env.GOOGLE_FAILURE_URL,
-        });
+        res.status(200).json(
+            new ApiResponse(
+                200,
+                { user, accessToken: appAccessToken },
+                "Authentication successful with google"
+            )
+        );
     } catch (error) {
         console.error("Error in Google authentication:", error);
         res.status(500).json({
