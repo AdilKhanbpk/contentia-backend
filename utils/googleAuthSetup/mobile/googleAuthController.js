@@ -36,6 +36,9 @@ export const googleAuthMobile = async (req, res) => {
                     email,
                     fullName,
                     authProvider: "google",
+                    userAgreement: true,
+                    phoneNumber: "1234567890",
+                    dateOfBirth: "01/01/2000",
                 });
             }
         } else {
@@ -45,6 +48,9 @@ export const googleAuthMobile = async (req, res) => {
                     email,
                     fullName,
                     authProvider: "google",
+                    userAgreement: true,
+                    phoneNumber: "1234567890",
+                    dateOfBirth: "01/01/2000",
                 });
             }
         }
