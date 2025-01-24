@@ -10,6 +10,7 @@ const client = new OAuth2Client(process.env.GOOGLE_MOBILE_CLIENT_ID);
 
 export const googleAuthMobile = (req, res, next) => {
     const userType = req.body.userType;
+    console.log("🚀 ~ googleAuthMobile ~ userType:", userType);
     passport.authenticate("google", {
         scope: ["profile", "email"],
         state: JSON.stringify({ userType, platform: "mobile" }),
@@ -18,13 +19,20 @@ export const googleAuthMobile = (req, res, next) => {
 
 export const googleAuthCallbackMobile = async (req, res) => {
     const { idToken, userType } = req.body;
+    console.log("🚀 ~ googleAuthCallbackMobile ~ userType:", userType);
+    console.log("🚀 ~ googleAuthCallbackMobile ~ idToken:", idToken);
 
     try {
         const ticket = await client.verifyIdToken({
             idToken,
             audience: process.env.GOOGLE_MOBILE_CLIENT_ID,
         });
+        console.log("🚀 ~ googleAuthCallbackMobile ~ ticket:", ticket);
+
         const payload = ticket.getPayload();
+
+        console.log("🚀 ~ googleAuthCallbackMobile ~ payload:", payload);
+
         const email = payload.email;
         const fullName = payload.name;
 
