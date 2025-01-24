@@ -36,7 +36,11 @@ export const googleAuthMobile = async (req, res, next) => {
 
 export const googleAuthCallbackMobile = async (req, res) => {
     const { userPayload, userType } = req;
+    console.log("🚀 ~ googleAuthCallbackMobile ~ userType:", userType);
+    console.log("🚀 ~ googleAuthCallbackMobile ~ userPayload:", userPayload);
     const { email, name: fullName } = userPayload;
+    console.log("🚀 ~ googleAuthCallbackMobile ~ fullName:", fullName);
+    console.log("🚀 ~ googleAuthCallbackMobile ~ email:", email);
 
     try {
         let userModel = userType === "creator" ? CreatorModel : User;
