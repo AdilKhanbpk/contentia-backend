@@ -10,8 +10,7 @@ const client = new OAuth2Client(process.env.GOOGLE_MOBILE_CLIENT_ID);
 export const googleAuthMobile = async (req, res) => {
     try {
         const { idToken, userType } = req.body;
-        console.log("🚀 ~ googleAuthMobile ~ userType:", userType);
-        console.log("🚀 ~ googleAuthMobile ~ idToken:", idToken);
+
         if (!idToken || !userType) {
             return res.status(400).json({
                 success: false,
@@ -21,8 +20,6 @@ export const googleAuthMobile = async (req, res) => {
         const ticket = await client.verifyIdToken({
             idToken,
         });
-
-        console.log("🚀 ~ googleAuthMobile ~ ticket:", ticket);
 
         const payload = ticket.getPayload();
         const email = payload.email;
@@ -55,23 +52,23 @@ export const googleAuthMobile = async (req, res) => {
             }
         }
 
-        console.log("🚀 ~ googleAuthMobile ~ user:", user);
-
         const { accessToken: appAccessToken } =
             userType === "creator"
                 ? await generateCreatorTokens(user._id)
                 : await generateTokens(user._id);
 
-        res.json(
-            new ApiResponse(
-                200,
-                {
-                    user,
-                    accessToken: appAccessToken,
-                },
-                "Authentication successful with Google"
-            )
-        );
+        res.status(200)
+            .cookie("accessToken", accessToken, cookieOptions)
+            .json(
+                new ApiResponse(
+                    200,
+                    {
+                        user,
+                        accessToken: appAccessToken,
+                    },
+                    "Authentication successful with Google"
+                )
+            );
     } catch (error) {
         console.error("Error in googleAuthMobile:", error);
         res.status(401).json({
