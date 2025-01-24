@@ -20,7 +20,6 @@ export const googleAuthMobile = async (req, res, next) => {
         }
         const ticket = await client.verifyIdToken({
             idToken,
-            audience: process.env.GOOGLE_MOBILE_CLIENT_ID,
         });
         console.log("🚀 ~ googleAuthMobile ~ ticket:", ticket);
         req.userPayload = ticket.getPayload();
