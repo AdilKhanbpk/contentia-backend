@@ -7,7 +7,7 @@ import { generateTokens } from "../../../controllers/user.controller.js";
 
 const client = new OAuth2Client(process.env.GOOGLE_MOBILE_CLIENT_ID);
 
-export const googleAuthMobile = async (req, res, next) => {
+export const googleAuthMobile = async (req, res) => {
     try {
         const { idToken, userType } = req.body;
         console.log("🚀 ~ googleAuthMobile ~ userType:", userType);
@@ -21,55 +21,56 @@ export const googleAuthMobile = async (req, res, next) => {
         const ticket = await client.verifyIdToken({
             idToken,
         });
+
         console.log("🚀 ~ googleAuthMobile ~ ticket:", ticket);
-        req.userPayload = ticket.getPayload();
-        req.userType = userType;
-        next();
+
+        const payload = ticket.getPayload();
+        const email = payload.email;
+        const fullName = payload.name;
+
+        let user;
+        if (userType === "creator") {
+            user = await CreatorModel.findOne({ email });
+            if (!user) {
+                user = await CreatorModel.create({
+                    email,
+                    fullName,
+                    authProvider: "google",
+                });
+            }
+        } else {
+            user = await User.findOne({ email });
+            if (!user) {
+                user = await User.create({
+                    email,
+                    fullName,
+                    authProvider: "google",
+                });
+            }
+        }
+
+        console.log("🚀 ~ googleAuthMobile ~ user:", user);
+
+        const { accessToken: appAccessToken } =
+            userType === "creator"
+                ? await generateCreatorTokens(user._id)
+                : await generateTokens(user._id);
+
+        res.json(
+            new ApiResponse(
+                200,
+                {
+                    user,
+                    accessToken: appAccessToken,
+                },
+                "Authentication successful with Google"
+            )
+        );
     } catch (error) {
         console.error("Error in googleAuthMobile:", error);
         res.status(401).json({
             success: false,
             message: "Invalid or expired token",
-        });
-    }
-};
-
-export const googleAuthCallbackMobile = async (req, res) => {
-    const { userPayload, userType } = req;
-    console.log("🚀 ~ googleAuthCallbackMobile ~ userType:", userType);
-    console.log("🚀 ~ googleAuthCallbackMobile ~ userPayload:", userPayload);
-    const { email, name: fullName } = userPayload;
-    console.log("🚀 ~ googleAuthCallbackMobile ~ fullName:", fullName);
-    console.log("🚀 ~ googleAuthCallbackMobile ~ email:", email);
-
-    try {
-        let userModel = userType === "creator" ? CreatorModel : User;
-        let tokenGenerator =
-            userType === "creator" ? generateCreatorTokens : generateTokens;
-
-        let user = await userModel.findOne({ email });
-        if (!user) {
-            user = await userModel.create({
-                email,
-                fullName,
-                authProvider: "google",
-                userAgreement: true,
-            });
-        }
-
-        const { accessToken } = await tokenGenerator(user._id);
-        res.status(200).json(
-            new ApiResponse(
-                200,
-                { user, accessToken },
-                "Authentication successful with Google"
-            )
-        );
-    } catch (error) {
-        console.error("Error in googleAuthCallbackMobile:", error);
-        res.status(500).json({
-            success: false,
-            message: "Authentication failed",
         });
     }
 };
