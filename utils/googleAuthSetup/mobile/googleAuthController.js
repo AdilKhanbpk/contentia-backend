@@ -58,7 +58,7 @@ export const googleAuthMobile = async (req, res) => {
                 : await generateTokens(user._id);
 
         res.status(200)
-            .cookie("accessToken", accessToken, cookieOptions)
+            .cookie("accessToken", appAccessToken, cookieOptions)
             .json(
                 new ApiResponse(
                     200,
