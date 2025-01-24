@@ -6,7 +6,11 @@ import { generateTokens as generateCreatorTokens } from "../../../controllers/cr
 import { generateTokens } from "../../../controllers/user.controller.js";
 
 const client = new OAuth2Client(process.env.GOOGLE_MOBILE_CLIENT_ID);
-
+export const cookieOptions = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+};
 export const googleAuthMobile = async (req, res) => {
     try {
         const { idToken, userType } = req.body;
