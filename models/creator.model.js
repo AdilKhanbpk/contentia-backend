@@ -5,7 +5,8 @@ import bcrypt from "bcrypt";
 const CreatorFormSchema = new mongoose.Schema(
     {
         tckn: {
-            type: Number,
+            type: String,
+            unique: true,
         },
 
         favoriteOrders: {
@@ -121,6 +122,7 @@ const CreatorFormSchema = new mongoose.Schema(
         billingInformation: {
             invoiceStatus: {
                 type: Boolean,
+                default: true,
             },
             trId: {
                 type: String,
