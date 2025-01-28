@@ -212,7 +212,10 @@ const CreatorFormSchema = new mongoose.Schema(
             type: Boolean,
             required: [true, "User agreement is required."],
         },
-        approvedCommercial: Boolean,
+        approvedCommercial: {
+            type: Boolean,
+            default: true,
+        },
     },
     { timestamps: true }
 );
