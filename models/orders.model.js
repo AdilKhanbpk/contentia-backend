@@ -80,7 +80,7 @@ const ordersProfileSchema = new Schema(
                 type: Boolean,
             },
             creatorType: {
-                type: String,
+                type: Boolean,
             },
             productShipping: {
                 type: Boolean,
