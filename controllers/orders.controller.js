@@ -26,10 +26,10 @@ const createOrder = asyncHandler(async (req, res) => {
 
     if (
         !additionalServices ||
-        !additionalServices.platform ||
-        !additionalServices.duration ||
-        !additionalServices.edit ||
-        !additionalServices.aspectRatio
+        !("platform" in additionalServices) ||
+        !("duration" in additionalServices) ||
+        !("edit" in additionalServices) ||
+        !("aspectRatio" in additionalServices)
     ) {
         throw new ApiError(400, "Please provide all additional services");
     }
