@@ -38,7 +38,7 @@ const CreatorFormSchema = new mongoose.Schema(
         },
         profilePic: {
             type: String,
-            default: "https://avatars.dicebear.com/api/avataaars/1234.svg",
+            default: "https://placehold.co/100x100?text=No+Creator+Image",
         },
         addressDetails: {
             addressOne: {

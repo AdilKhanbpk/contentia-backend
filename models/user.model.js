@@ -31,6 +31,7 @@ const userSchema = new mongoose.Schema(
         },
         profilePic: {
             type: String,
+            default: "https://placehold.co/100x100?text=No+User+Image",
         },
         fullName: {
             type: String,
