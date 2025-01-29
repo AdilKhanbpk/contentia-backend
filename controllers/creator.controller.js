@@ -416,7 +416,13 @@ const getAllAppliedOrders = asyncHandler(async (req, res) => {
 
     const appliedOrders = await Orders.find({
         appliedCreators: creatorId,
-    });
+    })
+        .sort({ createdAt: -1 })
+
+        .populate({
+            path: "associatedBrands",
+            select: "-associatedOrders",
+        });
 
     return res
         .status(200)
@@ -436,7 +442,13 @@ const myRejectedOrders = asyncHandler(async (req, res) => {
 
     const rejectedOrders = await Orders.find({
         rejectedCreators: creatorId,
-    });
+    })
+        .sort({ createdAt: -1 })
+
+        .populate({
+            path: "associatedBrands",
+            select: "-associatedOrders",
+        });
 
     return res
         .status(200)
@@ -456,7 +468,13 @@ const myAssignedOrders = asyncHandler(async (req, res) => {
 
     const assignedOrders = await Orders.find({
         assignedCreators: creatorId,
-    });
+    })
+        .sort({ createdAt: -1 })
+
+        .populate({
+            path: "associatedBrands",
+            select: "-associatedOrders",
+        });
 
     return res
         .status(200)
