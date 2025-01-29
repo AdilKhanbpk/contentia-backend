@@ -16,7 +16,7 @@ const router = express.Router();
 router.post(
     "/",
     isAuthenticated,
-    uploadOnMulter.fields([{ name: "briefContent.uploadFiles" }]),
+    uploadOnMulter.fields([{ name: "uploadFiles" }]),
     createOrder
 );
 router.get("/", isAuthenticated, getOrders);

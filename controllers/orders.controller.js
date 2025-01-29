@@ -37,10 +37,9 @@ const createOrder = asyncHandler(async (req, res) => {
     let fileUrls = [];
     let brand;
     if (briefContent) {
-        if (req.files && req.files["briefContent.uploadFiles"]) {
-            const filePaths = req.files["briefContent.uploadFiles"].map(
-                (file) => file.path
-            );
+        if (req.files && req.files["uploadFiles"]) {
+            const filePaths = req.files["uploadFiles"].map((file) => file.path);
+
             fileUrls = await uploadMultipleFilesToCloudinary(filePaths);
         }
 
