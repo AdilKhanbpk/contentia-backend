@@ -33,15 +33,6 @@ const createCreator = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Please fill all the required fields");
     }
 
-    if (
-        !addressDetails?.addressOne ||
-        !addressDetails?.addressTwo ||
-        !addressDetails?.zipCode ||
-        !addressDetails?.country
-    ) {
-        throw new ApiError(400, "Please fill address details");
-    }
-
     const checkEmail = await Creator.findOne({ email });
 
     if (checkEmail) {
