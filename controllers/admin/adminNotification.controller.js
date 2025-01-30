@@ -83,12 +83,12 @@ const sendNotification = async ({
 
         userIds.forEach((userId) => {
             const socketId = connectedSocket.get(userId.toString());
-            console.log("Sending Notification to  Socket ID:", socketId);
+            // console.log("Sending Notification to  Socket ID:", socketId);
             if (socketId) {
                 io.to(socketId).emit("newNotification", notification);
-                console.log("Notification sent to Socket ID:", socketId);
+                // console.log("Notification sent to Socket ID:", socketId);
             } else {
-                console.log(`User ${userId} is not connected.`);
+                // console.log(`User ${userId} is not connected.`);
             }
         });
 
@@ -103,8 +103,8 @@ const sendNotification = async ({
 
 const createNotification = asyncHandler(async (req, res) => {
     const { userType, title, details, users } = req.body;
-    console.log("🚀 ~ createNotification ~ users:", users);
-    console.log("🚀 ~ createNotification ~ userType:", userType);
+    // console.log("🚀 ~ createNotification ~ users:", users);
+    // console.log("🚀 ~ createNotification ~ userType:", userType);
     if (!userType || !title || !details) {
         throw new ApiError(400, "Please provide all the required fields");
     }
@@ -145,7 +145,7 @@ const createNotification = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Invalid user type provided");
     }
 
-    console.log(`USERTYPE: ${userType}, USERIDS: ${userIds}`);
+    // console.log(`USERTYPE: ${userType}, USERIDS: ${userIds}`);
     const notificationData = notificationTemplates.generalNotification({
         adminName: req.user.fullName,
         title,
@@ -170,7 +170,7 @@ const createNotification = asyncHandler(async (req, res) => {
         if (socketId) {
             io.to(socketId).emit("newNotification", createdNotification);
         } else {
-            console.log(`User ${userId} is not connected.`);
+            // console.log(`User ${userId} is not connected.`);
         }
     });
 

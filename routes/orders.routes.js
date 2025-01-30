@@ -17,6 +17,11 @@ router.post(
     "/",
     isAuthenticated,
     uploadOnMulter.fields([{ name: "uploadFiles" }]),
+    (req, res, next) => {
+        console.log("Request Body (JSON data):", req.body); // Log JSON data
+        console.log("Uploaded Files:", req.files); // Log uploaded files
+        next();
+    },
     createOrder
 );
 router.get("/", isAuthenticated, getOrders);
