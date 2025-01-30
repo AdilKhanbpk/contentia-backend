@@ -718,9 +718,14 @@ const getAllMyFavoriteOrders = asyncHandler(async (req, res) => {
 
     isValidId(creatorId);
 
-    const favoriteOrders = await Creator.findById(creatorId).populate({
-        path: "favoriteOrders",
-    });
+    const favoriteOrders = await Creator.findById(creatorId)
+        .populate({
+            path: "favoriteOrders",
+        })
+        .populate({
+            path: "associatedBrands",
+            select: "-associatedOrders",
+        });
 
     return res
         .status(200)

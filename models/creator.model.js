@@ -149,7 +149,7 @@ const CreatorFormSchema = new mongoose.Schema(
             contentInformation: {
                 contentType: {
                     type: [String],
-                    enum: ["product", "service", "other"],
+                    enum: ["product", "service", "location"],
                 },
                 creatorType: {
                     type: String,
