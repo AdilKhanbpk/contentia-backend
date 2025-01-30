@@ -28,7 +28,8 @@ const brandSchema = new Schema(
         },
         brandImage: {
             type: String,
-            default: "https://placehold.co/100x100?text=No+Brand+Image",
+            default:
+                "https://images.pexels.com/photos/6169056/pexels-photo-6169056.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
         },
     },
     {
