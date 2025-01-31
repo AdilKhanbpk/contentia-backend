@@ -11,7 +11,7 @@ import { sendNotification } from "./adminNotification.controller.js";
 const createCreator = asyncHandler(async (req, res) => {
     const {
         fullName,
-        identityNo,
+        tckn,
         password,
         email,
         dateOfBirth,
