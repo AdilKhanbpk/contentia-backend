@@ -25,7 +25,7 @@ const createCreator = asyncHandler(async (req, res) => {
         !isVerified ||
         !fullName ||
         !password ||
-        !identityNo ||
+        !tckn ||
         !dateOfBirth ||
         !phoneNumber ||
         !email
@@ -41,7 +41,7 @@ const createCreator = asyncHandler(async (req, res) => {
 
     const newUser = await Creator.create({
         fullName,
-        identityNo,
+        tckn,
         password,
         email: email.trim().toLowerCase(),
         dateOfBirth,
