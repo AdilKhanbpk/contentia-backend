@@ -152,45 +152,6 @@ const createCreator = asyncHandler(async (req, res) => {
         );
     }
 
-    if (invoiceType === "individual") {
-        // console.log("Invoice type:", invoiceType);
-        // console.log(billingInformation);
-
-        if (
-            !billingInformation?.invoiceStatus ||
-            !billingInformation?.address
-        ) {
-            throw new ApiError(
-                400,
-                "Please fill invoiceStatus and address for individual invoice type"
-            );
-        }
-
-        if (!billingInformation?.fullName) {
-            throw new ApiError(
-                400,
-                "Please fill fullName for individual invoice type"
-            );
-        }
-    } else if (invoiceType === "institutional") {
-        // console.log("Invoice type:", invoiceType);
-        if (
-            !billingInformation?.companyName ||
-            !billingInformation?.taxNumber ||
-            !billingInformation?.taxOffice
-        ) {
-            throw new ApiError(
-                400,
-                "Please fill companyName, taxNumber, and taxOffice for institutional invoice type"
-            );
-        }
-    } else {
-        throw new ApiError(
-            400,
-            "Invoice type must be 'individual' or 'institutional'"
-        );
-    }
-
     if (
         preferences?.contentInformation?.contentType === "product" ||
         preferences?.contentInformation?.contentType === "space"
@@ -200,6 +161,12 @@ const createCreator = asyncHandler(async (req, res) => {
                 400,
                 "Address details are required for product or space"
             );
+        }
+    }
+
+    if (preferences?.socialInformation.contentType === "yes") {
+        if (!preferences.socialInformation.platforms) {
+            throw new ApiError(400, "Please fill platforms for social media");
         }
     }
 
