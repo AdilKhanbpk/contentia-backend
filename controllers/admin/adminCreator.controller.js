@@ -48,6 +48,7 @@ const createCreator = asyncHandler(async (req, res) => {
         gender,
         phoneNumber,
         isVerified,
+        ...rest,
         userAgreement: true,
         approvedCommercial: true,
     });
