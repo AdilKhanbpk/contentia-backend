@@ -8,7 +8,7 @@ import { server } from "./app.js";
 
 process.on("uncaughtException", (err) => {
     console.error("UNCAUGHT EXCEPTION! 💥 Shutting down...");
-    console.error(err.name, err.message);
+    console.error(err.name, err);
     process.exit(1);
 });
 
