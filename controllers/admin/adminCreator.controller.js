@@ -18,7 +18,7 @@ const createCreator = asyncHandler(async (req, res) => {
         gender,
         phoneNumber,
         isVerified,
-        addressDetails,
+        ...rest
     } = req.body;
 
     if (
@@ -48,7 +48,6 @@ const createCreator = asyncHandler(async (req, res) => {
         gender,
         phoneNumber,
         isVerified,
-        addressDetails,
         userAgreement: true,
         approvedCommercial: true,
     });

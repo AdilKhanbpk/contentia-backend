@@ -167,7 +167,7 @@ const CreatorFormSchema = new mongoose.Schema(
                     district: {
                         type: String,
                     },
-                    neighbourhood: {
+                    neighborhood: {
                         type: String,
                     },
                     fullAddress: {
