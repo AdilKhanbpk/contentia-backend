@@ -123,7 +123,6 @@ const CreatorFormSchema = new mongoose.Schema(
         billingInformation: {
             invoiceStatus: {
                 type: Boolean,
-                default: true,
             },
             trId: {
                 type: String,
