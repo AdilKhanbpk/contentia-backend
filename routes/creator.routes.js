@@ -15,6 +15,10 @@ import {
     removeOrderFromFavorites,
     getMyOrderFolderToUploadContent,
     getAllMyFavoriteOrders,
+    totalAppliedAndAssignedOrders,
+    totalNumberOfUgcForCompletedOrders,
+    totalCompletedOrdersWithShareOption,
+    totalAssignedOrders,
 } from "../controllers/creator.controller.js";
 import { isAuthenticated } from "../middlewares/authentication.middleware.js";
 import { uploadOnMulter } from "../middlewares/multer.middleware.js";
@@ -60,5 +64,22 @@ router.patch(
     changeProfilePicture
 );
 router.post("/apply-for-order/:orderId", isAuthenticated, applyForOrder);
+
+router.get(
+    "/total-applied-assigned-orders",
+    isAuthenticated,
+    totalAppliedAndAssignedOrders
+);
+router.get(
+    "/total-ugc-for-completed-orders",
+    isAuthenticated,
+    totalNumberOfUgcForCompletedOrders
+);
+router.get(
+    "/total-completed-orders-with-share",
+    isAuthenticated,
+    totalCompletedOrdersWithShareOption
+);
+router.get("/total-assigned-orders", isAuthenticated, totalAssignedOrders);
 
 export default router;

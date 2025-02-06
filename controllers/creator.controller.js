@@ -729,6 +729,69 @@ const getMyOrderFolderToUploadContent = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, myFolder, "My folder retrieved"));
 });
 
+const totalAppliedAndAssignedOrders = asyncHandler(async (req, res) => {
+    const creatorId = req.user._id;
+
+    const totalOrders = await Order.countDocuments({
+        $or: [{ assignedCreators: creatorId }, { appliedCreators: creatorId }],
+    });
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, totalOrders, "Total orders retrieved"));
+});
+
+const totalNumberOfUgcForCompletedOrders = asyncHandler(async (req, res) => {
+    const creatorId = req.user._id;
+
+    const result = await Order.aggregate([
+        {
+            $match: {
+                orderStatus: "completed",
+                assignedCreators: creatorId,
+            },
+        },
+        {
+            $group: {
+                _id: null,
+                totalUgc: { $sum: "$noOfUgc" },
+            },
+        },
+    ]);
+
+    const totalUgc = result.length > 0 ? result[0].totalUgc : 0;
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, totalUgc, "Total UGC retrieved"));
+});
+
+const totalCompletedOrdersWithShareOption = asyncHandler(async (req, res) => {
+    const creatorId = req.user._id;
+
+    const totalOrders = await Order.countDocuments({
+        orderStatus: "completed",
+        "additionalServices.share": true,
+        assignedCreators: creatorId,
+    });
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, totalOrders, "Total orders retrieved"));
+});
+
+const totalAssignedOrders = asyncHandler(async (req, res) => {
+    const creatorId = req.user._id;
+
+    const totalOrders = await Order.countDocuments({
+        assignedCreators: creatorId,
+    });
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, totalOrders, "Total orders retrieved"));
+});
+
 export {
     loginCreator,
     createCreator,
@@ -746,4 +809,8 @@ export {
     removeOrderFromFavorites,
     getMyOrderFolderToUploadContent,
     getAllMyFavoriteOrders,
+    totalAppliedAndAssignedOrders,
+    totalNumberOfUgcForCompletedOrders,
+    totalCompletedOrdersWithShareOption,
+    totalAssignedOrders,
 };

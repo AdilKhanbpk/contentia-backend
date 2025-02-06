@@ -149,6 +149,7 @@ const CreatorFormSchema = new mongoose.Schema(
                 contentType: {
                     type: [String],
                     enum: ["product", "service", "location"],
+                    required: [true, "Preferences - Content type is required."],
                 },
                 creatorType: {
                     type: String,
