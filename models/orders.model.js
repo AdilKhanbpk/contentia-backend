@@ -96,20 +96,26 @@ const ordersProfileSchema = new Schema(
             maxCreatorAge: {
                 type: Number,
             },
-            interests: {
-                type: [String],
+            areaOfInterest: [String],
+            contentType: {
+                type: String,
             },
-            contentType: [
-                {
+            addressDetails: {
+                country: {
                     type: String,
                 },
-            ],
-            locationAddress: {
-                country: { type: String },
-                city: { type: String },
-                district: { type: String },
-                street: { type: String },
-                fullAddress: { type: String },
+                state: {
+                    type: String,
+                },
+                district: {
+                    type: String,
+                },
+                neighborhood: {
+                    type: String,
+                },
+                fullAddress: {
+                    type: String,
+                },
             },
         },
         briefContent: {
