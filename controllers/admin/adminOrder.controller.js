@@ -151,14 +151,66 @@ const getOrderById = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, order, "Order retrieved successfully"));
 });
 
+// const updateOrder = asyncHandler(async (req, res) => {
+//     // TODO FILES FUNCTIONALITY NEEDS TO BE ADDED IN FUTURE
+//     // TODO ASSIGNED CREATORS VALIDATION AND ORDER OWNER VALIDATION
+//     const { orderId } = req.params;
+//     const {
+//         noOfUgc,
+//         orderOwner,
+//         assignedCreators=[],
+//         orderStatus,
+//         paymentStatus,
+//         contentsDelivered,
+//         additionalServices,
+//         preferences,
+//         briefContent,
+//         orderQuota,
+//         numberOfRequests,
+//         uploadFiles,
+//     } = req.body;
+
+//     let updatedAssignedCreator = [];
+//     if (assignedCreators) {
+//         updatedAssignedCreator = assignedCreators
+//             .split(",")
+//             .map((id) => mongoose.Types.ObjectId.createFromHexString(id));
+//     }
+
+//     const order = await Order.findByIdAndUpdate(
+//         orderId,
+//         {
+//             noOfUgc,
+//             orderOwner,
+//             orderStatus,
+//             paymentStatus,
+//             contentsDelivered,
+//             additionalServices,
+//             preferences,
+//             briefContent,
+//             orderQuota,
+//             uploadFiles,
+//             numberOfRequests: updatedAssignedCreator.length,
+//             assignedCreators: updatedAssignedCreator,
+//         },
+//         { new: true }
+//     );
+
+//     if (!order) {
+//         throw new ApiError(404, "Order not updated or not found");
+//     }
+
+//     return res
+//         .status(200)
+//         .json(new ApiResponse(200, order, "Order updated successfully"));
+// });
+
 const updateOrder = asyncHandler(async (req, res) => {
-    // TODO FILES FUNCTIONALITY NEEDS TO BE ADDED IN FUTURE
-    // TODO ASSIGNED CREATORS VALIDATION AND ORDER OWNER VALIDATION
     const { orderId } = req.params;
     const {
         noOfUgc,
         orderOwner,
-        assignedCreators,
+        assignedCreators = [],
         orderStatus,
         paymentStatus,
         contentsDelivered,
@@ -170,14 +222,60 @@ const updateOrder = asyncHandler(async (req, res) => {
         uploadFiles,
     } = req.body;
 
-    let updatedAssignedCreator = [];
-    if (assignedCreators) {
-        updatedAssignedCreator = assignedCreators
-            .split(",")
-            .map((id) => mongoose.Types.ObjectId.createFromHexString(id));
+    if (!mongoose.isValidObjectId(orderId)) {
+        throw new ApiError(400, "Invalid order ID");
     }
 
-    const order = await Order.findByIdAndUpdate(
+    // Fetch existing order
+    const existingOrder = await Order.findById(orderId);
+    if (!existingOrder) {
+        throw new ApiError(404, "Order not found");
+    }
+
+    // Validate orderOwner
+    if (orderOwner && !mongoose.isValidObjectId(orderOwner)) {
+        throw new ApiError(400, "Invalid order owner ID");
+    }
+    const customer = orderOwner ? await User.findById(orderOwner) : null;
+    if (orderOwner && !customer) {
+        throw new ApiError(404, "Order owner not found");
+    }
+
+    // Validate assigned creators
+    let validatedCreators = [];
+    if (Array.isArray(assignedCreators) && assignedCreators.length > 0) {
+        validatedCreators = assignedCreators.map((id) => {
+            if (!mongoose.isValidObjectId(id)) {
+                throw new ApiError(400, `Invalid creator ID: ${id}`);
+            }
+            return mongoose.Types.ObjectId.createFromHexString(id);
+        });
+
+        const existingCreators = await Creator.find({
+            _id: { $in: validatedCreators },
+        });
+
+        if (existingCreators.length !== validatedCreators.length) {
+            const missingCreators = validatedCreators.filter(
+                (id) =>
+                    !existingCreators.find((creator) => creator._id.equals(id))
+            );
+            throw new ApiError(
+                404,
+                `Some assigned creators were not found: ${missingCreators.join(", ")}`
+            );
+        }
+    }
+
+    // Handle file uploads (Placeholder)
+    let uploadedFiles = existingOrder.uploadFiles || [];
+    if (uploadFiles && uploadFiles.length > 0) {
+        // Assume `uploadFiles` is an array of file URLs (Modify this as per your file upload logic)
+        uploadedFiles = [...uploadedFiles, ...uploadFiles];
+    }
+
+    // Update the order
+    const updatedOrder = await Order.findByIdAndUpdate(
         orderId,
         {
             noOfUgc,
@@ -189,21 +287,61 @@ const updateOrder = asyncHandler(async (req, res) => {
             preferences,
             briefContent,
             orderQuota,
-            uploadFiles,
-            numberOfRequests: updatedAssignedCreator.length,
-            assignedCreators: updatedAssignedCreator,
+            numberOfRequests: validatedCreators.length,
+            assignedCreators: validatedCreators,
+            uploadFiles: uploadedFiles,
         },
         { new: true }
-    );
+    ).populate("orderOwner assignedCreators");
 
-    if (!order) {
-        throw new ApiError(404, "Order not updated or not found");
+    if (!updatedOrder) {
+        throw new ApiError(500, "Failed to update order");
     }
+
+    // Send notifications
+    let notificationPromises = [];
+
+    // Notify customer about order update
+    if (customer) {
+        const customerNotification =
+            notificationTemplates.orderUpdatedForCustomer({
+                customerName: customer.fullName,
+                customerEmail: customer.email,
+                customerPhoneNumber: customer.phoneNumber,
+                targetUsers: [customer._id],
+                metadata: {
+                    message: "Your order has been updated",
+                },
+            });
+        notificationPromises.push(sendNotification(customerNotification));
+    }
+
+    // Notify assigned creators about order update
+    if (validatedCreators.length > 0) {
+        const creatorNotifications = validatedCreators.map((creatorId) => {
+            return notificationTemplates.orderUpdateForCreator({
+                creatorName: "Creator", // Fetch creator details if necessary
+                targetUsers: [creatorId],
+                metadata: {
+                    message: "An order assigned to you has been updated",
+                },
+            });
+        });
+
+        notificationPromises.push(
+            ...creatorNotifications.map((notification) =>
+                sendNotification(notification)
+            )
+        );
+    }
+
+    await Promise.all(notificationPromises);
 
     return res
         .status(200)
-        .json(new ApiResponse(200, order, "Order updated successfully"));
+        .json(new ApiResponse(200, updatedOrder, "Order updated successfully"));
 });
+
 
 const deleteOrder = asyncHandler(async (req, res) => {
     const { orderId } = req.params;
