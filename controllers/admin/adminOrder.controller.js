@@ -154,6 +154,7 @@ const getOrderById = asyncHandler(async (req, res) => {
 
 const updateOrder = asyncHandler(async (req, res) => {
     const { orderId } = req.params;
+    console.log("Request Body: ", req.body);
     const {
         noOfUgc,
         orderOwner,
@@ -167,7 +168,6 @@ const updateOrder = asyncHandler(async (req, res) => {
         briefContent,
         orderQuota,
     } = req.body;
-
     console.log("🚀 ~ updateOrder ~ assignedCreators:", assignedCreators);
     console.log("🚀 ~ updateOrder ~ orderOwner:", orderOwner);
 
