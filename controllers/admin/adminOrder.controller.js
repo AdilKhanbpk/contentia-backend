@@ -166,46 +166,53 @@ const updateOrder = asyncHandler(async (req, res) => {
         preferences,
         briefContent,
         orderQuota,
-        uploadFiles,
     } = req.body;
 
+    console.log("🚀 ~ updateOrder ~ assignedCreators:", assignedCreators);
+    console.log("🚀 ~ updateOrder ~ orderOwner:", orderOwner);
+
+    // Validate order ID
     if (!mongoose.isValidObjectId(orderId)) {
         throw new ApiError(400, "Invalid order ID");
     }
 
+    // Find existing order
     const existingOrder = await Order.findById(orderId);
     if (!existingOrder) {
         throw new ApiError(404, "Order not found");
     }
 
-    const orderOwnerToHex =
-        mongoose.Types.ObjectId.createFromHexString(orderOwner);
-
-    if (orderOwner && !mongoose.isValidObjectId(orderOwnerToHex)) {
-        throw new ApiError(400, "Invalid order owner ID");
+    // Validate orderOwner
+    let orderOwnerToHex;
+    if (orderOwner) {
+        if (!mongoose.isValidObjectId(orderOwner)) {
+            throw new ApiError(400, "Invalid order owner ID");
+        }
+        orderOwnerToHex = new mongoose.Types.ObjectId(orderOwner);
+        const customer = await User.findById(orderOwnerToHex);
+        if (!customer) {
+            throw new ApiError(404, "Order owner not found");
+        }
     }
-    const customer = orderOwner ? await User.findById(orderOwnerToHex) : null;
-    if (orderOwner && !customer) {
-        throw new ApiError(404, "Order owner not found");
-    }
 
+    // Validate assigned creators
     let validatedCreators = [];
     if (Array.isArray(assignedCreators) && assignedCreators.length > 0) {
         validatedCreators = assignedCreators.map((id) => {
             if (!mongoose.isValidObjectId(id)) {
                 throw new ApiError(400, `Invalid creator ID: ${id}`);
             }
-            return mongoose.Types.ObjectId.createFromHexString(id);
+            return new mongoose.Types.ObjectId(id);
         });
 
+        // Check if all creators exist
         const existingCreators = await Creator.find({
             _id: { $in: validatedCreators },
         });
-
         if (existingCreators.length !== validatedCreators.length) {
             const missingCreators = validatedCreators.filter(
                 (id) =>
-                    !existingCreators.find((creator) => creator._id.equals(id))
+                    !existingCreators.some((creator) => creator._id.equals(id))
             );
             throw new ApiError(
                 404,
@@ -216,19 +223,23 @@ const updateOrder = asyncHandler(async (req, res) => {
         }
     }
 
+    // Handle file uploads if any
     let fileUrls = [];
     let brand;
     if (briefContent) {
         if (req.files && req.files["uploadFiles"]) {
             const filePaths = req.files["uploadFiles"].map((file) => file.path);
-
             fileUrls = await uploadMultipleFilesToCloudinary(filePaths);
         }
 
-        if (briefContent.brandName) {
-            briefContent.brandName = briefContent?.brandName.trim();
+        // Validate brandName
+        if (
+            briefContent.brandName &&
+            typeof briefContent.brandName === "string"
+        ) {
+            briefContent.brandName = briefContent.brandName.trim();
             brand = await BrandModel.findOne({
-                brandName: briefContent?.brandName,
+                brandName: briefContent.brandName,
             });
 
             if (!brand) {
@@ -242,7 +253,7 @@ const updateOrder = asyncHandler(async (req, res) => {
         orderId,
         {
             noOfUgc,
-            orderOwnerToHex,
+            orderOwner: orderOwnerToHex,
             orderStatus,
             totalPrice,
             paymentStatus,
@@ -257,7 +268,6 @@ const updateOrder = asyncHandler(async (req, res) => {
             orderQuota,
             numberOfRequests: validatedCreators.length,
             assignedCreators: validatedCreators,
-            // uploadFiles: uploadedFiles,
         },
         { new: true }
     ).populate("orderOwner assignedCreators");
