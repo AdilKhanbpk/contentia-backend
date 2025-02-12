@@ -232,6 +232,7 @@ const updateOrder = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Order not found");
     }
 
+    console.log("🚀 ~ updateOrder ~ orderOwner:", orderOwner)
     const orderOwnerToHex = mongoose.Types.ObjectId.createFromHexString(
         orderOwner
     )
@@ -301,45 +302,6 @@ const updateOrder = asyncHandler(async (req, res) => {
     if (!updatedOrder) {
         throw new ApiError(500, "Failed to update order");
     }
-
-    // Send notifications
-    let notificationPromises = [];
-
-    // Notify customer about order update
-    if (customer) {
-        const customerNotification =
-            notificationTemplates.orderUpdatedForCustomer({
-                customerName: customer.fullName,
-                customerEmail: customer.email,
-                customerPhoneNumber: customer.phoneNumber,
-                targetUsers: [customer._id],
-                metadata: {
-                    message: "Your order has been updated",
-                },
-            });
-        notificationPromises.push(sendNotification(customerNotification));
-    }
-
-    // Notify assigned creators about order update
-    if (validatedCreators.length > 0) {
-        const creatorNotifications = validatedCreators.map((creatorId) => {
-            return notificationTemplates.orderUpdateForCreator({
-                creatorName: "Creator", // Fetch creator details if necessary
-                targetUsers: [creatorId],
-                metadata: {
-                    message: "An order assigned to you has been updated",
-                },
-            });
-        });
-
-        notificationPromises.push(
-            ...creatorNotifications.map((notification) =>
-                sendNotification(notification)
-            )
-        );
-    }
-
-    await Promise.all(notificationPromises);
 
     return res
         .status(200)
