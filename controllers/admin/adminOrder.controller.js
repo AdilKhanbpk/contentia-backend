@@ -9,6 +9,7 @@ import { sendNotification } from "../admin/adminNotification.controller.js";
 import User from "../../models/user.model.js";
 import { notificationTemplates } from "../../helpers/notificationTemplates.js";
 import BrandModel from "../../models/brand.model.js";
+import { uploadMultipleFilesToCloudinary } from "../../utils/Cloudinary.js";
 
 const createOrder = asyncHandler(async (req, res) => {
     const {
@@ -248,6 +249,13 @@ const updateOrder = asyncHandler(async (req, res) => {
         }
     }
 
+    if (req.files && req.files["uploadFilesToOrder"]) {
+        const filePaths = req.files["uploadFilesToOrder"].map(
+            (file) => file.path
+        );
+        fileUrls = await uploadMultipleFilesToCloudinary(filePaths);
+    }
+
     // Update the order
     const updatedOrder = await Order.findByIdAndUpdate(
         orderId,
@@ -268,6 +276,7 @@ const updateOrder = asyncHandler(async (req, res) => {
             orderQuota,
             numberOfRequests: validatedCreators.length,
             assignedCreators: validatedCreators,
+            uploadFiles: fileUrls?.map((file) => file.secure_url),
         },
         { new: true }
     ).populate("orderOwner assignedCreators");

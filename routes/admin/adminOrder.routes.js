@@ -24,7 +24,10 @@ router.patch(
     "/:orderId",
     isAuthenticated,
     isAdmin,
-    uploadOnMulter.fields([{ name: "uploadFiles" }]),
+    uploadOnMulter.fields([
+        { name: "uploadFiles" },
+        { name: "uploadFilesToOrder" },
+    ]),
     updateOrder
 );
 router.delete("/:orderId", isAuthenticated, isAdmin, deleteOrder);
