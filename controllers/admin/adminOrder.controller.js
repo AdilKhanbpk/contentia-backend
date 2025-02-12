@@ -229,9 +229,7 @@ const updateOrder = asyncHandler(async (req, res) => {
         if (req.files && req.files["uploadFiles"]) {
             const filePaths = req.files["uploadFiles"].map((file) => file.path);
             fileUrls = await uploadMultipleFilesToCloudinary(filePaths);
-            console.log("🚀 ~ updateOrder ~ fileUrls:", fileUrls);
         }
-        console.log("🚀Out ~ updateOrder ~ fileUrls:", fileUrls);
 
         // Validate brandName
         if (
