@@ -232,11 +232,15 @@ const updateOrder = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Order not found");
     }
 
+    const orderOwnerToHex = mongoose.Types.ObjectId.createFromHexString(
+        orderOwner
+    )
+
     // Validate orderOwner
-    if (orderOwner && !mongoose.isValidObjectId(orderOwner)) {
+    if (orderOwner && !mongoose.isValidObjectId(orderOwnerToHex)) {
         throw new ApiError(400, "Invalid order owner ID");
     }
-    const customer = orderOwner ? await User.findById(orderOwner) : null;
+    const customer = orderOwner ? await User.findById(orderOwnerToHex) : null;
     if (orderOwner && !customer) {
         throw new ApiError(404, "Order owner not found");
     }
@@ -279,7 +283,7 @@ const updateOrder = asyncHandler(async (req, res) => {
         orderId,
         {
             noOfUgc,
-            orderOwner,
+            orderOwnerToHex,
             orderStatus,
             paymentStatus,
             contentsDelivered,

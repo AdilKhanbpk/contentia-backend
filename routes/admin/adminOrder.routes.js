@@ -19,7 +19,7 @@ const router = express.Router();
 router.post("/", isAuthenticated, isAdmin, createOrder);
 router.get("/", isAuthenticated, isAdmin, getOrders);
 router.get("/:orderId", isAuthenticated, isAdmin, getOrderById);
-router.patch("/", isAuthenticated, isAdmin, updateOrder);
+router.patch("/:orderId", isAuthenticated, isAdmin, updateOrder);
 router.delete("/:orderId", isAuthenticated, isAdmin, deleteOrder);
 router.get(
     "/applied-creators/:orderId",
