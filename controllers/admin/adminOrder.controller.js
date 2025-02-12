@@ -231,15 +231,15 @@ const updateOrder = asyncHandler(async (req, res) => {
     if (!existingOrder) {
         throw new ApiError(404, "Order not found");
     }
+    console.log("🚀 ~ updateOrder ~ orderId:", orderId)
 
-    // Validate orderOwner
-    // if (orderOwner && !mongoose.isValidObjectId(orderOwner)) {
-    //     throw new ApiError(400, "Invalid order owner ID");
-    // }
-    // const customer = orderOwner ? await User.findById(orderOwner) : null;
-    // if (orderOwner && !customer) {
-    //     throw new ApiError(404, "Order owner not found");
-    // }
+  isValidId(orderId);
+const customer = await User.findById(orderOwner);
+
+if (!customer) {
+    throw new ApiError(404, "Customer not found");
+}
+
 
     // Validate assigned creators
     let validatedCreators = [];
