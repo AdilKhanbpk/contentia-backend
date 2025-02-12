@@ -8,6 +8,7 @@ import { isValidId } from "../../utils/commonHelpers.js";
 import { sendNotification } from "../admin/adminNotification.controller.js";
 import User from "../../models/user.model.js";
 import { notificationTemplates } from "../../helpers/notificationTemplates.js";
+import BrandModel from "../../models/brand.model.js";
 
 const createOrder = asyncHandler(async (req, res) => {
     const {
@@ -256,7 +257,7 @@ const updateOrder = asyncHandler(async (req, res) => {
             orderQuota,
             numberOfRequests: validatedCreators.length,
             assignedCreators: validatedCreators,
-            uploadFiles: uploadedFiles,
+            // uploadFiles: uploadedFiles,
         },
         { new: true }
     ).populate("orderOwner assignedCreators");
