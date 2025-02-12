@@ -27,7 +27,12 @@ router.post(
 router.get("/", isAuthenticated, getOrders);
 router.get("/my-orders", isAuthenticated, getMyOrders);
 router.get("/:orderId", isAuthenticated, getOrder);
-router.patch("/:orderId", isAuthenticated, updateOrder);
+router.patch(
+    "/:orderId",
+    isAuthenticated,
+    uploadOnMulter.fields([{ name: "uploadFiles" }]),
+    updateOrder
+);
 router.delete("/:orderId", isAuthenticated, deleteOrder);
 router.post("/create-claim/:orderId", isAuthenticated, createClaimOnOrder);
 

@@ -151,60 +151,6 @@ const getOrderById = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, order, "Order retrieved successfully"));
 });
 
-// const updateOrder = asyncHandler(async (req, res) => {
-//     // TODO FILES FUNCTIONALITY NEEDS TO BE ADDED IN FUTURE
-//     // TODO ASSIGNED CREATORS VALIDATION AND ORDER OWNER VALIDATION
-//     const { orderId } = req.params;
-//     const {
-//         noOfUgc,
-//         orderOwner,
-//         assignedCreators=[],
-//         orderStatus,
-//         paymentStatus,
-//         contentsDelivered,
-//         additionalServices,
-//         preferences,
-//         briefContent,
-//         orderQuota,
-//         numberOfRequests,
-//         uploadFiles,
-//     } = req.body;
-
-//     let updatedAssignedCreator = [];
-//     if (assignedCreators) {
-//         updatedAssignedCreator = assignedCreators
-//             .split(",")
-//             .map((id) => mongoose.Types.ObjectId.createFromHexString(id));
-//     }
-
-//     const order = await Order.findByIdAndUpdate(
-//         orderId,
-//         {
-//             noOfUgc,
-//             orderOwner,
-//             orderStatus,
-//             paymentStatus,
-//             contentsDelivered,
-//             additionalServices,
-//             preferences,
-//             briefContent,
-//             orderQuota,
-//             uploadFiles,
-//             numberOfRequests: updatedAssignedCreator.length,
-//             assignedCreators: updatedAssignedCreator,
-//         },
-//         { new: true }
-//     );
-
-//     if (!order) {
-//         throw new ApiError(404, "Order not updated or not found");
-//     }
-
-//     return res
-//         .status(200)
-//         .json(new ApiResponse(200, order, "Order updated successfully"));
-// });
-
 const updateOrder = asyncHandler(async (req, res) => {
     const { orderId } = req.params;
     const {
@@ -212,13 +158,13 @@ const updateOrder = asyncHandler(async (req, res) => {
         orderOwner,
         assignedCreators = [],
         orderStatus,
+        totalPrice,
         paymentStatus,
         contentsDelivered,
         additionalServices,
         preferences,
         briefContent,
         orderQuota,
-        numberOfRequests,
         uploadFiles,
     } = req.body;
 
@@ -226,18 +172,14 @@ const updateOrder = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Invalid order ID");
     }
 
-    // Fetch existing order
     const existingOrder = await Order.findById(orderId);
     if (!existingOrder) {
         throw new ApiError(404, "Order not found");
     }
 
-    console.log("🚀 ~ updateOrder ~ orderOwner:", orderOwner)
-    const orderOwnerToHex = mongoose.Types.ObjectId.createFromHexString(
-        orderOwner
-    )
+    const orderOwnerToHex =
+        mongoose.Types.ObjectId.createFromHexString(orderOwner);
 
-    // Validate orderOwner
     if (orderOwner && !mongoose.isValidObjectId(orderOwnerToHex)) {
         throw new ApiError(400, "Invalid order owner ID");
     }
@@ -246,7 +188,6 @@ const updateOrder = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Order owner not found");
     }
 
-    // Validate assigned creators
     let validatedCreators = [];
     if (Array.isArray(assignedCreators) && assignedCreators.length > 0) {
         validatedCreators = assignedCreators.map((id) => {
@@ -267,16 +208,32 @@ const updateOrder = asyncHandler(async (req, res) => {
             );
             throw new ApiError(
                 404,
-                `Some assigned creators were not found: ${missingCreators.join(", ")}`
+                `Some assigned creators were not found: ${missingCreators.join(
+                    ", "
+                )}`
             );
         }
     }
 
-    // Handle file uploads (Placeholder)
-    let uploadedFiles = existingOrder.uploadFiles || [];
-    if (uploadFiles && uploadFiles.length > 0) {
-        // Assume `uploadFiles` is an array of file URLs (Modify this as per your file upload logic)
-        uploadedFiles = [...uploadedFiles, ...uploadFiles];
+    let fileUrls = [];
+    let brand;
+    if (briefContent) {
+        if (req.files && req.files["uploadFiles"]) {
+            const filePaths = req.files["uploadFiles"].map((file) => file.path);
+
+            fileUrls = await uploadMultipleFilesToCloudinary(filePaths);
+        }
+
+        if (briefContent.brandName) {
+            briefContent.brandName = briefContent?.brandName.trim();
+            brand = await BrandModel.findOne({
+                brandName: briefContent?.brandName,
+            });
+
+            if (!brand) {
+                throw new ApiError(400, "Brand not found");
+            }
+        }
     }
 
     // Update the order
@@ -286,11 +243,16 @@ const updateOrder = asyncHandler(async (req, res) => {
             noOfUgc,
             orderOwnerToHex,
             orderStatus,
+            totalPrice,
             paymentStatus,
             contentsDelivered,
             additionalServices,
             preferences,
-            briefContent,
+            briefContent: {
+                ...briefContent,
+                brandName: brand?.brandName,
+                uploadFiles: fileUrls?.map((file) => file.secure_url),
+            },
             orderQuota,
             numberOfRequests: validatedCreators.length,
             assignedCreators: validatedCreators,
@@ -307,7 +269,6 @@ const updateOrder = asyncHandler(async (req, res) => {
         .status(200)
         .json(new ApiResponse(200, updatedOrder, "Order updated successfully"));
 });
-
 
 const deleteOrder = asyncHandler(async (req, res) => {
     const { orderId } = req.params;
