@@ -28,6 +28,10 @@ router.patch(
         { name: "uploadFiles" },
         { name: "uploadFilesToOrder" },
     ]),
+    (req, res, next) => {
+        console.log("Uploaded Files:", req.files); // Log uploaded files
+        next();
+    },
     updateOrder
 );
 router.delete("/:orderId", isAuthenticated, isAdmin, deleteOrder);
