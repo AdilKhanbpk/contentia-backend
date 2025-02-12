@@ -155,7 +155,6 @@ const getOrderById = asyncHandler(async (req, res) => {
 
 const updateOrder = asyncHandler(async (req, res) => {
     const { orderId } = req.params;
-    console.log("Request Body: ", req.body);
     const {
         noOfUgc,
         orderOwner,
@@ -169,8 +168,6 @@ const updateOrder = asyncHandler(async (req, res) => {
         briefContent,
         orderQuota,
     } = req.body;
-    console.log("🚀 ~ updateOrder ~ assignedCreators:", assignedCreators);
-    console.log("🚀 ~ updateOrder ~ orderOwner:", orderOwner);
 
     // Validate order ID
     if (!mongoose.isValidObjectId(orderId)) {
@@ -226,12 +223,15 @@ const updateOrder = asyncHandler(async (req, res) => {
 
     // Handle file uploads if any
     let fileUrls = [];
+    let orderFileUrls = [];
     let brand;
     if (briefContent) {
         if (req.files && req.files["uploadFiles"]) {
             const filePaths = req.files["uploadFiles"].map((file) => file.path);
             fileUrls = await uploadMultipleFilesToCloudinary(filePaths);
+            console.log("🚀 ~ updateOrder ~ fileUrls:", fileUrls);
         }
+        console.log("🚀Out ~ updateOrder ~ fileUrls:", fileUrls);
 
         // Validate brandName
         if (
@@ -253,7 +253,7 @@ const updateOrder = asyncHandler(async (req, res) => {
         const filePaths = req.files["uploadFilesToOrder"].map(
             (file) => file.path
         );
-        fileUrls = await uploadMultipleFilesToCloudinary(filePaths);
+        orderFileUrls = await uploadMultipleFilesToCloudinary(filePaths);
     }
 
     // Update the order
@@ -276,7 +276,7 @@ const updateOrder = asyncHandler(async (req, res) => {
             orderQuota,
             numberOfRequests: validatedCreators.length,
             assignedCreators: validatedCreators,
-            uploadFiles: fileUrls?.map((file) => file.secure_url),
+            uploadFiles: orderFileUrls?.map((file) => file.secure_url),
         },
         { new: true }
     ).populate("orderOwner assignedCreators");
