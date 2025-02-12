@@ -233,13 +233,13 @@ const updateOrder = asyncHandler(async (req, res) => {
     }
 
     // Validate orderOwner
-    if (orderOwner && !mongoose.isValidObjectId(orderOwner)) {
-        throw new ApiError(400, "Invalid order owner ID");
-    }
-    const customer = orderOwner ? await User.findById(orderOwner) : null;
-    if (orderOwner && !customer) {
-        throw new ApiError(404, "Order owner not found");
-    }
+    // if (orderOwner && !mongoose.isValidObjectId(orderOwner)) {
+    //     throw new ApiError(400, "Invalid order owner ID");
+    // }
+    // const customer = orderOwner ? await User.findById(orderOwner) : null;
+    // if (orderOwner && !customer) {
+    //     throw new ApiError(404, "Order owner not found");
+    // }
 
     // Validate assigned creators
     let validatedCreators = [];
