@@ -275,6 +275,7 @@ const updateOrder = asyncHandler(async (req, res) => {
             numberOfRequests: validatedCreators.length,
             assignedCreators: validatedCreators,
             uploadFiles: orderFileUrls?.map((file) => file.secure_url),
+            associatedBrands: brand?._id,
         },
         { new: true }
     ).populate("orderOwner assignedCreators");
