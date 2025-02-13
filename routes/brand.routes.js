@@ -14,11 +14,21 @@ import { uploadOnMulter } from "../middlewares/multer.middleware.js";
 
 const router = express.Router();
 
-router.post("/", isAuthenticated, createBrand);
+router.post(
+    "/",
+    isAuthenticated,
+    uploadOnMulter.single("brandImage"),
+    createBrand
+);
 router.get("/", isAuthenticated, getBrands);
 router.get("/my-brands", isAuthenticated, getMyBrands);
 router.get("/:brandId", isAuthenticated, getSingleBrand);
-router.patch("/:brandId", isAuthenticated, updateBrand);
+router.patch(
+    "/:brandId",
+    isAuthenticated,
+    uploadOnMulter.single("brandImage"),
+    updateBrand
+);
 router.delete("/:brandId", isAuthenticated, deleteBrand);
 router.patch(
     "/change-brand-image/:brandId",
