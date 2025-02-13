@@ -169,18 +169,15 @@ const updateOrder = asyncHandler(async (req, res) => {
         orderQuota,
     } = req.body;
 
-    // Validate order ID
     if (!mongoose.isValidObjectId(orderId)) {
         throw new ApiError(400, "Invalid order ID");
     }
 
-    // Find existing order
     const existingOrder = await Order.findById(orderId);
     if (!existingOrder) {
         throw new ApiError(404, "Order not found");
     }
 
-    // Validate orderOwner
     let orderOwnerToHex;
     if (orderOwner) {
         if (!mongoose.isValidObjectId(orderOwner)) {
@@ -193,7 +190,6 @@ const updateOrder = asyncHandler(async (req, res) => {
         }
     }
 
-    // Validate assigned creators
     let validatedCreators = [];
     if (Array.isArray(assignedCreators) && assignedCreators.length > 0) {
         validatedCreators = assignedCreators.map((id) => {
@@ -203,7 +199,6 @@ const updateOrder = asyncHandler(async (req, res) => {
             return new mongoose.Types.ObjectId(id);
         });
 
-        // Check if all creators exist
         const existingCreators = await Creator.find({
             _id: { $in: validatedCreators },
         });
@@ -221,17 +216,22 @@ const updateOrder = asyncHandler(async (req, res) => {
         }
     }
 
-    // Handle file uploads if any
-    let fileUrls = [];
-    let orderFileUrls = [];
+    let fileUrls = existingOrder.briefContent?.uploadFiles || [];
+    let orderFileUrls = existingOrder.uploadFiles || [];
     let brand;
+
     if (briefContent) {
         if (req.files && req.files["uploadFiles"]) {
             const filePaths = req.files["uploadFiles"].map((file) => file.path);
-            fileUrls = await uploadMultipleFilesToCloudinary(filePaths);
+            const newFileUrls = await uploadMultipleFilesToCloudinary(
+                filePaths
+            );
+            fileUrls = [
+                ...fileUrls,
+                ...newFileUrls.map((file) => file.secure_url),
+            ];
         }
 
-        // Validate brandName
         if (
             briefContent.brandName &&
             typeof briefContent.brandName === "string"
@@ -251,10 +251,15 @@ const updateOrder = asyncHandler(async (req, res) => {
         const filePaths = req.files["uploadFilesToOrder"].map(
             (file) => file.path
         );
-        orderFileUrls = await uploadMultipleFilesToCloudinary(filePaths);
+        const newOrderFileUrls = await uploadMultipleFilesToCloudinary(
+            filePaths
+        );
+        orderFileUrls = [
+            ...orderFileUrls,
+            ...newOrderFileUrls.map((file) => file.secure_url),
+        ];
     }
 
-    // Update the order
     const updatedOrder = await Order.findByIdAndUpdate(
         orderId,
         {
@@ -269,12 +274,12 @@ const updateOrder = asyncHandler(async (req, res) => {
             briefContent: {
                 ...briefContent,
                 brandName: brand?.brandName,
-                uploadFiles: fileUrls?.map((file) => file.secure_url),
+                uploadFiles: fileUrls,
             },
             orderQuota,
             numberOfRequests: validatedCreators.length,
             assignedCreators: validatedCreators,
-            uploadFiles: orderFileUrls?.map((file) => file.secure_url),
+            uploadFiles: orderFileUrls,
             associatedBrands: brand?._id,
         },
         { new: true }
