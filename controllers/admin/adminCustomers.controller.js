@@ -174,7 +174,9 @@ const updateCustomer = asyncHandler(async (req, res) => {
 });
 
 const getCustomers = asyncHandler(async (req, res) => {
-    const customers = await User.find();
+    const customers = await User.find({
+        role: "user",
+    });
 
     return res
         .status(200)
