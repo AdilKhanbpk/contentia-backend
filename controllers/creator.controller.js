@@ -352,19 +352,19 @@ const applyForOrder = asyncHandler(async (req, res) => {
     }
 
     const allAdminIds = await User.find({ role: "admin" }).select("_id");
-    const notificationData = notificationTemplates.creatorApplyForOrder({
-        creatorName: creator.fullName,
-        creatorEmail: creator.email,
-        creatorPhoneNumber: creator.phoneNumber,
-        targetUsers: allAdminIds.map((admin) => admin._id),
-        metadata: {
-            creatorId: creator._id,
-            orderId: order._id,
-        },
-    });
+    // const notificationData = notificationTemplates.creatorApplyForOrder({
+    //     creatorName: creator.fullName,
+    //     creatorEmail: creator.email,
+    //     creatorPhoneNumber: creator.phoneNumber,
+    //     targetUsers: allAdminIds.map((admin) => admin._id),
+    //     metadata: {
+    //         creatorId: creator._id,
+    //         orderId: order._id,
+    //     },
+    // });
 
-    console.log("🚀 ~ applyForOrder ~ notificationData:", notificationData);
-    await sendNotification(notificationData);
+    // console.log("🚀 ~ applyForOrder ~ notificationData:", notificationData);
+    // await sendNotification(notificationData);
 
     order.appliedCreators.push(creator._id);
 

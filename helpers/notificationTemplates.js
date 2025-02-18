@@ -19,16 +19,14 @@ export const notificationTemplates = {
             metadata,
         };
     },
+
     creatorRegistration: ({
-        creatorName,
-        creatorEmail,
-        creatorPhoneNumber,
         targetUsers = [],
         metadata = {},
     }) => {
         return {
             title: "New Creator Registration",
-            details: `A new creator named ${creatorName} has successfully registered with the email ${creatorEmail} and phone number ${creatorPhoneNumber}.`,
+            details: `A new creator named ${metadata.creatorName} has successfully registered with the email ${metadata.creatorEmail} and phone number ${metadata.creatorPhoneNumber}.`,
             userType: "customer",
             eventType: "admin",
             users: targetUsers,
@@ -36,33 +34,31 @@ export const notificationTemplates = {
         };
     },
 
-    creatorApplyForOrder: ({
-        creatorName,
-        creatorEmail,
-        creatorPhoneNumber,
-        targetUsers = [],
-        metadata = {},
-    }) => {
-        return {
-            title: "Creator Application for Order",
-            details: `Creator ${creatorName} has applied for an order using the email ${creatorEmail} and phone number ${creatorPhoneNumber}.`,
-            userType: "customer",
-            eventType: "admin",
-            users: targetUsers,
-            metadata,
-        };
-    },
+    // creatorApplyForOrder: ({
+    //     creatorName,
+    //     creatorEmail,
+    //     creatorPhoneNumber,
+    //     targetUsers = [],
+    //     metadata = {},
+    // }) => {
+    //     return {
+    //         title: "Creator Application for Order",
+    //         details: `Creator ${creatorName} has applied for an order using the email ${creatorEmail} and phone number ${creatorPhoneNumber}.`,
+    //         userType: "customer",
+    //         eventType: "admin",
+    //         users: targetUsers,
+    //         metadata,
+    //     };
+    // },
 
     creatorApprovalForOrderByAdmin: ({
-        creatorName,
-        creatorEmail,
-        creatorPhoneNumber,
+        orderTitle = "Order Title",
         targetUsers = [],
         metadata = {},
     }) => {
         return {
-            title: "Order Approval Notification",
-            details: `The creator ${creatorName} has been approved for an order. Their contact details are email: ${creatorEmail} and phone number: ${creatorPhoneNumber}.`,
+            title: " Başvurun Onaylandı!",
+            details: ` ${orderTitle} başvurun Onaylandı, siparişlerim sayfasında görüntüleyebilir içerik üretmeye başlayabilirsin.`,
             userType: "creator",
             eventType: "creator",
             users: targetUsers,
@@ -70,33 +66,31 @@ export const notificationTemplates = {
         };
     },
 
-    customerNotificationForOrderAssignedToCreator: ({
-        creatorName,
-        creatorEmail,
-        creatorPhoneNumber,
-        targetUsers = [],
-        metadata = {},
-    }) => {
-        return {
-            title: "Order Assigned Notification",
-            details: `Your order has been assigned to creator ${creatorName}, who can be reached via email at ${creatorEmail} and phone number ${creatorPhoneNumber}.`,
-            userType: "customer",
-            eventType: "customer",
-            users: targetUsers,
-            metadata,
-        };
-    },
+    // customerNotificationForOrderAssignedToCreator: ({
+    //     creatorName,
+    //     creatorEmail,
+    //     creatorPhoneNumber,
+    //     targetUsers = [],
+    //     metadata = {},
+    // }) => {
+    //     return {
+    //         title: "Order Assigned Notification",
+    //         details: `Your order has been assigned to creator ${creatorName}, who can be reached via email at ${creatorEmail} and phone number ${creatorPhoneNumber}.`,
+    //         userType: "customer",
+    //         eventType: "customer",
+    //         users: targetUsers,
+    //         metadata,
+    //     };
+    // },
 
     creatorRejectionForOrder: ({
-        creatorName,
-        creatorEmail,
-        creatorPhoneNumber,
+        orderTitle = "Order Title",
         targetUsers = [],
         metadata = {},
     }) => {
         return {
-            title: "Order Rejection Notification",
-            details: `The creator ${creatorName} has been rejected for the order. Their email is ${creatorEmail}, and their phone number is ${creatorPhoneNumber}.`,
+            title: "Başvuru Reddedildi!",
+            details: ` ${orderTitle} başvurun marka kriterlerini karşılamadığından reddedildi, yeni iş ilanlarına göz at!`,
             userType: "creator",
             eventType: "creator",
             users: targetUsers,
@@ -105,31 +99,27 @@ export const notificationTemplates = {
     },
 
     orderCreationByCustomer: ({
-        customerName,
-        customerEmail,
-        customerPhoneNumber,
         targetUsers = [],
         metadata = {},
     }) => {
         return {
-            title: "New Order Created",
-            details: `A new order has been placed by customer ${customerName}, who can be contacted at ${customerEmail} or phone number ${customerPhoneNumber}.`,
+            title: "Yeni Bir İş İlanı Eklendi!",
+            details: `Bir marka yeni bir sipariş oluşturdu! Tüm ilanlara hemen göz at!`,
             userType: "customer",
             eventType: "admin",
             users: targetUsers,
             metadata,
         };
     },
+
     reportAnOrderFromCustomer: ({
-        customerName,
-        customerEmail,
-        customerPhoneNumber,
+        orderTitle,
         targetUsers = [],
         metadata = {},
     }) => {
         return {
-            title: "New Order Created",
-            details: `A new order has been placed by customer ${customerName}, who can be contacted at ${customerEmail} or phone number ${customerPhoneNumber}.`,
+            title: " Revizyon Talebi Alındı!",
+            details: `${orderTitle} siparişin için revizyon talebi alındı. `,
             userType: "customer",
             eventType: "admin",
             users: targetUsers,
@@ -138,19 +128,33 @@ export const notificationTemplates = {
     },
 
     orderCreationByAdminForCustomer: ({
-        customerName,
-        customerEmail,
-        customerPhoneNumber,
+        orderTitle = "Admin Order",
         targetUsers = [],
         metadata = {},
     }) => {
         return {
-            title: "Order Created by Admin",
-            details: `An admin has placed an order on behalf of customer ${customerName}. The customer's email is ${customerEmail}, and their phone number is ${customerPhoneNumber}.`,
+            title: " Revizyon Talebi Alındı!",
+            details: `${orderTitle} siparişin için revizyon talebi alındı. `,
             userType: "customer",
             eventType: "admin",
             users: targetUsers,
             metadata,
         };
     },
+
+    orderCompletionByCreator: ({
+        orderTitle,
+        targetUsers = [],
+        metadata = {},
+    }) => {
+        return {
+            title: " Siparişin Tamamlandı!",
+            details: ` ${orderTitle} siparişin tamamlandı.`,
+            userType: "customer",
+            eventType: "customer",
+            users: targetUsers,
+            metadata,
+        };
+    },
+
 };

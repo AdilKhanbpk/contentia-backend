@@ -58,11 +58,11 @@ const createOrder = asyncHandler(async (req, res) => {
     const allAdminIds = await User.find({ role: "admin" }).select("_id");
 
     const notificationData = notificationTemplates.orderCreationByCustomer({
-        customerName: req.user.fullName,
-        customerEmail: req.user.email,
-        customerPhoneNumber: req.user.phoneNumber,
         targetUsers: allAdminIds,
         metadata: {
+            customerName: req.user.fullName,
+            customerEmail: req.user.email,
+            customerPhoneNumber: req.user.phoneNumber,
             status: `The order has been in ${orderStatus} status`,
         },
     });
@@ -240,11 +240,12 @@ const createClaimOnOrder = asyncHandler(async (req, res) => {
     }
 
     const notificationData = notificationTemplates.reportAnOrderFromCustomer({
-        customerName: req.user.fullName,
-        customerEmail: req.user.email,
-        customerPhoneNumber: req.user.phoneNumber,
+        orderTitle: order.briefContent.brandName,
         targetUsers: [order.orderOwner],
         metadata: {
+            customerName: req.user.fullName,
+            customerEmail: req.user.email,
+            customerPhoneNumber: req.user.phoneNumber,
             status: `The order has been in ${order.orderStatus} status`,
         },
     });

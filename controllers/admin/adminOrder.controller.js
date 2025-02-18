@@ -85,11 +85,12 @@ const createOrder = asyncHandler(async (req, res) => {
     // Create customer notification
     const customerNotification =
         notificationTemplates.orderCreationByAdminForCustomer({
-            customerName: customerExists.fullName,
-            customerEmail: customerExists.email,
-            customerPhoneNumber: customerExists.phoneNumber,
+            orderTitle: newOrder?.briefContent?.brandTitle,
             targetUsers: [customerExists._id],
             metadata: {
+                customerName: customerExists.fullName,
+                customerEmail: customerExists.email,
+                customerPhoneNumber: customerExists.phoneNumber,
                 message: "This is a new order notification",
             },
         });
@@ -98,16 +99,17 @@ const createOrder = asyncHandler(async (req, res) => {
     const creatorNotifications =
         existingCreators.length > 0
             ? existingCreators.map((creator) => {
-                  return notificationTemplates.creatorApprovalForOrderByAdmin({
-                      creatorName: creator.fullName,
-                      creatorEmail: creator.email,
-                      creatorPhoneNumber: creator.phoneNumber,
-                      targetUsers: [creator._id],
-                      metadata: {
-                          message: "This is a new order notification",
-                      },
-                  });
-              })
+                return notificationTemplates.creatorApprovalForOrderByAdmin({
+                    orderTitle: newOrder?.briefContent?.brandName,
+                    targetUsers: [creator._id],
+                    metadata: {
+                        creatorName: creator.fullName,
+                        creatorEmail: creator.email,
+                        creatorPhoneNumber: creator.phoneNumber,
+                        message: "This is a new order notification",
+                    },
+                });
+            })
             : [];
 
     // Send notifications
@@ -339,29 +341,30 @@ const approveCreatorOnOrder = asyncHandler(async (req, res) => {
 
     const creatorNotification =
         notificationTemplates.creatorApprovalForOrderByAdmin({
-            creatorName: creator.fullName,
-            creatorEmail: creator.email,
-            creatorPhoneNumber: creator.phoneNumber,
+            orderTitle: updatedOrder?.briefContent?.brandName,
             targetUsers: [creator._id],
             metadata: {
+                creatorName: creator.fullName,
+                creatorEmail: creator.email,
+                creatorPhoneNumber: creator.phoneNumber,
                 message: "You have been approved for the order",
             },
         });
 
-    const customerNotification =
-        notificationTemplates.customerNotificationForOrderAssignedToCreator({
-            creatorName: creator.fullName,
-            creatorEmail: creator.email,
-            creatorPhoneNumber: creator.phoneNumber,
-            targetUsers: [order.orderOwner],
-            metadata: {
-                message: "A creator has been assigned to your order",
-            },
-        });
+    // const customerNotification =
+    //     notificationTemplates.customerNotificationForOrderAssignedToCreator({
+    //         creatorName: creator.fullName,
+    //         creatorEmail: creator.email,
+    //         creatorPhoneNumber: creator.phoneNumber,
+    //         targetUsers: [order.orderOwner],
+    //         metadata: {
+    //             message: "A creator has been assigned to your order",
+    //         },
+    //     });
 
     await Promise.all([
         sendNotification(creatorNotification),
-        sendNotification(customerNotification),
+        // sendNotification(customerNotification),
     ]);
 
     return res
@@ -405,11 +408,12 @@ const rejectCreatorOnOrder = asyncHandler(async (req, res) => {
     }
 
     const notificationData = notificationTemplates.creatorRejectionForOrder({
-        creatorName: creator.fullName,
-        creatorEmail: creator.email,
-        creatorPhoneNumber: creator.phoneNumber,
+        orderTitle: updatedOrder?.briefContent?.brandName,
         targetUsers: [creator._id],
         metadata: {
+            creatorName: creator.fullName,
+            creatorEmail: creator.email,
+            creatorPhoneNumber: creator.phoneNumber,
             message: "You have been rejected for the order",
         },
     });
