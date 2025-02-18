@@ -129,7 +129,15 @@ const createOrder = asyncHandler(async (req, res) => {
 
 const getOrders = asyncHandler(async (req, res) => {
     const orders = await Order.find()
-        .populate("orderOwner")
+        .sort({ createdAt: -1 })
+        .populate({
+            path: "orderOwner",
+            select: "-password",
+        })
+        .populate({
+            path: "associatedBrands",
+            select: "-associatedOrders",
+        })
         .populate("assignedCreators");
 
     return res
