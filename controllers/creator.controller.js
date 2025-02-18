@@ -351,7 +351,7 @@ const applyForOrder = asyncHandler(async (req, res) => {
         );
     }
 
-    const allAdminIds = await User.find({ role: "admin" }).select("_id");
+    // const allAdminIds = await User.find({ role: "admin" }).select("_id");
     // const notificationData = notificationTemplates.creatorApplyForOrder({
     //     creatorName: creator.fullName,
     //     creatorEmail: creator.email,

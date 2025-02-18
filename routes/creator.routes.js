@@ -19,6 +19,7 @@ import {
     totalNumberOfUgcForCompletedOrders,
     totalCompletedOrdersWithShareOption,
     totalAssignedOrders,
+    completeTheOrder,
 } from "../controllers/creator.controller.js";
 import { isAuthenticated } from "../middlewares/authentication.middleware.js";
 import { uploadOnMulter } from "../middlewares/multer.middleware.js";
@@ -64,6 +65,7 @@ router.patch(
     changeProfilePicture
 );
 router.post("/apply-for-order/:orderId", isAuthenticated, applyForOrder);
+router.patch("/complete-order/:orderId", isAuthenticated, completeTheOrder);
 
 router.get(
     "/total-applied-assigned-orders",
