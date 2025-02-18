@@ -117,6 +117,7 @@ const getMyOrders = asyncHandler(async (req, res) => {
 const getOrders = asyncHandler(async (req, res) => {
     const creatorId = req.user._id;
     const orders = await Orders.find({
+        orderStatus: { $nin: ["completed", "revision"] },
         appliedCreators: { $nin: [creatorId] },
         assignedCreators: { $nin: [creatorId] },
         rejectedCreators: { $nin: [creatorId] },
