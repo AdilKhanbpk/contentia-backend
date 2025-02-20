@@ -14,6 +14,7 @@ import {
     listSpecificFolderInParentFolder,
 } from "../utils/googleDrive.js";
 import {
+    deleteFileFromCloudinary,
     uploadFileToCloudinary,
     uploadMultipleFilesToCloudinary,
 } from "../utils/Cloudinary.js";
