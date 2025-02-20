@@ -20,6 +20,8 @@ import {
     totalCompletedOrdersWithShareOption,
     totalAssignedOrders,
     completeTheOrder,
+    deleteCreatorAccount,
+    getDashboardChartDetails,
 } from "../controllers/creator.controller.js";
 import { isAuthenticated } from "../middlewares/authentication.middleware.js";
 import { uploadOnMulter } from "../middlewares/multer.middleware.js";
@@ -84,4 +86,7 @@ router.get(
 );
 router.get("/total-assigned-orders", isAuthenticated, totalAssignedOrders);
 
+router.delete("/", isAuthenticated, deleteCreatorAccount)
+
+router.get("/creator-dashboard-chart", getDashboardChartDetails)
 export default router;

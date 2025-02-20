@@ -809,6 +809,37 @@ const deleteCreatorAccount = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, deletedCreator, "Creator account deleted"));
 })
 
+
+const getDashboardChartDetails = asyncHandler(async (req, res) => {
+    const productOrders = await Order.countDocuments({
+        "preferences.contentType": "product",
+        orderStatus: "completed",
+    });
+
+    const serviceOrders = await Order.countDocuments({
+        "preferences.contentType": "service",
+        orderStatus: "completed",
+    });
+
+    const locationOrders = await Order.countDocuments({
+        "preferences.contentType": "location",
+        orderStatus: "completed",
+    });
+
+    console.log("Completed Product Orders:", productOrders);
+    console.log("Completed Service Orders:", serviceOrders);
+    console.log("Completed Location Orders:", locationOrders);
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200, { productOrders, serviceOrders, locationOrders }, "Completed orders count retrieved successfully"));
+
+});
+
+
+
+
 export {
     loginCreator,
     createCreator,
@@ -831,4 +862,5 @@ export {
     totalCompletedOrdersWithShareOption,
     totalAssignedOrders,
     deleteCreatorAccount,
+    getDashboardChartDetails
 };
