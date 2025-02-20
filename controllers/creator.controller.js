@@ -792,6 +792,23 @@ const totalAssignedOrders = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, totalOrders, "Total orders retrieved"));
 });
 
+const deleteCreatorAccount = asyncHandler(async (req, res) => {
+    const creatorId = req.user._id;
+    const creator = await Creator.findById(creatorId)
+
+    if (creator?.profilePic) {
+        await deleteFileFromCloudinary(creator?.profilePic);
+    }
+
+    const deletedCreator = await Creator.findByIdAndDelete(creator._id);
+    if (!deletedCreator) {
+        throw new ApiError(404, "Creator not found");
+    }
+    return res
+        .status(200)
+        .json(new ApiResponse(200, deletedCreator, "Creator account deleted"));
+})
+
 export {
     loginCreator,
     createCreator,
@@ -813,4 +830,5 @@ export {
     totalNumberOfUgcForCompletedOrders,
     totalCompletedOrdersWithShareOption,
     totalAssignedOrders,
+    deleteCreatorAccount,
 };
