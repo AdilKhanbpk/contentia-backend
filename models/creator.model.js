@@ -38,8 +38,11 @@ const CreatorFormSchema = new mongoose.Schema(
         },
         profilePic: {
             type: String,
-            default:
-                "https://images.pexels.com/photos/6169056/pexels-photo-6169056.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+            default: function () {
+                return `https://ui-avatars.com/api/?name=${this.fullName
+                    ?.slice(0, 2)
+                    .toUpperCase()}&background=4D4EC9&color=ffffff&size=128`;
+            }
         },
         addressDetails: {
             addressOne: {

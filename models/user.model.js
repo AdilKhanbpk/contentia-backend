@@ -29,13 +29,16 @@ const userSchema = new mongoose.Schema(
             enum: ["admin", "user"],
             default: "user",
         },
-        profilePic: {
-            type: String,
-            default:
-                "https://images.pexels.com/photos/6169056/pexels-photo-6169056.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-        },
         fullName: {
             type: String,
+        },
+        profilePic: {
+            type: String,
+            default: function () {
+                return `https://ui-avatars.com/api/?name=${this.fullName
+                    ?.slice(0, 2)
+                    .toUpperCase()}&background=4D4EC9&color=ffffff&size=128`;
+            },
         },
         email: {
             type: String,
