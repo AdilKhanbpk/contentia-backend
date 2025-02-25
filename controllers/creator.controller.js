@@ -838,6 +838,35 @@ const getDashboardChartDetails = asyncHandler(async (req, res) => {
 
 });
 
+const getTotalPriceEarnedByCreator = asyncHandler(async (req, res) => {
+    const creatorId = req.user._id;
+    const totalOrders = await Order.aggregate([
+        {
+            $match: {
+                assignedCreators: creatorId,
+                orderStatus: "completed",
+            },
+        },
+        {
+            $group: {
+                _id: null,
+                totalPrice: { $sum: "$totalPrice" },
+            },
+        },
+    ]);
+
+    if (totalOrders.length > 0) {
+        const totalPrice = totalOrders[0].totalPrice;
+        return res
+            .status(200)
+            .json(new ApiResponse(200, totalPrice, "Total price retrieved"));
+    }
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, 0, "Total price retrieved"));
+})
+
 
 
 
@@ -863,5 +892,6 @@ export {
     totalCompletedOrdersWithShareOption,
     totalAssignedOrders,
     deleteCreatorAccount,
-    getDashboardChartDetails
+    getDashboardChartDetails,
+    getTotalPriceEarnedByCreator
 };
