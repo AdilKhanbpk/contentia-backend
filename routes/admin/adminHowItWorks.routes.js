@@ -13,15 +13,20 @@ import {
 
 const router = express.Router();
 
-router.get("/", isAuthenticated, getHowItWorks);
-router.get("/:howItWorksId", isAuthenticated, isAdmin, getHowItWorksById);
-router.post("/", isAuthenticated, isAdmin, createHowItWorks);
-router.patch(
-    "/:howItWorksId",
-    isAuthenticated,
-    isAdmin,
-    updateStepInHowItWorks
-);
-router.delete("/:howItWorksId", isAuthenticated, isAdmin, deleteHowItWorks);
+// Apply authentication globally
+router.use(isAuthenticated);
+
+// GET Routes
+router.get("/", getHowItWorks);
+router.get("/:howItWorksId", isAdmin, getHowItWorksById);
+
+// POST Route
+router.post("/", isAdmin, createHowItWorks);
+
+// PATCH Route
+router.patch("/:howItWorksId", isAdmin, updateStepInHowItWorks);
+
+// DELETE Route
+router.delete("/:howItWorksId", isAdmin, deleteHowItWorks);
 
 export default router;

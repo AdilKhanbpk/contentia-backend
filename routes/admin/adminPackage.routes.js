@@ -13,18 +13,17 @@ import {
 
 const router = express.Router();
 
-// Protect all routes
-router.use(isAuthenticated);
-
-router.post("/", isAuthenticated, isAdmin, createLandingPagePackage);
+// GET Requests
 router.get("/", isAuthenticated, isAdmin, getAllLandingPagePackages);
 router.get("/:packageId", isAuthenticated, getLandingPagePackageById);
+
+// POST Requests
+router.post("/", isAuthenticated, isAdmin, createLandingPagePackage);
+
+// PATCH Requests
 router.patch("/:packageId", isAuthenticated, isAdmin, updateLandingPagePackage);
-router.delete(
-    "/:packageId",
-    isAuthenticated,
-    isAdmin,
-    deleteLandingPagePackage
-);
+
+// DELETE Requests
+router.delete("/:packageId", isAuthenticated, isAdmin, deleteLandingPagePackage);
 
 export default router;

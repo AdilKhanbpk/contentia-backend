@@ -13,27 +13,29 @@ import { uploadOnMulter } from "../middlewares/multer.middleware.js";
 
 const router = express.Router();
 
+// GET Routes
+router.get("/", isAuthenticated, getOrders);
+router.get("/my-orders", isAuthenticated, getMyOrders);
+router.get("/:orderId", isAuthenticated, getOrder);
+
+// POST Routes
 router.post(
     "/",
     isAuthenticated,
     uploadOnMulter.fields([{ name: "uploadFiles" }]),
-    (req, res, next) => {
-        console.log("Request Body (JSON data):", req.body); // Log JSON data
-        console.log("Uploaded Files:", req.files); // Log uploaded files
-        next();
-    },
     createOrder
 );
-router.get("/", isAuthenticated, getOrders);
-router.get("/my-orders", isAuthenticated, getMyOrders);
-router.get("/:orderId", isAuthenticated, getOrder);
+router.post("/create-claim/:orderId", isAuthenticated, createClaimOnOrder);
+
+// PATCH Routes
 router.patch(
     "/:orderId",
     isAuthenticated,
     uploadOnMulter.fields([{ name: "uploadFiles" }]),
     updateOrder
 );
+
+// DELETE Routes
 router.delete("/:orderId", isAuthenticated, deleteOrder);
-router.post("/create-claim/:orderId", isAuthenticated, createClaimOnOrder);
 
 export default router;

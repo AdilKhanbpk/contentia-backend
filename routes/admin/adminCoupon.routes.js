@@ -15,12 +15,19 @@ import {
 
 const router = express.Router();
 
-router.post("/", isAuthenticated, isAdmin, createCoupon);
+// GET Routes
 router.get("/", isAuthenticated, isAdmin, getCoupons);
 router.get("/my-coupons", isAuthenticated, myCoupons);
 router.get("/:couponId", isAuthenticated, isAdmin, getCouponById);
-router.patch("/:couponId", isAuthenticated, isAdmin, updateCoupon);
-router.delete("/:couponId", isAuthenticated, isAdmin, deleteCoupon);
+
+// POST Routes
+router.post("/", isAuthenticated, isAdmin, createCoupon);
 router.post("/validate", isAuthenticated, validateCoupon);
+
+// PATCH Routes
+router.patch("/:couponId", isAuthenticated, isAdmin, updateCoupon);
+
+// DELETE Routes
+router.delete("/:couponId", isAuthenticated, isAdmin, deleteCoupon);
 
 export default router;

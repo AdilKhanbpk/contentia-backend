@@ -13,25 +13,20 @@ import {
 
 const router = express.Router();
 
-router.get("/", isAuthenticated, isAdmin, getEmailNotifications);
-router.get(
-    "/:emailNotificationId",
-    isAuthenticated,
-    isAdmin,
-    getEmailNotificationById
-);
-router.post("/", isAuthenticated, isAdmin, createEmailNotification);
-router.patch(
-    "/:emailNotificationId",
-    isAuthenticated,
-    isAdmin,
-    updateEmailNotification
-);
-router.delete(
-    "/:emailNotificationId",
-    isAuthenticated,
-    isAdmin,
-    deleteEmailNotification
-);
+// Apply authentication and admin middleware to all routes
+router.use(isAuthenticated, isAdmin);
+
+// GET Routes
+router.get("/", getEmailNotifications);
+router.get("/:emailNotificationId", getEmailNotificationById);
+
+// POST Routes
+router.post("/", createEmailNotification);
+
+// PATCH Routes
+router.patch("/:emailNotificationId", updateEmailNotification);
+
+// DELETE Routes
+router.delete("/:emailNotificationId", deleteEmailNotification);
 
 export default router;

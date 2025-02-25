@@ -14,7 +14,19 @@ import { uploadOnMulter } from "../../middlewares/multer.middleware.js";
 
 const router = express.Router();
 
+// GET Routes
 router.get("/", isAuthenticated, getAbout);
+
+// POST Routes
+router.post(
+    "/",
+    isAuthenticated,
+    isAdmin,
+    uploadOnMulter.single("aboutImage"),
+    createAbout
+);
+
+// PATCH Routes
 router.patch("/:aboutId", isAuthenticated, isAdmin, updateAbout);
 router.patch(
     "/:aboutId/change-image",
@@ -23,13 +35,8 @@ router.patch(
     uploadOnMulter.single("aboutImage"),
     updateAboutImage
 );
-router.post(
-    "/",
-    uploadOnMulter.single("aboutImage"),
-    isAuthenticated,
-    isAdmin,
-    createAbout
-);
+
+// DELETE Routes
 router.delete("/:aboutId", isAuthenticated, isAdmin, deleteAbout);
 
 export default router;

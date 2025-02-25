@@ -1,5 +1,4 @@
 import express from "express";
-
 import {
     isAuthenticated,
     isAdmin,
@@ -13,42 +12,13 @@ import { uploadOnMulter } from "../../middlewares/multer.middleware.js";
 
 const router = express.Router();
 
-router.post(
-    "/",
-    isAuthenticated,
-    isAdmin,
-    uploadOnMulter.fields([
-        { name: "video1", maxCount: 1 },
-        { name: "video2", maxCount: 1 },
-        { name: "video3", maxCount: 1 },
-        { name: "video4", maxCount: 1 },
-        { name: "video5", maxCount: 1 },
-        { name: "video6", maxCount: 1 },
-        { name: "video7", maxCount: 1 },
-        { name: "video8", maxCount: 1 },
-        { name: "video9", maxCount: 1 },
-        { name: "video10", maxCount: 1 },
-    ]),
-    createLandingPage
+const videoUploadFields = uploadOnMulter.fields(
+    Array.from({ length: 10 }, (_, i) => ({ name: `video${i + 1}`, maxCount: 1 }))
 );
+
+// Routes
+router.post("/", isAuthenticated, isAdmin, videoUploadFields, createLandingPage);
 router.get("/", getLandingPage);
-router.patch(
-    "/:landingPageId",
-    isAuthenticated,
-    isAdmin,
-    uploadOnMulter.fields([
-        { name: "video1", maxCount: 1 },
-        { name: "video2", maxCount: 1 },
-        { name: "video3", maxCount: 1 },
-        { name: "video4", maxCount: 1 },
-        { name: "video5", maxCount: 1 },
-        { name: "video6", maxCount: 1 },
-        { name: "video7", maxCount: 1 },
-        { name: "video8", maxCount: 1 },
-        { name: "video9", maxCount: 1 },
-        { name: "video10", maxCount: 1 },
-    ]),
-    updateLandingPage
-);
+router.patch("/:landingPageId", isAuthenticated, isAdmin, videoUploadFields, updateLandingPage);
 
 export default router;

@@ -11,8 +11,12 @@ import {
 
 const router = express.Router();
 
-router.get("/total-creators", isAuthenticated, isAdmin, getTotalCreators);
-router.get("/total-orders", isAuthenticated, isAdmin, getTotalOrders);
-router.get("/total-customers", isAuthenticated, isAdmin, getTotalUsers);
+// Apply authentication and admin middleware to all routes
+router.use(isAuthenticated, isAdmin);
+
+// GET Routes
+router.get("/total-creators", getTotalCreators);
+router.get("/total-orders", getTotalOrders);
+router.get("/total-customers", getTotalUsers);
 
 export default router;

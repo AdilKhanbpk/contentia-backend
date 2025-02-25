@@ -14,27 +14,34 @@ import { uploadOnMulter } from "../middlewares/multer.middleware.js";
 
 const router = express.Router();
 
+// GET Routes
+router.get("/", isAuthenticated, getBrands);
+router.get("/my-brands", isAuthenticated, getMyBrands);
+router.get("/:brandId", isAuthenticated, getSingleBrand);
+
+// POST Routes
 router.post(
     "/",
     isAuthenticated,
     uploadOnMulter.single("brandImage"),
     createBrand
 );
-router.get("/", isAuthenticated, getBrands);
-router.get("/my-brands", isAuthenticated, getMyBrands);
-router.get("/:brandId", isAuthenticated, getSingleBrand);
+
+// PATCH Routes
 router.patch(
     "/:brandId",
     isAuthenticated,
     uploadOnMulter.single("brandImage"),
     updateBrand
 );
-router.delete("/:brandId", isAuthenticated, deleteBrand);
 router.patch(
     "/change-brand-image/:brandId",
     isAuthenticated,
     uploadOnMulter.single("brandImage"),
     changeBrandPic
 );
+
+// DELETE Routes
+router.delete("/:brandId", isAuthenticated, deleteBrand);
 
 export default router;

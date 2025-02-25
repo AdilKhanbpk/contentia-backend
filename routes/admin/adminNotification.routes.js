@@ -1,5 +1,4 @@
 import express from "express";
-
 import {
     isAuthenticated,
     isAdmin,
@@ -15,11 +14,16 @@ import {
 
 const router = express.Router();
 
-router.get("", isAuthenticated, getNotifications);
+// Public/User-Specific Routes
 router.get("/my-notifications", isAuthenticated, getMyNotifications);
+
+// Admin Routes
+router.get("/", isAuthenticated, getNotifications);
 router.post("/", isAuthenticated, isAdmin, createNotification);
+
+// Admin Routes for Specific Notification
+router.get("/:notificationId", isAuthenticated, isAdmin, getNotificationById);
 router.patch("/:notificationId", isAuthenticated, isAdmin, updateNotification);
 router.delete("/:notificationId", isAuthenticated, isAdmin, deleteNotification);
-router.get("/:notificationId", isAuthenticated, isAdmin, getNotificationById);
 
 export default router;

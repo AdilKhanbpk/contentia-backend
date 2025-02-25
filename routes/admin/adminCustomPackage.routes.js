@@ -14,14 +14,21 @@ import {
 
 const router = express.Router();
 
-// Protect all routes
+// Apply authentication middleware to all routes
 router.use(isAuthenticated);
 
-router.post("/", isAuthenticated, isAdmin, createCustomPackage);
-router.get("/", isAuthenticated, isAdmin, getAllCustomPackages);
-router.get("/:packageId", isAuthenticated, isAdmin, getCustomPackageById);
-router.get("/my-packages", isAuthenticated, getAllCustomPackagesByCustomer);
-router.patch("/:packageId", isAuthenticated, isAdmin, updateCustomPackage);
-router.delete("/:packageId", isAuthenticated, isAdmin, deleteCustomPackage);
+// GET Routes
+router.get("/", isAdmin, getAllCustomPackages);
+router.get("/:packageId", isAdmin, getCustomPackageById);
+router.get("/my-packages", getAllCustomPackagesByCustomer);
+
+// POST Routes
+router.post("/", isAdmin, createCustomPackage);
+
+// PATCH Routes
+router.patch("/:packageId", isAdmin, updateCustomPackage);
+
+// DELETE Routes
+router.delete("/:packageId", isAdmin, deleteCustomPackage);
 
 export default router;

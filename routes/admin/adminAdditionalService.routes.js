@@ -14,6 +14,11 @@ import { uploadOnMulter } from "../../middlewares/multer.middleware.js";
 
 const router = express.Router();
 
+// GET Routes
+router.get("/", isAuthenticated, getAdditionalServices);
+router.get("/:additionalServicesId", isAuthenticated, isAdmin, getAdditionalServiceById);
+
+// POST Routes
 router.post(
     "/",
     isAuthenticated,
@@ -21,13 +26,8 @@ router.post(
     uploadOnMulter.single("image"),
     createAdditionalService
 );
-router.get("/", isAuthenticated, getAdditionalServices);
-router.get(
-    "/:additionalServicesId",
-    isAuthenticated,
-    isAdmin,
-    getAdditionalServiceById
-);
+
+// PATCH Routes
 router.patch(
     "/:additionalServicesId",
     isAuthenticated,
@@ -35,11 +35,8 @@ router.patch(
     uploadOnMulter.single("image"),
     updateAdditionalService
 );
-router.delete(
-    "/:additionalServicesId",
-    isAuthenticated,
-    isAdmin,
-    deleteAdditionalService
-);
+
+// DELETE Routes
+router.delete("/:additionalServicesId", isAuthenticated, isAdmin, deleteAdditionalService);
 
 export default router;

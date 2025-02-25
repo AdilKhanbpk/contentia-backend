@@ -15,8 +15,11 @@ import { uploadOnMulter } from "../../middlewares/multer.middleware.js";
 
 const router = express.Router();
 
+// GET Routes
 router.get("/", isAuthenticated, getBlogs);
 router.get("/:blogId", isAuthenticated, isAdmin, getBlogById);
+
+// POST Routes
 router.post(
     "/",
     isAuthenticated,
@@ -24,8 +27,9 @@ router.post(
     uploadOnMulter.single("bannerImage"),
     createBlog
 );
-router.patch("/:blogId", isAuthenticated, isAdmin, updateBlog);
 
+// PATCH Routes
+router.patch("/:blogId", isAuthenticated, isAdmin, updateBlog);
 router.patch(
     "/:blogId/bannerImage",
     isAuthenticated,
@@ -34,6 +38,7 @@ router.patch(
     updateBannerImageOfBlog
 );
 
+// DELETE Routes
 router.delete("/:blogId", isAuthenticated, isAdmin, deleteBlog);
 
 export default router;

@@ -15,23 +15,26 @@ import { uploadOnMulter } from "../../middlewares/multer.middleware.js";
 
 const router = express.Router();
 
-router.get("/", isAuthenticated, getHelpSupports);
-router.get("/:helpSupportId", isAuthenticated, isAdmin, getHelpSupportById);
-router.post(
-    "/",
-    isAuthenticated,
-    isAdmin,
-    uploadOnMulter.single("icon"),
-    createHelpSupport
-);
-router.patch("/:helpSupportId", isAuthenticated, updateHelpSupport);
+// Apply authentication globally
+router.use(isAuthenticated);
+
+// GET Routes
+router.get("/", getHelpSupports);
+router.get("/:helpSupportId", isAdmin, getHelpSupportById);
+
+// POST Routes
+router.post("/", isAdmin, uploadOnMulter.single("icon"), createHelpSupport);
+
+// PATCH Routes
+router.patch("/:helpSupportId", updateHelpSupport);
 router.patch(
     "/:helpSupportId/change-icon",
-    isAuthenticated,
     isAdmin,
     uploadOnMulter.single("icon"),
     updateHelpSupportIcon
 );
-router.delete("/:helpSupportId", isAuthenticated, isAdmin, deleteHelpSupport);
+
+// DELETE Routes
+router.delete("/:helpSupportId", isAdmin, deleteHelpSupport);
 
 export default router;

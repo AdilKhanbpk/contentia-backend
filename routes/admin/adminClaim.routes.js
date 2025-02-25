@@ -1,5 +1,4 @@
 import express from "express";
-
 import {
     isAuthenticated,
     isAdmin,
@@ -14,10 +13,17 @@ import {
 
 const router = express.Router();
 
-router.get("", isAuthenticated, isAdmin, getClaims);
-router.post("/", isAuthenticated, createClaim);
-router.patch("/:claimId", isAuthenticated, isAdmin, updateClaim);
-router.delete("/:claimId", isAuthenticated, isAdmin, deleteClaim);
+// GET Routes
+router.get("/", isAuthenticated, isAdmin, getClaims);
 router.get("/:claimId", isAuthenticated, isAdmin, getClaimById);
+
+// POST Routes
+router.post("/", isAuthenticated, createClaim);
+
+// PATCH Routes
+router.patch("/:claimId", isAuthenticated, isAdmin, updateClaim);
+
+// DELETE Routes
+router.delete("/:claimId", isAuthenticated, isAdmin, deleteClaim);
 
 export default router;

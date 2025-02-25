@@ -14,12 +14,11 @@ import { uploadOnMulter } from "../../middlewares/multer.middleware.js";
 
 const router = express.Router();
 
-router.get(
-    "/",
-    isAuthenticated,
-    uploadOnMulter.single("bannerImage"),
-    getBanners
-);
+// GET Routes
+router.get("/", isAuthenticated, getBanners);
+router.get("/:bannerId", isAuthenticated, isAdmin, getBannerById);
+
+// POST Routes
 router.post(
     "/",
     isAuthenticated,
@@ -27,6 +26,8 @@ router.post(
     uploadOnMulter.single("bannerImage"),
     createBanner
 );
+
+// PATCH Routes
 router.patch(
     "/:bannerId",
     isAuthenticated,
@@ -34,7 +35,8 @@ router.patch(
     uploadOnMulter.single("bannerImage"),
     updateBanner
 );
+
+// DELETE Routes
 router.delete("/:bannerId", isAuthenticated, isAdmin, deleteBanner);
-router.get("/:bannerId", isAuthenticated, isAdmin, getBannerById);
 
 export default router;

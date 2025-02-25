@@ -17,9 +17,20 @@ import { uploadOnMulter } from "../../middlewares/multer.middleware.js";
 
 const router = express.Router();
 
-router.post("/", isAuthenticated, isAdmin, createOrder);
+// GET Requests
 router.get("/", isAuthenticated, isAdmin, getOrders);
 router.get("/:orderId", isAuthenticated, isAdmin, getOrderById);
+router.get(
+    "/applied-creators/:orderId",
+    isAuthenticated,
+    isAdmin,
+    getAppliedCreatorsOnOrders
+);
+
+// POST Requests
+router.post("/", isAuthenticated, isAdmin, createOrder);
+
+// PATCH Requests
 router.patch(
     "/:orderId",
     isAuthenticated,
@@ -29,13 +40,6 @@ router.patch(
         { name: "uploadFilesToOrder" },
     ]),
     updateOrder
-);
-router.delete("/:orderId", isAuthenticated, isAdmin, deleteOrder);
-router.get(
-    "/applied-creators/:orderId",
-    isAuthenticated,
-    isAdmin,
-    getAppliedCreatorsOnOrders
 );
 router.patch(
     "/approve-creator/:orderId/:creatorId",
@@ -49,5 +53,8 @@ router.patch(
     isAdmin,
     rejectCreatorOnOrder
 );
+
+// DELETE Requests
+router.delete("/:orderId", isAuthenticated, isAdmin, deleteOrder);
 
 export default router;

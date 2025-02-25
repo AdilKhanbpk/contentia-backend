@@ -13,12 +13,20 @@ import {
 
 const router = express.Router();
 
-router.use(isAuthenticated);
+// Apply authentication middleware to all routes
+router.use(isAuthenticated, isAdmin);
 
-router.post("/", isAuthenticated, isAdmin, createCustomer);
-router.patch("/:customerId", isAuthenticated, isAdmin, updateCustomer);
-router.get("/", isAuthenticated, isAdmin, getCustomers);
-router.get("/:customerId", isAuthenticated, isAdmin, getCustomerById);
-router.delete("/:customerId", isAuthenticated, isAdmin, deleteCustomer);
+// GET Routes
+router.get("/", getCustomers);
+router.get("/:customerId", getCustomerById);
+
+// POST Routes
+router.post("/", createCustomer);
+
+// PATCH Routes
+router.patch("/:customerId", updateCustomer);
+
+// DELETE Routes
+router.delete("/:customerId", deleteCustomer);
 
 export default router;
