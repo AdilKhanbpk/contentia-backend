@@ -86,7 +86,7 @@ const updateLandingPage = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Landing page not found");
     }
 
-    let updatedVideos = landingPage.videos || [];
+    const updatedVideos = landingPage.videos || [];
 
     for (let i = 1; i <= 10; i++) {
         const videoField = `video${i}`;
@@ -94,46 +94,19 @@ const updateLandingPage = asyncHandler(async (req, res) => {
         if (req.files?.[videoField]) {
             const newVideoPath = req.files[videoField]?.[0]?.path;
 
-            if (!newVideoPath) {
-                throw new ApiError(400, `${videoField} is required`);
-            }
-
             if (updatedVideos[i - 1]) {
-                try {
-                    await deleteFileFromCloudinary(
-                        updatedVideos[i - 1],
-                        "video"
-                    );
-                } catch (error) {
-                    console.error(
-                        `Failed to delete ${videoField} from Cloudinary:`,
-                        error
-                    );
-                    throw new ApiError(
-                        500,
-                        `Failed to delete ${videoField} from Cloudinary`
-                    );
-                }
+                await deleteFileFromCloudinary(updatedVideos[i - 1], "video");
             }
 
-            const uploadedVideo = await uploadMultipleFilesToCloudinary(
-                [newVideoPath],
-                {
-                    resource_type: "video",
-                    folder: "videos",
-                }
-            );
-
-            if (!uploadedVideo || uploadedVideo.length !== 1) {
-                throw new ApiError(
-                    400,
-                    `${videoField} upload failed, please try again`
-                );
-            }
+            const uploadedVideo = await uploadMultipleFilesToCloudinary([newVideoPath], {
+                resource_type: "video",
+                folder: "videos",
+            });
 
             updatedVideos[i - 1] = uploadedVideo[0]?.secure_url;
         }
     }
+
 
     const updatedLandingPage = await LandingPageModel.findByIdAndUpdate(
         landingPageId,
