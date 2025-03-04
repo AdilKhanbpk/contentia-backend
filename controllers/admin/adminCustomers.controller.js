@@ -184,6 +184,17 @@ const getCustomers = asyncHandler(async (req, res) => {
             new ApiResponse(200, customers, "Customers fetched successfully")
         );
 });
+const getAdminCustomers = asyncHandler(async (req, res) => {
+    const admins = await User.find({
+        role: "admin",
+    });
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200, admins, "Admins fetched successfully")
+        );
+});
 
 const getCustomerById = asyncHandler(async (req, res) => {
     const { customerId } = req.params;
@@ -217,6 +228,7 @@ const deleteCustomer = asyncHandler(async (req, res) => {
 
 export {
     createCustomer,
+    getAdminCustomers,
     updateCustomer,
     getCustomers,
     getCustomerById,
