@@ -5,7 +5,7 @@ import {
     getCustomers,
     getCustomerById,
     deleteCustomer,
-    getAdminCustomers,
+    getAdmins,
 } from "../../controllers/admin/adminCustomers.controller.js";
 import {
     isAuthenticated,
@@ -19,7 +19,7 @@ router.use(isAuthenticated, isAdmin);
 
 // GET Routes
 router.get("/", getCustomers);
-router.get("/admins", getAdminCustomers);
+router.get("/admins", getAdmins);
 router.get("/:customerId", getCustomerById);
 
 // POST Routes
