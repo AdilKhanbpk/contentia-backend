@@ -66,6 +66,20 @@ export const notificationTemplates = {
         };
     },
 
+    adminCustomPackageCreationToCustomer: ({
+        targetUsers = [],
+        metadata = {},
+    }) => {
+        return {
+            title: "Yeni Paket Oluşturuldu",
+            details: `Aşağıdaki ayrıntılarla yeni bir paket oluşturuldu: ${metadata.packageId}`,
+            userType: "customer",
+            eventType: "admin",
+            users: targetUsers,
+            metadata,
+        }
+    },
+
     // customerNotificationForOrderAssignedToCreator: ({
     //     creatorName,
     //     creatorEmail,

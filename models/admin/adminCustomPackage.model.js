@@ -2,12 +2,6 @@
 import mongoose, { Schema } from "mongoose";
 
 const packageSchema = new Schema({
-    status: {
-        type: String,
-        enum: ["active", "completed", "refunded"],
-        required: true,
-        default: "active",
-    },
     packageCreator: {
         type: Schema.Types.ObjectId,
         ref: "User",
@@ -69,29 +63,6 @@ const packageSchema = new Schema({
             type: Boolean,
         },
     },
-    packageBriefContent: {
-        brandName: {
-            type: String,
-        },
-        brief: {
-            type: String,
-        },
-        scenario: {
-            type: String,
-        },
-        productServiceName: {
-            type: String,
-        },
-        productServiceDesc: {
-            type: String,
-        },
-        caseStudy: {
-            type: String,
-        },
-        uploadFiles: {
-            type: String,
-        },
-    },
     packagePreferences: {
         creatorGender: {
             type: String,
@@ -102,18 +73,54 @@ const packageSchema = new Schema({
         maxCreatorAge: {
             type: Number,
         },
-        interests: {
-            type: [String],
-        },
+        areaOfInterest: [String],
         contentType: {
             type: String,
         },
-        locationAddress: {
-            country: { type: String },
-            city: { type: String },
-            district: { type: String },
-            street: { type: String },
-            fullAddress: { type: String },
+        addressDetails: {
+            country: {
+                type: String,
+            },
+            state: {
+                type: String,
+            },
+            district: {
+                type: String,
+            },
+            neighborhood: {
+                type: String,
+            },
+            fullAddress: {
+                type: String,
+            },
+        },
+    },
+    packageBriefContent: {
+        brandName: {
+            type: String,
+        },
+        brief: {
+            type: String,
+        },
+        productServiceName: {
+            type: String,
+        },
+        productServiceDesc: {
+            type: String,
+        },
+        scenario: {
+            type: String,
+        },
+        caseStudy: {
+            type: String,
+        },
+        uploadFiles: [
+            {
+                type: String,
+            },
+        ],
+        uploadFileDate: {
+            type: String,
         },
     },
 });

@@ -50,12 +50,14 @@ const createCustomPackage = asyncHandler(async (req, res) => {
         throw new ApiError(500, "Failed to create package");
     }
 
-    const notificationData = notificationTemplates.packageCreationByAdmin({
-        customerName: req.user.fullName,
-        customerEmail: req.user.email,
-        customerPhoneNumber: req.user.phoneNumber,
+    const notificationData = notificationTemplates.adminCustomPackageCreationToCustomer({
         targetUsers: [customer._id],
-        metadata: { packageId: createdPackage._id },
+        metadata: {
+            packageId: createdPackage._id,
+            customerName: req.user.fullName,
+            customerEmail: req.user.email,
+            customerPhoneNumber: req.user.phoneNumber,
+        },
     });
     await sendNotification(notificationData);
 
@@ -69,7 +71,10 @@ const createCustomPackage = asyncHandler(async (req, res) => {
 const getAllCustomPackages = asyncHandler(async (req, res) => {
     const packages = await Package.find().populate({
         path: "packageCustomer",
-        select: "-password",
+        select: "_id fullName email profilePic",
+    }).populate({
+        path: "packageCreator",
+        select: "_id fullName email profilePic",
     });
 
     if (!packages || packages.length === 0) {
@@ -93,6 +98,12 @@ const getAllCustomPackagesByCustomer = asyncHandler(async (req, res) => {
 
     const packages = await Package.find({
         packageCustomer: customerId,
+    }).populate({
+        path: "packageCustomer",
+        select: "_id fullName email",
+    }).populate({
+        path: "packageCreator",
+        select: "_id fullName email",
     });
 
     return res
@@ -109,9 +120,13 @@ const getAllCustomPackagesByCustomer = asyncHandler(async (req, res) => {
 const getCustomPackageById = asyncHandler(async (req, res) => {
     const { packageId } = req.params;
 
-    const packageData = await Package.findById(packageId).populate(
-        "packageCustomer"
-    );
+    const packageData = await Package.findById(packageId).populate({
+        path: "packageCustomer",
+        select: "_id fullName email",
+    }).populate({
+        path: "packageCreator",
+        select: "_id fullName email",
+    });
 
     if (!packageData) {
         throw new ApiError(404, "Package not found");
