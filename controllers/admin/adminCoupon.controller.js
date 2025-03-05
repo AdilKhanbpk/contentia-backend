@@ -15,7 +15,10 @@ const createCoupon = asyncHandler(async (req, res) => {
         usageLimit,
     } = req.body;
 
-    isValidId(customerId);
+    // Validate customerId if provided
+    if (customerId) {
+        isValidId(customerId);
+    }
 
     if (!code || !expiryDate) {
         throw new ApiError(400, "Coupon code and expiry date are required.");
@@ -36,8 +39,9 @@ const createCoupon = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Coupon code already exists.");
     }
 
+    // Create the coupon
     const coupon = await CouponModel.create({
-        customer: customerId,
+        customer: customerId || null, // If no customerId, it applies to all
         code,
         discountTl,
         discountPercentage,
@@ -61,10 +65,7 @@ const myCoupons = asyncHandler(async (req, res) => {
 });
 
 const getCoupons = asyncHandler(async (req, res) => {
-    const coupons = await CouponModel.find().populate({
-        path: "customer",
-        select: "-password",
-    });
+    const coupons = await CouponModel.find()
     return res
         .status(200)
         .json(new ApiResponse(200, coupons, "Coupons retrieved successfully"));
@@ -96,16 +97,16 @@ const updateCoupon = asyncHandler(async (req, res) => {
     } = req.body;
 
     isValidId(couponId);
-    customerId && isValidId(customerId);
-    const coupon = await CouponModel.findById(couponId);
+    if (customerId) isValidId(customerId);
 
+    const coupon = await CouponModel.findById(couponId);
     if (!coupon) {
         throw new ApiError(404, "Coupon not found");
     }
 
     if (
-        (discountTl && discountPercentage) ||
-        (!discountTl && !discountPercentage)
+        (discountTl !== undefined && discountPercentage !== undefined) ||
+        (discountTl === undefined && discountPercentage === undefined)
     ) {
         throw new ApiError(
             400,
@@ -113,18 +114,19 @@ const updateCoupon = asyncHandler(async (req, res) => {
         );
     }
 
-    coupon.customer = customerId || coupon.customer;
-    coupon.code = code || coupon.code;
-    coupon.discountTl =
-        discountTl !== undefined ? discountTl : coupon.discountTl;
-    coupon.discountPercentage =
-        discountPercentage !== undefined
-            ? discountPercentage
-            : coupon.discountPercentage;
-    coupon.expiryDate = expiryDate || coupon.expiryDate;
-    coupon.usageLimit =
-        usageLimit !== undefined ? usageLimit : coupon.usageLimit;
-    coupon.isActive = isActive !== undefined ? isActive : coupon.isActive;
+    // Validate expiryDate format
+    if (expiryDate && isNaN(Date.parse(expiryDate))) {
+        throw new ApiError(400, "Invalid expiry date format");
+    }
+
+    // If no customerId is provided, apply the coupon to all customers (set it to null)
+    coupon.customer = customerId ? customerId : null;
+    coupon.code = code ?? coupon.code;
+    coupon.discountTl = discountTl ?? coupon.discountTl;
+    coupon.discountPercentage = discountPercentage ?? coupon.discountPercentage;
+    coupon.expiryDate = expiryDate ?? coupon.expiryDate;
+    coupon.usageLimit = usageLimit ?? coupon.usageLimit;
+    coupon.isActive = isActive ?? coupon.isActive;
 
     await coupon.save();
 
@@ -132,6 +134,7 @@ const updateCoupon = asyncHandler(async (req, res) => {
         .status(200)
         .json(new ApiResponse(200, coupon, "Coupon updated successfully"));
 });
+
 
 const deleteCoupon = asyncHandler(async (req, res) => {
     const { couponId } = req.params;
