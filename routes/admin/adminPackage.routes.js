@@ -14,7 +14,7 @@ import {
 const router = express.Router();
 
 // GET Requests
-router.get("/", isAuthenticated, isAdmin, getAllLandingPagePackages);
+router.get("/", getAllLandingPagePackages);
 router.get("/:packageId", isAuthenticated, getLandingPagePackageById);
 
 // POST Requests

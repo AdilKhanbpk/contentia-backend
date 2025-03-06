@@ -24,7 +24,7 @@ const createLandingPagePackage = asyncHandler(async (req, res) => {
 });
 
 const getAllLandingPagePackages = asyncHandler(async (req, res) => {
-    const packages = await Package.find().sort({ createdAt: -1 });
+    const packages = await Package.find()
     return res
         .status(200)
         .json(new ApiResponse(200, packages, "Packages fetched successfully"));
