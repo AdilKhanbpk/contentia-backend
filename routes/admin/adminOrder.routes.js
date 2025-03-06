@@ -12,6 +12,7 @@ import {
     updateOrder,
     approveCreatorOnOrder,
     rejectCreatorOnOrder,
+    getAllAssignedOrders,
 } from "../../controllers/admin/adminOrder.controller.js";
 import { uploadOnMulter } from "../../middlewares/multer.middleware.js";
 
@@ -19,6 +20,7 @@ const router = express.Router();
 
 // GET Requests
 router.get("/", isAuthenticated, isAdmin, getOrders);
+router.get("/assigned-orders", isAuthenticated, isAdmin, getAllAssignedOrders);
 router.get("/:orderId", isAuthenticated, isAdmin, getOrderById);
 router.get(
     "/applied-creators/:orderId",

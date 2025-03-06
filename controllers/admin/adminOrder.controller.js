@@ -457,6 +457,30 @@ const getAppliedCreatorsOnOrders = asyncHandler(async (req, res) => {
         );
 });
 
+const getAllAssignedOrders = asyncHandler(async (req, res) => {
+
+    const assignedOrders = await Order.find({ orderStatus: "active" })
+        .sort({ createdAt: -1 })
+        .populate({
+            path: "assignedCreators",
+            select: "fullName email _id",
+        })
+        .populate({
+            path: "associatedBrands",
+            select: "-associatedOrders",
+        });
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                assignedOrders,
+                "Assigned orders retrieved successfully"
+            )
+        );
+});
+
 export {
     createOrder,
     getOrders,
@@ -466,4 +490,5 @@ export {
     approveCreatorOnOrder,
     rejectCreatorOnOrder,
     getAppliedCreatorsOnOrders,
+    getAllAssignedOrders,
 };
