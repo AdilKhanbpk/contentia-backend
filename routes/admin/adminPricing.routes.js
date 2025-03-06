@@ -14,7 +14,7 @@ import {
 const router = express.Router();
 
 // GET Requests
-router.get("/", isAuthenticated, getPricePlans);
+router.get("/", getPricePlans);
 router.get("/:pricePlanId", isAuthenticated, isAdmin, getPricePlanById);
 
 // POST Requests
