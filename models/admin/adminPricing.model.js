@@ -3,6 +3,14 @@ const Schema = mongoose.Schema;
 
 const pricePlanSchema = new Schema(
     {
+        title: {
+            type: String,
+            required: true,
+        },
+        description: {
+            type: String,
+            required: true,
+        },
         videoCount: {
             type: Number,
             required: true,

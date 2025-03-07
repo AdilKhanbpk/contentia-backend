@@ -5,13 +5,15 @@ import asyncHandler from "../../utils/asyncHandler.js";
 import { isValidId } from "../../utils/commonHelpers.js";
 
 const createPricePlan = asyncHandler(async (req, res) => {
-    const { videoCount, strikeThroughPrice, finalPrice } = req.body;
+    const { title, description, videoCount, strikeThroughPrice, finalPrice } = req.body;
 
-    if (!videoCount || !finalPrice) {
+    if (!title, !description, !videoCount || !finalPrice) {
         throw new ApiError(400, "Video count and final price are required.");
     }
 
     const newPricePlan = await PricePlanModel.create({
+        title,
+        description,
         videoCount,
         strikeThroughPrice,
         finalPrice,
@@ -51,7 +53,7 @@ const getPricePlanById = asyncHandler(async (req, res) => {
 
 const updatePricePlan = asyncHandler(async (req, res) => {
     const { pricePlanId } = req.params;
-    const { videoCount, strikeThroughPrice, finalPrice } = req.body;
+    const { title, description, videoCount, strikeThroughPrice, finalPrice } = req.body;
 
     isValidId(pricePlanId);
 
@@ -61,23 +63,12 @@ const updatePricePlan = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Price plan not found.");
     }
 
-    const updateData = {};
-
-    if (videoCount !== undefined) {
-        updateData.videoCount = videoCount;
-    }
-    if (strikeThroughPrice !== undefined) {
-        updateData.strikeThroughPrice = strikeThroughPrice;
-    }
-    if (finalPrice !== undefined) {
-        updateData.finalPrice = finalPrice;
-    }
-
     const updatedPlan = await PricePlanModel.findByIdAndUpdate(
         pricePlanId,
-        updateData,
+        { $set: { title, description, videoCount, strikeThroughPrice, finalPrice } },
         { new: true }
     );
+    console.log("🚀 ~ updatePricePlan ~ updatedPlan:", updatedPlan)
 
     return res
         .status(200)
