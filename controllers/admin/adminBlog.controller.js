@@ -31,11 +31,12 @@ const createBlog = asyncHandler(async (req, res) => {
 
     const createdBlog = await BlogModel.create({
         title,
+        author: req.user?._id,
         category,
         metaKeywords,
         metaDescription,
         content,
-        blogImage: uploadImage?.secure_url,
+        bannerImage: uploadImage?.secure_url,
     });
 
     return res
