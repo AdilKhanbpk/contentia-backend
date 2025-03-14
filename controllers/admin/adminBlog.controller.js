@@ -77,6 +77,7 @@ const updateBlog = asyncHandler(async (req, res) => {
     const { title, category, metaKeywords, metaDescription, content } =
         req.body;
 
+    console.log("🚀 ~ updateBlog ~ body:", req.body)
     if (!title || !category || !metaKeywords || !metaDescription || !content) {
         throw new ApiError(400, "Please provide all the required fields");
     }

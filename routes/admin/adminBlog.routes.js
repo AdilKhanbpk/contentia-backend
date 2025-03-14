@@ -29,7 +29,8 @@ router.post(
 );
 
 // PATCH Routes
-router.patch("/:blogId", isAuthenticated, isAdmin, updateBlog);
+router.patch("/:blogId", isAuthenticated, isAdmin, uploadOnMulter.single("bannerImage"),
+    updateBlog);
 router.patch(
     "/:blogId/bannerImage",
     isAuthenticated,
