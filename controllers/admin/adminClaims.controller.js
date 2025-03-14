@@ -38,25 +38,25 @@ const createClaim = asyncHandler(async (req, res) => {
         claimDate,
     });
 
-    if (
-        Array.isArray(checkOrder.assignedCreators) &&
-        checkOrder.assignedCreators.length > 0
-    ) {
-        checkOrder.assignedCreators.forEach((creator) => {
-            const notificationData =
-                notificationTemplates.reportAnOrderFromAdmin({
-                    creatorName: creator.fullName,
-                    creatorEmail: creator.email,
-                    creatorPhoneNumber: creator.phoneNumber,
-                    targetUsers: [checkCustomer._id],
-                    metadata: {
-                        orderId: checkOrder._id,
-                        customerId: checkCustomer._id,
-                    },
-                });
-            sendNotification(notificationData);
-        });
-    }
+    // if (
+    //     Array.isArray(checkOrder.assignedCreators) &&
+    //     checkOrder.assignedCreators.length > 0
+    // ) {
+    //     checkOrder.assignedCreators.forEach((creator) => {
+    //         const notificationData =
+    //             notificationTemplates.reportAnOrderFromAdmin({
+    //                 creatorName: creator.fullName,
+    //                 creatorEmail: creator.email,
+    //                 creatorPhoneNumber: creator.phoneNumber,
+    //                 targetUsers: [checkCustomer._id],
+    //                 metadata: {
+    //                     orderId: checkOrder._id,
+    //                     customerId: checkCustomer._id,
+    //                 },
+    //             });
+    //         sendNotification(notificationData);
+    //     });
+    // }
 
     res.status(201).json(
         new ApiResponse(201, createdClaim, "Claim created successfully")
@@ -64,7 +64,13 @@ const createClaim = asyncHandler(async (req, res) => {
 });
 
 const getClaims = asyncHandler(async (req, res) => {
-    const claims = await Claims.find().populate("customer").populate("order");
+    const claims = await Claims.find().populate({
+        path: "customer",
+        select: "_id fullName email profilePic"
+    }).populate({
+        path: "order",
+        select: "_id briefContent.brandName"
+    })
     return res
         .status(200)
         .json(new ApiResponse(200, claims, "Claims retrieved successfully"));
