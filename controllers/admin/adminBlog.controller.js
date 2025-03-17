@@ -16,6 +16,10 @@ const createBlog = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Please provide all the required fields");
     }
 
+    if (typeof metaKeywords === "string") {
+        metaKeywords = metaKeywords.split(",").map(keyword => keyword.trim());
+    }
+
     const existedBlog = await BlogModel.find({ title });
 
     if (existedBlog.length > 0) {
@@ -71,33 +75,52 @@ const getBlogById = asyncHandler(async (req, res) => {
 
 const updateBlog = asyncHandler(async (req, res) => {
     const { blogId } = req.params;
-
     isValidId(blogId);
 
-    const { title, category, metaKeywords, metaDescription, content } =
-        req.body;
+    let { title, category, metaKeywords, metaDescription, content } = req.body;
 
-    console.log("🚀 ~ updateBlog ~ body:", req.body)
-    if (!title || !category || !metaKeywords || !metaDescription || !content) {
+    if (!title || !category || !metaDescription || !content) {
         throw new ApiError(400, "Please provide all the required fields");
     }
 
-    const updatedBlog = await BlogModel.findByIdAndUpdate(
-        blogId,
-        {
-            title,
-            category,
-            metaKeywords,
-            metaDescription,
-            content,
-        },
-        { new: true }
-    );
+    // Fetch existing blog
+    const existingBlog = await BlogModel.findById(blogId);
+    if (!existingBlog) {
+        throw new ApiError(404, "Blog not found");
+    }
 
-    return res
-        .status(200)
-        .json(new ApiResponse(200, updatedBlog, "Blog updated successfully!"));
+    let updatedFields = {
+        title,
+        category,
+        metaDescription,
+        content,
+    };
+
+    // Handle `metaKeywords` conversion (ensure it's always an array)
+    if (metaKeywords !== undefined) {
+        if (typeof metaKeywords === "string") {
+            metaKeywords = metaKeywords.split(",").map(keyword => keyword.trim());
+        }
+        updatedFields.metaKeywords = metaKeywords;
+    } else {
+        updatedFields.metaKeywords = existingBlog.metaKeywords; // Preserve old value
+    }
+
+    // Update banner image only if a new file is uploaded
+    if (req.file) {
+        const blogImage = req.file.path;
+        const uploadedImage = await uploadFileToCloudinary(blogImage);
+        updatedFields.bannerImage = uploadedImage?.secure_url;
+    }
+
+    const updatedBlog = await BlogModel.findByIdAndUpdate(blogId, updatedFields, { new: true });
+
+    return res.status(200).json(new ApiResponse(200, updatedBlog, "Blog updated successfully!"));
 });
+
+
+
+
 
 const updateBannerImageOfBlog = asyncHandler(async (req, res) => {
     const { blogId } = req.params;
