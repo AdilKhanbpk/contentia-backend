@@ -34,8 +34,6 @@ const createCustomer = asyncHandler(async (req, res) => {
     }
 
     if (invoiceType === "individual") {
-        // console.log("Invoice type:", invoiceType);
-        // console.log(billingInformation);
 
         if (
             !billingInformation?.invoiceStatus ||
@@ -55,7 +53,6 @@ const createCustomer = asyncHandler(async (req, res) => {
             );
         }
     } else if (invoiceType === "institutional") {
-        // console.log("Invoice type:", invoiceType);
         if (
             !billingInformation?.companyName ||
             !billingInformation?.taxNumber ||

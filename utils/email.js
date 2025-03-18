@@ -20,10 +20,8 @@ const sendEmail = ({ email, subject, text = null, html = null }) => {
 
         transporter.sendMail(mail_configs, (err, info) => {
             if (err) {
-                console.log("Error sending email:", err.message);
                 return reject({ message: err.message });
             }
-            // console.log("Email sent successfully:", info);
             return resolve({ message: "Mail is Sent Successfully" });
         });
     });

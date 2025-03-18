@@ -119,7 +119,6 @@ const createCreator = asyncHandler(async (req, res) => {
     }
 
     if (accountType === "individual") {
-        // console.log("Account type:", accountType);
 
         if (!paymentInformation?.ibanNumber || !paymentInformation?.address) {
             throw new ApiError(
@@ -135,7 +134,6 @@ const createCreator = asyncHandler(async (req, res) => {
             );
         }
     } else if (accountType === "institutional") {
-        // console.log("Account type:", accountType);
         if (
             !paymentInformation?.companyName ||
             !paymentInformation?.taxNumber ||
@@ -364,7 +362,6 @@ const applyForOrder = asyncHandler(async (req, res) => {
     //     },
     // });
 
-    // console.log("🚀 ~ applyForOrder ~ notificationData:", notificationData);
     // await sendNotification(notificationData);
 
     order.appliedCreators.push(creator._id);
@@ -379,7 +376,6 @@ const applyForOrder = asyncHandler(async (req, res) => {
 const getAllAppliedOrders = asyncHandler(async (req, res) => {
     const creatorId = req.user._id;
 
-    console.log("Creator ID:", creatorId);
     isValidId(creatorId);
 
     const appliedOrders = await Orders.find({
@@ -547,7 +543,6 @@ const uploadContentToOrder = asyncHandler(async (req, res) => {
                 `https://drive.google.com/uc?id=${file.id}&export=download`
         );
 
-        console.log(fileUrlsFromGoogleDrive);
 
         order.uploadFiles.push({
             uploadedBy: creatorId,

@@ -20,13 +20,10 @@ export const appleSetup = () => {
             },
             async (accessToken, refreshToken, idToken, profile, done) => {
                 try {
-                    console.log("🚀 ~ profile:", profile);
-                    console.log("🚀 ~ idToken:", idToken);
 
                     const decodedToken = jwt.decode(idToken, {
                         complete: true,
                     });
-                    console.log("🚀 ~ decodedToken:", decodedToken);
 
                     const { email, name, sub } = decodedToken.payload;
 

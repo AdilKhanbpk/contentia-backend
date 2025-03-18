@@ -10,7 +10,6 @@ import { isValidId } from "../utils/commonHelpers.js";
 
 const createBrand = asyncHandler(async (req, res) => {
     const { brandName, brandCategory, brandWebsite, brandCountry } = req.body;
-    console.log("🚀 ~ createBrand ~ body:", req.body);
 
     if (!brandName || !brandCategory || !brandCountry) {
         throw new ApiError(400, "Please provide all the required fields");
@@ -19,7 +18,6 @@ const createBrand = asyncHandler(async (req, res) => {
     let uploadedImage;
     if (req.file) {
         const image = req.file.path;
-        console.log("🚀 ~ createBrand ~ image:", image);
         uploadedImage = await uploadFileToCloudinary(image);
     }
     const createdBrand = await BrandModel.create({
@@ -89,7 +87,6 @@ const updateBrand = asyncHandler(async (req, res) => {
     let uploadedImage;
     if (req.file) {
         const imagePath = req.file.path;
-        console.log("🚀 ~ updateBrand ~ imagePath:", imagePath);
         uploadedImage = await uploadFileToCloudinary(imagePath);
     }
 
@@ -143,7 +140,6 @@ const getMyBrands = asyncHandler(async (req, res) => {
 const changeBrandPic = asyncHandler(async (req, res) => {
     const { brandId } = req.params;
     const filePath = req.file.path;
-    // console.log(filePath);
 
     isValidId(brandId);
 
@@ -163,7 +159,6 @@ const changeBrandPic = asyncHandler(async (req, res) => {
 
     const uploadedFile = await uploadFileToCloudinary(filePath);
 
-    // console.log(uploadedFile);
 
     await brand.updateOne({
         $set: {

@@ -68,7 +68,6 @@ const updatePricePlan = asyncHandler(async (req, res) => {
         { $set: { title, description, videoCount, strikeThroughPrice, finalPrice } },
         { new: true }
     );
-    console.log("🚀 ~ updatePricePlan ~ updatedPlan:", updatedPlan)
 
     return res
         .status(200)

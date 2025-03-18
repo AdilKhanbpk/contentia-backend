@@ -31,7 +31,6 @@ export default function initializeSocketSetup(server) {
                     );
                 }
                 socket.userId = decodedToken._id;
-                // console.log(decodedToken);
                 next();
             }
         );
@@ -40,10 +39,8 @@ export default function initializeSocketSetup(server) {
     io.on("connection", (socket) => {
         if (socket.userId) {
             connectedSocket.set(socket.userId, socket.id);
-            console.log(connectedSocket);
             socket.on("disconnect", () => {
                 connectedSocket.delete(socket.userId);
-                console.log("User disconnected:", socket.userId);
             });
         } else {
             socket.disconnect();

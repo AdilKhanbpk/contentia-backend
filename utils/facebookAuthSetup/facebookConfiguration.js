@@ -19,7 +19,6 @@ export const facebookSetup = () => {
             },
             async (accessToken, refreshToken, profile, done) => {
                 try {
-                    console.log("🚀 ~ profile:", profile);
                     const { name, email } = profile._json;
 
                     let user = await CreatorModel.findOne({ email });

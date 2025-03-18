@@ -67,7 +67,6 @@ const createOrder = asyncHandler(async (req, res) => {
         },
     });
 
-    // console.log("🚀 ~ createOrder ~ notificationData:", notificationData);
     await sendNotification(notificationData);
 
     const newOrder = await Orders.create({

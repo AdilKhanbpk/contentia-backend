@@ -117,7 +117,6 @@ export const updateUser = asyncHandler(async (req, res) => {
 
 export const changeProfilePic = asyncHandler(async (req, res) => {
     const filePath = req.file.path;
-    // console.log(filePath);
 
     isValidId(req.user._id);
 
@@ -133,7 +132,6 @@ export const changeProfilePic = asyncHandler(async (req, res) => {
 
     const uploadedFile = await uploadFileToCloudinary(filePath);
 
-    // console.log(uploadedFile);
 
     await user.updateOne({
         $set: {
@@ -185,7 +183,6 @@ export const logout = asyncHandler(async (req, res) => {
 });
 
 export const getProfile = asyncHandler(async (req, res) => {
-    // console.log(req.user);
     return res
         .status(200)
         .json(new ApiResponse(200, req.user, "User retrieved successfully"));

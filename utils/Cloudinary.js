@@ -111,7 +111,6 @@ const uploadMultipleFilesToCloudinary = async (filePaths, options = {}) => {
 
         return await Promise.all(uploadPromises);
     } catch (error) {
-        console.log(filePaths);
         deleteLocalFile(filePaths);
         console.error(`Cloudinary Bulk Upload Error ==> ${error.message}`);
         return null;
@@ -139,11 +138,6 @@ const deleteMultipleFilesFromCloudinary = async (
                     {
                         resource_type: resourceType,
                     }
-                );
-                console.log(
-                    deletedFile.result === "ok"
-                        ? `File ${publicId} deleted successfully.`
-                        : `Failed to delete file ${publicId}.`
                 );
                 return deletedFile;
             } catch (error) {

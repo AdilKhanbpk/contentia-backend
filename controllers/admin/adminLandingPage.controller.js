@@ -25,8 +25,6 @@ const createLandingPage = asyncHandler(async (req, res) => {
         videoPaths.push(videoPath);
     }
 
-    // console.log(videoPaths);
-
     const uploadedVideos = await uploadMultipleFilesToCloudinary(videoPaths, {
         resource_type: "video",
         folder: "videos",
