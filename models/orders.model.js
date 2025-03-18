@@ -43,7 +43,7 @@ const ordersProfileSchema = new Schema(
         },
         orderStatus: {
             type: String,
-            enum: ["pending", "active", "completed", "cancelled", "revision"],
+            enum: ["pending", "active", "completed", "rejected", "cancelled", "revision"],
             required: true,
             default: "pending",
         },

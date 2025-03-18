@@ -481,6 +481,44 @@ const getAllAssignedOrders = asyncHandler(async (req, res) => {
         );
 });
 
+const adminApproveTheCompleteOrder = asyncHandler(async (req, res) => {
+    const { orderId } = req.params;
+    const order = await Order.findById(orderId);
+    if (!order) {
+        throw new ApiError(404, "Order not found");
+    }
+    const updatedOrder = await Order.findByIdAndUpdate(
+        orderId,
+        { orderStatus: "completed" },
+        { new: true }
+    );
+    if (!updatedOrder) {
+        throw new ApiError(500, "Failed to update order");
+    }
+    return res
+        .status(200)
+        .json(new ApiResponse(200, updatedOrder, "Order marked as completed by admin successfully"));
+});
+
+const adminRejectTheCompleteOrder = asyncHandler(async (req, res) => {
+    const { orderId } = req.params;
+    const order = await Order.findById(orderId);
+    if (!order) {
+        throw new ApiError(404, "Order not found");
+    }
+    const updatedOrder = await Order.findByIdAndUpdate(
+        orderId,
+        { orderStatus: "rejected" },
+        { new: true }
+    );
+    if (!updatedOrder) {
+        throw new ApiError(500, "Failed to update order");
+    }
+    return res
+        .status(200)
+        .json(new ApiResponse(200, updatedOrder, "Order mark as rejected by admin successfully"));
+});
+
 export {
     createOrder,
     getOrders,
