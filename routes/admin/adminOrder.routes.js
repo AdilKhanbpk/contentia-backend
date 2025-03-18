@@ -13,6 +13,8 @@ import {
     approveCreatorOnOrder,
     rejectCreatorOnOrder,
     getAllAssignedOrders,
+    adminMarkAsRejected,
+    adminMarkAsCompleted,
 } from "../../controllers/admin/adminOrder.controller.js";
 import { uploadOnMulter } from "../../middlewares/multer.middleware.js";
 
@@ -55,6 +57,18 @@ router.patch(
     isAdmin,
     rejectCreatorOnOrder
 );
+router.patch(
+    "/mark-as-completed/:orderId",
+    isAuthenticated,
+    isAdmin,
+    adminMarkAsCompleted,
+)
+router.patch(
+    "/mark-as-rejected/:orderId",
+    isAuthenticated,
+    isAdmin,
+    adminMarkAsRejected
+)
 
 // DELETE Requests
 router.delete("/:orderId", isAuthenticated, isAdmin, deleteOrder);

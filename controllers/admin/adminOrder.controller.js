@@ -481,7 +481,7 @@ const getAllAssignedOrders = asyncHandler(async (req, res) => {
         );
 });
 
-const adminApproveTheCompleteOrder = asyncHandler(async (req, res) => {
+const adminMarkAsCompleted = asyncHandler(async (req, res) => {
     const { orderId } = req.params;
     const order = await Order.findById(orderId);
     if (!order) {
@@ -500,7 +500,7 @@ const adminApproveTheCompleteOrder = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, updatedOrder, "Order marked as completed by admin successfully"));
 });
 
-const adminRejectTheCompleteOrder = asyncHandler(async (req, res) => {
+const adminMarkAsRejected = asyncHandler(async (req, res) => {
     const { orderId } = req.params;
     const order = await Order.findById(orderId);
     if (!order) {
@@ -529,4 +529,6 @@ export {
     rejectCreatorOnOrder,
     getAppliedCreatorsOnOrders,
     getAllAssignedOrders,
+    adminMarkAsCompleted,
+    adminMarkAsRejected
 };
