@@ -75,7 +75,6 @@ const createCreator = asyncHandler(async (req, res) => {
 const updateCreator = asyncHandler(async (req, res) => {
     const { creatorId } = req.params;
     const updateData = req.body;
-    console.log("🚀 ~ updateCreator ~ updateData:", updateData)
 
     const setFields = {};
     for (const [key, value] of Object.entries(updateData)) {
