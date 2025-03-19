@@ -213,6 +213,7 @@ const updateCreator = asyncHandler(async (req, res) => {
     isValidId(creatorId);
 
     const updateData = req.body;
+    console.log("🚀 ~ updateCreator ~ updateData:", updateData)
 
     const setFields = {};
     for (const [key, value] of Object.entries(updateData)) {

@@ -213,6 +213,12 @@ const CreatorFormSchema = new mongoose.Schema(
                 portfolioLink: [String],
             },
         },
+        settings: {
+            isNotificationOn: {
+                type: Boolean,
+                default: true
+            }
+        },
 
         userAgreement: {
             type: Boolean,
