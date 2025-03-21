@@ -12,7 +12,7 @@ export const notificationTemplates = {
     }) => {
         return {
             title,
-            details: `Admin ${adminName} has sent a general notification with the following message: ${details}`,
+            details: `${details}`,
             userType,
             eventType,
             users: targetUsers,

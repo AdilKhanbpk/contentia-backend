@@ -138,13 +138,13 @@ const createNotification = asyncHandler(async (req, res) => {
     }
 
     const notificationData = notificationTemplates.generalNotification({
-        adminName: req.user.fullName,
+        adminName: req.user.fullName || "Admin",
         title,
         details,
         userType: userType,
         users: userIds,
         metadata: {
-            message: "This is a general notification",
+            message: "This is a general notification from admin",
             author: req.user.fullName,
             author_role: req.user.role,
         },
