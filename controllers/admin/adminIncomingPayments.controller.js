@@ -107,10 +107,29 @@ const deletePayment = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, null, "Payment deleted successfully"));
 });
 
+const refundPayment = asyncHandler(async (req, res) => {
+    const { paymentId } = req.params;
+    isValidId(paymentId);
+
+    const payment = await IncomingPayment.findById(paymentId);
+    if (!payment) {
+        throw new ApiError(404, `Payment not found with paymentId: ${paymentId}`);
+    }
+
+    payment.paymentStatus = "refund";
+    await payment.save();
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, payment, "Payment refunded successfully"));
+
+})
+
 export {
     createPayment,
     getAllPayments,
     getPaymentById,
     updatePayment,
-    deletePayment
+    deletePayment,
+    refundPayment
 };

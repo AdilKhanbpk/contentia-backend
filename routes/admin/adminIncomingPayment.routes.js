@@ -1,7 +1,7 @@
 import express from "express";
 import { isAuthenticated } from "../../middlewares/authentication.middleware.js";
 import { uploadOnMulter } from "../../middlewares/multer.middleware.js";
-import { createPayment, deletePayment, getAllPayments, getPaymentById, updatePayment } from "../../controllers/admin/adminIncomingPayments.controller.js";
+import { createPayment, deletePayment, getAllPayments, getPaymentById, refundPayment, updatePayment } from "../../controllers/admin/adminIncomingPayments.controller.js";
 
 
 const router = express.Router();
@@ -24,6 +24,11 @@ router.patch(
     isAuthenticated,
     uploadOnMulter.single("invoiceImage"),
     updatePayment
+);
+router.patch(
+    "/refund-payment/:paymentId",
+    isAuthenticated,
+    refundPayment
 );
 
 // DELETE Routes
