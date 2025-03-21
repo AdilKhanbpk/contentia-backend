@@ -8,7 +8,7 @@ const router = express.Router();
 
 // GET Routes
 router.get("/", isAuthenticated, getAllPayments);
-router.get("/:id", isAuthenticated, getPaymentById);
+router.get("/:paymentId", isAuthenticated, getPaymentById);
 
 // POST Routes
 router.post(
@@ -20,7 +20,7 @@ router.post(
 
 // PATCH Routes
 router.patch(
-    "/:id",
+    "/:paymentId",
     isAuthenticated,
     uploadOnMulter.single("invoiceImage"),
     updatePayment

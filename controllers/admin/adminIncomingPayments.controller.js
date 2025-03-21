@@ -52,7 +52,7 @@ const getPaymentById = asyncHandler(async (req, res) => {
     const { paymentId } = req.params;
     isValidId(paymentId);
 
-    const payment = await IncomingPayment.findById(paymentId).populate("orderId");
+    const payment = await IncomingPayment.findById(paymentId);
 
     if (!payment) {
         throw new ApiError(404, `Payment not found with paymentId: ${paymentId}`);
