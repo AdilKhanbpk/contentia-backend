@@ -5,8 +5,6 @@ import { isValidId } from "../../utils/commonHelpers.js";
 
 const createAdditionalService = asyncHandler(async (req, res) => {
     const {
-        platform,
-        aspectRatio,
         editPrice,
         sharePrice,
         coverPicPrice,
@@ -17,8 +15,6 @@ const createAdditionalService = asyncHandler(async (req, res) => {
     } = req.body;
 
     const additionalService = await AdditionalServiceModel.create({
-        platform,
-        aspectRatio,
         editPrice,
         sharePrice,
         coverPicPrice,
@@ -76,8 +72,6 @@ const getAdditionalServiceById = asyncHandler(async (req, res) => {
 const updateAdditionalService = asyncHandler(async (req, res) => {
     const { additionalServicesId } = req.params;
     const {
-        platform,
-        aspectRatio,
         editPrice,
         sharePrice,
         coverPicPrice,
@@ -98,8 +92,6 @@ const updateAdditionalService = asyncHandler(async (req, res) => {
     }
 
     const updateData = {
-        platform,
-        aspectRatio,
         editPrice,
         sharePrice,
         coverPicPrice,
