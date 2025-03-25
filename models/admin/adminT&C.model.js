@@ -10,10 +10,15 @@ const termsAndConditionsSchema = new mongoose.Schema(
             type: String,
             required: true,
         },
-        pageUrl: {
+        pageSlug: {
             type: String,
             required: true,
         },
+        pageCategory: {
+            type: String,
+            enum: ["creator", "customer"],
+            required: true,
+        }
     },
     {
         timestamps: true,

@@ -2,74 +2,71 @@ import ApiError from "../../utils/ApiError.js";
 import ApiResponse from "../../utils/ApiResponse.js";
 import asyncHandler from "../../utils/asyncHandler.js";
 import { isValidId } from "../../utils/commonHelpers.js";
-import PageModel from "../../models/admin/adminT&C.model.js";
+import TermsAndConditionsModel from "../../models/admin/adminT&C.model.js";
 
-const createAPage = asyncHandler(async (req, res) => {
-    const { pageTitle, pageContent, pageUrl } = req.body;
+const createPage = asyncHandler(async (req, res) => {
+    const { pageTitle, pageContent, pageSlug, pageCategory } = req.body;
 
-    if (!title || !content || !url) {
+    if (!pageTitle || !pageContent || !pageSlug || !pageCategory) {
         throw new ApiError(400, "Please provide all the required fields");
     }
 
-    const newPage = await PageModel.create({
+    const newPage = await TermsAndConditionsModel.create({
         pageTitle,
         pageContent,
-        pageUrl,
+        pageSlug,
+        pageCategory,
     });
 
-    return res
-        .status(201)
-        .json(new ApiResponse(201, newPage, "Page created successfully"));
+    return res.status(201).json(new ApiResponse(201, newPage, "Page created successfully"));
 });
 
 const getPages = asyncHandler(async (req, res) => {
-    const pages = await PageModel.find().sort({ createdAt: -1 });
+    const pages = await TermsAndConditionsModel.find().sort({ createdAt: -1 });
 
-    return res
-        .status(200)
-        .json(new ApiResponse(200, pages, "Pages retrieved successfully"));
+    return res.status(200).json(new ApiResponse(200, pages, "Pages retrieved successfully"));
 });
 
-const getPageById = asyncHandler(async (req, res) => {
-    const { pageId } = req.params;
+const getPageBySlug = asyncHandler(async (req, res) => {
+    const { pageSlug } = req.params;
 
-    isValidId(pageId);
+    const page = await TermsAndConditionsModel.findOne({ pageSlug });
+    if (!page) {
+        throw new ApiError(404, "Page not found");
+    }
 
-    const page = await PageModel.findById(pageId);
-
-    return res
-        .status(200)
-        .json(new ApiResponse(200, page, "Page retrieved successfully"));
+    return res.status(200).json(new ApiResponse(200, page, "Page retrieved successfully"));
 });
 
 const updatePage = asyncHandler(async (req, res) => {
     const { pageId } = req.params;
-
     isValidId(pageId);
 
-    const { pageTitle, pageContent, pageUrl } = req.body;
+    const { pageTitle, pageContent, pageSlug, pageCategory } = req.body;
 
-    const updatedPage = await PageModel.findByIdAndUpdate(
+    const updatedPage = await TermsAndConditionsModel.findByIdAndUpdate(
         pageId,
-        { pageTitle, pageContent, pageUrl },
+        { pageTitle, pageContent, pageSlug, pageCategory },
         { new: true }
     );
 
-    return res
-        .status(200)
-        .json(new ApiResponse(200, updatedPage, "Page updated successfully"));
+    if (!updatedPage) {
+        throw new ApiError(404, "Page not found");
+    }
+
+    return res.status(200).json(new ApiResponse(200, updatedPage, "Page updated successfully"));
 });
 
 const deletePage = asyncHandler(async (req, res) => {
     const { pageId } = req.params;
-
     isValidId(pageId);
 
-    const deletedPage = await PageModel.findByIdAndDelete(pageId);
+    const deletedPage = await TermsAndConditionsModel.findByIdAndDelete(pageId);
+    if (!deletedPage) {
+        throw new ApiError(404, "Page not found");
+    }
 
-    return res
-        .status(200)
-        .json(new ApiResponse(200, deletedPage, "Page deleted successfully"));
+    return res.status(200).json(new ApiResponse(200, deletedPage, "Page deleted successfully"));
 });
 
-export { createAPage, getPages, getPageById, updatePage, deletePage };
+export { createPage, getPages, getPageBySlug, updatePage, deletePage };
