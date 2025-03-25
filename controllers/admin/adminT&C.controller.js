@@ -23,16 +23,15 @@ const createPage = asyncHandler(async (req, res) => {
 });
 
 const getPages = asyncHandler(async (req, res) => {
-    const pages = await TermsAndConditionsModel.find().sort({ createdAt: -1 });
+    const pages = await TermsAndConditionsModel.find();
 
     return res.status(200).json(new ApiResponse(200, pages, "Pages retrieved successfully"));
 });
 
 const getPageBySlug = asyncHandler(async (req, res) => {
-    const { slug } = req.params;
-    console.log("🚀 ~ getPageBySlug ~ slug:", slug)
+    const { termId } = req.params;
 
-    const page = await TermsAndConditionsModel.findOne({ pageSlug: slug });
+    const page = await TermsAndConditionsModel.findById(termId);
     if (!page) {
         throw new ApiError(404, "Page not found");
     }
@@ -41,9 +40,9 @@ const getPageBySlug = asyncHandler(async (req, res) => {
 });
 
 const updatePage = asyncHandler(async (req, res) => {
-    const { pageId } = req.params;
-    isValidId(pageId);
-
+    const { termId } = req.params;
+    isValidId(termId);
+    termId
     const { pageTitle, pageContent, pageCategory } = req.body;
     let updateData = { pageContent, pageCategory };
 
@@ -53,7 +52,7 @@ const updatePage = asyncHandler(async (req, res) => {
     }
 
     const updatedPage = await TermsAndConditionsModel.findByIdAndUpdate(
-        pageId,
+        termId,
         updateData,
         { new: true }
     );
@@ -66,10 +65,10 @@ const updatePage = asyncHandler(async (req, res) => {
 });
 
 const deletePage = asyncHandler(async (req, res) => {
-    const { pageId } = req.params;
-    isValidId(pageId);
+    const { termId } = req.params;
+    isValidId(termId);
 
-    const deletedPage = await TermsAndConditionsModel.findByIdAndDelete(pageId);
+    const deletedPage = await TermsAndConditionsModel.findByIdAndDelete(termId);
     if (!deletedPage) {
         throw new ApiError(404, "Page not found");
     }

@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import slugify from "slugify";
+import ApiError from "../../utils/ApiError.js";
 
 const termsAndConditionsSchema = new mongoose.Schema(
     {
@@ -27,12 +28,18 @@ const termsAndConditionsSchema = new mongoose.Schema(
 );
 
 // Auto-generate slug before saving
-termsAndConditionsSchema.pre("save", function (next) {
+termsAndConditionsSchema.pre("save", async function (next) {
     if (this.isModified("pageTitle")) {
         this.pageSlug = slugify(this.pageTitle, { lower: true, strict: true });
+
+        const existingDoc = await this.constructor.findOne({ pageSlug: this.pageSlug });
+        if (existingDoc) {
+            throw new ApiError(400, "Page with this title already exists");
+        }
     }
     next();
 });
+
 
 const TermsAndConditionsModel =
     mongoose.models.termsAndConditionsModel ||
