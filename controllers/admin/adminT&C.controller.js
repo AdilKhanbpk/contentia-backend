@@ -3,18 +3,19 @@ import ApiResponse from "../../utils/ApiResponse.js";
 import asyncHandler from "../../utils/asyncHandler.js";
 import { isValidId } from "../../utils/commonHelpers.js";
 import TermsAndConditionsModel from "../../models/admin/adminT&C.model.js";
+import slugify from "slugify";
 
 const createPage = asyncHandler(async (req, res) => {
-    const { pageTitle, pageContent, pageSlug, pageCategory } = req.body;
+    const { pageTitle, pageContent, pageCategory } = req.body;
 
-    if (!pageTitle || !pageContent || !pageSlug || !pageCategory) {
+    if (!pageTitle || !pageContent || !pageCategory) {
         throw new ApiError(400, "Please provide all the required fields");
     }
+
 
     const newPage = await TermsAndConditionsModel.create({
         pageTitle,
         pageContent,
-        pageSlug,
         pageCategory,
     });
 
@@ -28,9 +29,10 @@ const getPages = asyncHandler(async (req, res) => {
 });
 
 const getPageBySlug = asyncHandler(async (req, res) => {
-    const { pageSlug } = req.params;
+    const { slug } = req.params;
+    console.log("🚀 ~ getPageBySlug ~ slug:", slug)
 
-    const page = await TermsAndConditionsModel.findOne({ pageSlug });
+    const page = await TermsAndConditionsModel.findOne({ pageSlug: slug });
     if (!page) {
         throw new ApiError(404, "Page not found");
     }
@@ -42,11 +44,17 @@ const updatePage = asyncHandler(async (req, res) => {
     const { pageId } = req.params;
     isValidId(pageId);
 
-    const { pageTitle, pageContent, pageSlug, pageCategory } = req.body;
+    const { pageTitle, pageContent, pageCategory } = req.body;
+    let updateData = { pageContent, pageCategory };
+
+    if (pageTitle) {
+        updateData.pageTitle = pageTitle;
+        updateData.slug = `${pageCategory}/${slugify(pageTitle, { lower: true, strict: true })}`;
+    }
 
     const updatedPage = await TermsAndConditionsModel.findByIdAndUpdate(
         pageId,
-        { pageTitle, pageContent, pageSlug, pageCategory },
+        updateData,
         { new: true }
     );
 

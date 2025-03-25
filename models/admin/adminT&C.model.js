@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import slugify from "slugify";
 
 const termsAndConditionsSchema = new mongoose.Schema(
     {
@@ -12,7 +13,7 @@ const termsAndConditionsSchema = new mongoose.Schema(
         },
         pageSlug: {
             type: String,
-            required: true,
+            unique: true,
         },
         pageCategory: {
             type: String,
@@ -24,6 +25,14 @@ const termsAndConditionsSchema = new mongoose.Schema(
         timestamps: true,
     }
 );
+
+// Auto-generate slug before saving
+termsAndConditionsSchema.pre("save", function (next) {
+    if (this.isModified("pageTitle")) {
+        this.pageSlug = slugify(this.pageTitle, { lower: true, strict: true });
+    }
+    next();
+});
 
 const TermsAndConditionsModel =
     mongoose.models.termsAndConditionsModel ||
