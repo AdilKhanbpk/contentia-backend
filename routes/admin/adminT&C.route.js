@@ -9,12 +9,12 @@ const router = express.Router();
 
 router.get("/", isAuthenticated, getPages);
 
-router.get("/:slug", isAuthenticated, isAdmin, getPageBySlug);
+router.get("/:termId", isAuthenticated, isAdmin, getPageBySlug);
 
 router.post("/", isAuthenticated, isAdmin, createPage);
 
-router.patch("/:category/:slug", isAuthenticated, isAdmin, updatePage);
+router.patch("/:termId", isAuthenticated, isAdmin, updatePage);
 
-router.delete("/:category/:slug", isAuthenticated, isAdmin, deletePage);
+router.delete("/:termId", isAuthenticated, isAdmin, deletePage);
 
 export default router;
