@@ -42,27 +42,23 @@ const getPageBySlug = asyncHandler(async (req, res) => {
 const updatePage = asyncHandler(async (req, res) => {
     const { termId } = req.params;
     isValidId(termId);
-    termId
+
     const { pageTitle, pageContent, pageCategory } = req.body;
-    let updateData = { pageContent, pageCategory };
 
-    if (pageTitle) {
-        updateData.pageTitle = pageTitle;
-        updateData.slug = `${pageCategory}/${slugify(pageTitle, { lower: true, strict: true })}`;
-    }
-
-    const updatedPage = await TermsAndConditionsModel.findByIdAndUpdate(
-        termId,
-        updateData,
-        { new: true }
-    );
-
-    if (!updatedPage) {
+    const page = await TermsAndConditionsModel.findById(termId);
+    if (!page) {
         throw new ApiError(404, "Page not found");
     }
 
+    page.pageTitle = pageTitle;
+    page.pageContent = pageContent;
+    page.pageCategory = pageCategory;
+
+    const updatedPage = await page.save();
+
     return res.status(200).json(new ApiResponse(200, updatedPage, "Page updated successfully"));
 });
+
 
 const deletePage = asyncHandler(async (req, res) => {
     const { termId } = req.params;
