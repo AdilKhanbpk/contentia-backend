@@ -28,7 +28,7 @@ const getPages = asyncHandler(async (req, res) => {
     return res.status(200).json(new ApiResponse(200, pages, "Pages retrieved successfully"));
 });
 
-const getPageBySlug = asyncHandler(async (req, res) => {
+const getPageById = asyncHandler(async (req, res) => {
     const { termId } = req.params;
 
     const page = await TermsAndConditionsModel.findById(termId);
@@ -36,6 +36,16 @@ const getPageBySlug = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Page not found");
     }
 
+    return res.status(200).json(new ApiResponse(200, page, "Page retrieved successfully"));
+});
+
+const getPageBySlug = asyncHandler(async (req, res) => {
+    const { pageSlug } = req.params;
+
+    const page = await TermsAndConditionsModel.findOne({ pageSlug });
+    if (!page) {
+        throw new ApiError(404, "Page not found");
+    }
     return res.status(200).json(new ApiResponse(200, page, "Page retrieved successfully"));
 });
 
@@ -72,4 +82,4 @@ const deletePage = asyncHandler(async (req, res) => {
     return res.status(200).json(new ApiResponse(200, deletedPage, "Page deleted successfully"));
 });
 
-export { createPage, getPages, getPageBySlug, updatePage, deletePage };
+export { createPage, getPages, getPageById, getPageBySlug, updatePage, deletePage };
