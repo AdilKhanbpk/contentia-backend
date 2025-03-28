@@ -9,8 +9,9 @@ const router = express.Router();
 
 router.get("/", isAuthenticated, getPages);
 
-router.get("/:pageSlug", getPageBySlug);
-router.get("/:termId", isAuthenticated, isAdmin, getPageById);
+router.get("/slug/:pageSlug", getPageBySlug);
+router.get("/id/:termId", isAuthenticated, isAdmin, getPageById);
+
 
 router.post("/", isAuthenticated, isAdmin, createPage);
 
