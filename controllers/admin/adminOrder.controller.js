@@ -519,6 +519,23 @@ const adminMarkAsRejected = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, updatedOrder, "Order mark as rejected by admin successfully"));
 });
 
+const getCreatorAssignedOrders = asyncHandler(async (req, res) => {
+    const { creatorId } = req.params
+    isValidId(creatorId)
+
+    const creator = await Creator.findById(creatorId);
+    if (!creator) {
+        throw new ApiError(404, "Creator not found");
+    }
+
+    const orders = await Order.find({
+        assignedOrders: creatorId
+    })
+
+    return res.status(200).json(new ApiResponse(200, orders, "Creator's Assigned orders retrieved successfully"))
+
+})
+
 export {
     createOrder,
     getOrders,
@@ -529,6 +546,7 @@ export {
     rejectCreatorOnOrder,
     getAppliedCreatorsOnOrders,
     getAllAssignedOrders,
+    getCreatorAssignedOrders,
     adminMarkAsCompleted,
     adminMarkAsRejected
 };
