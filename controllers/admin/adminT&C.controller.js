@@ -30,7 +30,6 @@ const getPages = asyncHandler(async (req, res) => {
 
 const getPageById = asyncHandler(async (req, res) => {
     const { termId } = req.params;
-    console.log("🚀 ~ getPageById ~ termId:", termId)
 
     const page = await TermsAndConditionsModel.findById(termId);
     if (!page) {
