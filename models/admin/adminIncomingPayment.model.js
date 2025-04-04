@@ -37,13 +37,6 @@ const incomingPaymentSchema = new Schema(
     }
 );
 
-incomingPaymentSchema.pre("save", function (next) {
-    if (this.paymentStatus === "refund") {
-        this.refundStatus = "refunded";
-    }
-    next();
-});
-
 const IncomingPayment =
     mongoose.models.IncomingPayment ||
     mongoose.model("IncomingPayment", incomingPaymentSchema);
