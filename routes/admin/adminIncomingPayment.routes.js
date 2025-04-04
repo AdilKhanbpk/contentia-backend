@@ -38,6 +38,6 @@ router.patch(
 );
 
 // DELETE Routes
-router.delete("/:id", isAuthenticated, deletePayment);
+router.delete("/:paymentId", isAuthenticated, deletePayment);
 
 export default router;
