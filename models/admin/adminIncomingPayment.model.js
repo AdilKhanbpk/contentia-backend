@@ -23,7 +23,7 @@ const incomingPaymentSchema = new Schema(
         },
         paymentStatus: {
             type: String,
-            enum: ["paid", "unpaid"],
+            enum: ["paid", "unpaid", "refund"],
             default: "unpaid",
         },
         refundStatus: {
