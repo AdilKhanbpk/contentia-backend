@@ -189,12 +189,12 @@ const createCreator = asyncHandler(async (req, res) => {
     });
 
     const notificationData = notificationTemplates.creatorRegistration({
-        creatorName: fullName,
-        creatorEmail: email,
-        creatorPhoneNumber: phoneNumber,
         targetUsers: allAdminIds.map((admin) => admin._id),
         metadata: {
             creatorId: newUser._id,
+            creatorName: newUser.fullName,
+            creatorEmail: newUser.email,
+            creatorPhoneNumber: newUser.phoneNumber,
             creatorAddress: addressDetails,
         },
     });
@@ -351,19 +351,19 @@ const applyForOrder = asyncHandler(async (req, res) => {
         );
     }
 
-    // const allAdminIds = await User.find({ role: "admin" }).select("_id");
-    // const notificationData = notificationTemplates.creatorApplyForOrder({
-    //     creatorName: creator.fullName,
-    //     creatorEmail: creator.email,
-    //     creatorPhoneNumber: creator.phoneNumber,
-    //     targetUsers: allAdminIds.map((admin) => admin._id),
-    //     metadata: {
-    //         creatorId: creator._id,
-    //         orderId: order._id,
-    //     },
-    // });
+    const allAdminIds = await User.find({ role: "admin" }).select("_id");
+    const notificationData = notificationTemplates.creatorApplyForOrder({
+        targetUsers: allAdminIds.map((admin) => admin._id),
+        metadata: {
+            creatorId: creator._id,
+            creatorEmail: creator.email,
+            creatorName: creator.fullName,
+            creatorPhoneNumber: creator.phoneNumber,
+            orderId: order._id,
+        },
+    });
 
-    // await sendNotification(notificationData);
+    await sendNotification(notificationData);
 
     order.appliedCreators.push(creator._id);
 
@@ -583,8 +583,23 @@ const completeTheOrder = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Creator not found");
     }
 
+    const allAdminIds = await User.find({ role: "admin" }).select("_id");
+
+
     order.orderStatus = "completed";
     await order.save();
+
+
+
+    const notificationData = notificationTemplates.orderCompletionByCreator({
+        orderTitle: order.briefContent.brandName || "Order",
+        targetUsers: allAdminIds.map((admin) => admin._id),
+        metadata: {
+            creatorId: creator._id,
+            orderId: order._id,
+        },
+    });
+    await sendNotification(notificationData);
 
     return res
         .status(200)

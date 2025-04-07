@@ -34,22 +34,19 @@ export const notificationTemplates = {
         };
     },
 
-    // creatorApplyForOrder: ({
-    //     creatorName,
-    //     creatorEmail,
-    //     creatorPhoneNumber,
-    //     targetUsers = [],
-    //     metadata = {},
-    // }) => {
-    //     return {
-    //         title: "Creator Application for Order",
-    //         details: `Creator ${creatorName} has applied for an order using the email ${creatorEmail} and phone number ${creatorPhoneNumber}.`,
-    //         userType: "customer",
-    //         eventType: "admin",
-    //         users: targetUsers,
-    //         metadata,
-    //     };
-    // },
+    creatorApplyForOrder: ({
+        targetUsers = [],
+        metadata = {},
+    }) => {
+        return {
+            title: "Creator Application for Order",
+            details: `Creator ${creatorName} has applied for an order using the email ${creatorEmail} and phone number ${creatorPhoneNumber}.`,
+            userType: "customer",
+            eventType: "admin",
+            users: targetUsers,
+            metadata,
+        };
+    },
 
     creatorApprovalForOrderByAdmin: ({
         orderTitle = "Order Title",

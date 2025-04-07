@@ -60,9 +60,9 @@ const createOrder = asyncHandler(async (req, res) => {
     const notificationData = notificationTemplates.orderCreationByCustomer({
         targetUsers: allAdminIds,
         metadata: {
-            customerName: req.user.fullName,
-            customerEmail: req.user.email,
-            customerPhoneNumber: req.user.phoneNumber,
+            customerName: req.user.fullName || "John Doe",
+            customerEmail: req.user.email || "example.com",
+            customerPhoneNumber: req.user.phoneNumber || "123456789",
             status: `The order has been in ${orderStatus} status`,
         },
     });
