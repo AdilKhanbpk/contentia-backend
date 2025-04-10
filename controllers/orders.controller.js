@@ -9,6 +9,7 @@ import { uploadMultipleFilesToCloudinary } from "../utils/Cloudinary.js";
 import { sendNotification } from "./admin/adminNotification.controller.js";
 import User from "../models/user.model.js";
 import { notificationTemplates } from "../helpers/notificationTemplates.js";
+import Revision from "../models/revision.model.js";
 
 const createOrder = asyncHandler(async (req, res) => {
     const {
@@ -266,6 +267,103 @@ const createClaimOnOrder = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, claim, "Order retrieved successfully"));
 });
 
+const createRevisionOnOrder = asyncHandler(async (req, res) => {
+    const { orderId } = req.params;
+    const { revisionContent } = req.body;
+
+    isValidId(orderId);
+
+    if (!revisionContent) {
+        throw new ApiError(400, "Please provide revision content");
+    }
+
+    const order = await Orders.findById(orderId);
+
+    if (!order) {
+        throw new ApiError(404, "Order not found");
+    }
+
+    const notificationData = notificationTemplates.reportAnOrderFromCustomer({
+        orderTitle: order.briefContent.brandName,
+        targetUsers: [order.orderOwner],
+        metadata: {
+            customerName: req.user.fullName,
+            customerEmail: req.user.email,
+            customerPhoneNumber: req.user.phoneNumber,
+            status: `The order has been in ${order.orderStatus} status`,
+        },
+    });
+
+    await sendNotification(notificationData);
+
+    const revision = await Revision.create({
+        customer: req.user._id,
+        order: orderId,
+        revisionContent,
+    });
+
+    order.orderStatus = "revision";
+    await order.save();
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, revision, "Order retrieved successfully"));
+})
+
+const approveRevisionOnOrder = asyncHandler(async (req, res) => {
+    const { orderId, revisionId } = req.params;
+
+    isValidId(orderId);
+    isValidId(revisionId);
+
+    const [order, revision] = await Promise.all([
+        Orders.findById(orderId),
+        Revision.findById(revisionId)
+    ]);
+
+    if (!order) throw new ApiError(404, "Order not found");
+    if (!revision) throw new ApiError(404, "Revision not found");
+
+    order.orderStatus = "active";
+    revision.status = "approved";
+
+    await Promise.all([
+        order.save(),
+        revision.save()
+    ]);
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, order, "Order updated successfully"));
+});
+
+const rejectRevisionOnOrder = asyncHandler(async (req, res) => {
+    const { orderId, revisionId } = req.params;
+
+    isValidId(orderId);
+    isValidId(revisionId);
+
+    const [order, revision] = await Promise.all([
+        Orders.findById(orderId),
+        Revision.findById(revisionId)
+    ]);
+
+    if (!order) throw new ApiError(404, "Order not found");
+    if (!revision) throw new ApiError(404, "Revision not found");
+
+    order.orderStatus = "active";
+    revision.status = "rejected";
+
+    await Promise.all([
+        order.save(),
+        revision.save()
+    ]);
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, order, "Order updated successfully"));
+});
+
 export {
     createOrder,
     updateOrder,
@@ -274,4 +372,7 @@ export {
     getMyOrders,
     getOrders,
     createClaimOnOrder,
+    createRevisionOnOrder,
+    approveRevisionOnOrder,
+    rejectRevisionOnOrder,
 };
