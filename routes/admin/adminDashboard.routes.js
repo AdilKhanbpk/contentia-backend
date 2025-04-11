@@ -6,7 +6,7 @@ import {
 import {
     getTotalCreators,
     getTotalOrders,
-    getTotalSalesByMonth,
+    getTotalSales,
     getTotalUsers,
     recentOrders,
 } from "../../controllers/admin/adminDashboard.controller.js";
@@ -21,6 +21,6 @@ router.get("/total-creators", getTotalCreators);
 router.get("/total-orders", getTotalOrders);
 router.get("/total-customers", getTotalUsers);
 router.get("/recent-orders", recentOrders);
-router.get("/total-sales-by-month", getTotalSalesByMonth);
+router.get("/total-sales-by-month", getTotalSales);
 
 export default router;

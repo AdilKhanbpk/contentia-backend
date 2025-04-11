@@ -308,4 +308,4 @@ const recentOrders = asyncHandler(async (req, res) => {
         );
 });
 
-export { getTotalCreators, getTotalUsers, getTotalOrders, recentOrders, getTotalSalesByMonth };
+export { getTotalCreators, getTotalUsers, getTotalOrders, recentOrders, getTotalSales };
