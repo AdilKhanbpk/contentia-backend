@@ -6,7 +6,9 @@ import {
 import {
     getTotalCreators,
     getTotalOrders,
+    getTotalSalesByMonth,
     getTotalUsers,
+    recentOrders,
 } from "../../controllers/admin/adminDashboard.controller.js";
 
 const router = express.Router();
@@ -18,5 +20,7 @@ router.use(isAuthenticated, isAdmin);
 router.get("/total-creators", getTotalCreators);
 router.get("/total-orders", getTotalOrders);
 router.get("/total-customers", getTotalUsers);
+router.get("/recent-orders", recentOrders);
+router.get("/total-sales-by-month", getTotalSalesByMonth);
 
 export default router;

@@ -123,7 +123,8 @@ const getTotalOrders = asyncHandler(async (req, res) => {
     const now = new Date();
     const startOfYear = new Date(now.getFullYear(), 0, 1);
 
-    const [monthlyOrders, totalOrdersCount, statusCounts] = await Promise.all([
+    const [monthlyOrders, totalOrdersCount, statusCounts, totalPriceOfCompletedOrdersResult] = await Promise.all([
+        // Orders grouped by month
         Order.aggregate([
             { $match: { createdAt: { $gte: startOfYear } } },
             {
@@ -137,12 +138,27 @@ const getTotalOrders = asyncHandler(async (req, res) => {
             },
             { $sort: { "_id.month": 1 } },
         ]),
+
+        // Total order count
         Order.countDocuments(),
+
+        // Count by order status
         Order.aggregate([
             {
                 $group: {
                     _id: "$orderStatus",
                     count: { $sum: 1 },
+                },
+            },
+        ]),
+
+        // Sum of prices for completed orders
+        Order.aggregate([
+            { $match: { orderStatus: "completed" } },
+            {
+                $group: {
+                    _id: null,
+                    total: { $sum: "$totalPrice" }, // Make sure the field name matches your schema
                 },
             },
         ]),
@@ -163,7 +179,8 @@ const getTotalOrders = asyncHandler(async (req, res) => {
     const previousMonthCount =
         monthlyOrders.find(
             ({ _id }) =>
-                _id.year === now.getFullYear() && _id.month === now.getMonth()
+                _id.year === now.getFullYear() &&
+                _id.month === now.getMonth()
         )?.count || 0;
 
     const percentageChange = previousMonthCount
@@ -181,6 +198,8 @@ const getTotalOrders = asyncHandler(async (req, res) => {
     const activeOrders = statusCountsMap["active"] || 0;
     const canceledOrders = statusCountsMap["canceled"] || 0;
 
+    const totalPriceOfCompletedOrders = totalPriceOfCompletedOrdersResult[0]?.total || 0;
+
     return res.status(200).json(
         new ApiResponse(
             200,
@@ -195,11 +214,90 @@ const getTotalOrders = asyncHandler(async (req, res) => {
                 currentMonthCount,
                 previousMonthCount,
                 percentageChange: percentageChange.toFixed(2),
+                totalPriceOfCompletedOrders,
             },
             "Total orders statistics retrieved successfully"
         )
     );
 });
+
+const getTotalSales = asyncHandler(async (req, res) => {
+    const now = new Date();
+    const startOfYear = new Date(now.getFullYear(), 0, 1);
+
+    const [monthlySalesData, totalSalesResult] = await Promise.all([
+        Order.aggregate([
+            {
+                $match: {
+                    createdAt: { $gte: startOfYear },
+                    orderStatus: "completed",
+                },
+            },
+            {
+                $group: {
+                    _id: {
+                        year: { $year: "$createdAt" },
+                        month: { $month: "$createdAt" },
+                    },
+                    totalSales: { $sum: "$totalPrice" },
+                },
+            },
+            { $sort: { "_id.month": 1 } },
+        ]),
+
+        Order.aggregate([
+            { $match: { orderStatus: "completed" } },
+            {
+                $group: {
+                    _id: null,
+                    total: { $sum: "$totalPrice" },
+                },
+            },
+        ]),
+    ]);
+
+    const totalSalesByMonth = Array(12).fill(0);
+    monthlySalesData.forEach(
+        ({ _id: { month }, totalSales }) => {
+            totalSalesByMonth[month - 1] = totalSales;
+        }
+    );
+
+    const currentMonthTotal =
+        monthlySalesData.find(
+            ({ _id }) =>
+                _id.year === now.getFullYear() &&
+                _id.month === now.getMonth() + 1
+        )?.totalSales || 0;
+
+    const previousMonthTotal =
+        monthlySalesData.find(
+            ({ _id }) =>
+                _id.year === now.getFullYear() &&
+                _id.month === now.getMonth()
+        )?.totalSales || 0;
+
+    const percentageChange = previousMonthTotal
+        ? ((currentMonthTotal - previousMonthTotal) / previousMonthTotal) * 100
+        : currentMonthTotal * 100;
+
+    const totalSales = totalSalesResult[0]?.total || 0;
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            {
+                totalSales,
+                totalSalesByMonth,
+                currentMonthTotal,
+                previousMonthTotal,
+                percentageChange: percentageChange.toFixed(2),
+            },
+            "Sales statistics and percentage change retrieved successfully"
+        )
+    );
+});
+
 
 const recentOrders = asyncHandler(async (req, res) => {
     const orders = await Order.find().sort({ createdAt: -1 }).limit(10);
@@ -210,4 +308,4 @@ const recentOrders = asyncHandler(async (req, res) => {
         );
 });
 
-export { getTotalCreators, getTotalUsers, getTotalOrders, recentOrders };
+export { getTotalCreators, getTotalUsers, getTotalOrders, recentOrders, getTotalSalesByMonth };
