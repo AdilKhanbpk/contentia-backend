@@ -262,6 +262,52 @@ const deleteNotification = asyncHandler(async (req, res) => {
         );
 });
 
+const markNotificationAsRead = asyncHandler(async (req, res) => {
+    const { notificationId } = req.params;
+    const userId = req.user._id;
+
+    isValidId(notificationId);
+
+    const notification = await Notification.findById(notificationId);
+
+    if (!notification) {
+        throw new ApiError(404, "Notification not found");
+    }
+
+    if (notification.readBy.includes(userId)) {
+        return res.status(200).json(
+            new ApiResponse(200, notification, "Notification is already marked as read")
+        );
+    }
+
+    notification.readBy.push(userId);
+
+    const updatedNotification = await notification.save();
+
+    return res.status(200).json(
+        new ApiResponse(200, updatedNotification, "Notification marked as read successfully")
+    );
+});
+
+const getUnreadNotifications = asyncHandler(async (req, res) => {
+    const userId = req.user._id;
+
+    const unreadNotifications = await Notification.find({
+        users: userId,
+        readBy: { $nin: [userId] }
+    });
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            unreadNotifications,
+            "Unread notifications retrieved successfully"
+        )
+    );
+});
+
+
+
 export {
     createNotification,
     sendNotification,
@@ -270,4 +316,6 @@ export {
     updateNotification,
     deleteNotification,
     getMyNotifications,
+    markNotificationAsRead,
+    getUnreadNotifications
 };
