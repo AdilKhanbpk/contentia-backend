@@ -42,13 +42,14 @@ const notificationSchema = new mongoose.Schema(
             required: true,
         },
         metadata: {
-            type: Object, // Holds additional data like order ID, package ID
+            type: Object,
             default: {},
         },
-        isRead: {
-            type: Boolean,
-            default: false,
-        },
+        readBy: [
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                refPath: "userRefPath",
+            },]
     },
     {
         timestamps: true,
