@@ -25,8 +25,8 @@ export const notificationTemplates = {
         metadata = {},
     }) => {
         return {
-            title: "New Creator Registration",
-            details: `A new creator named ${metadata.creatorName} has successfully registered with the email ${metadata.creatorEmail} and phone number ${metadata.creatorPhoneNumber}.`,
+            title: "Yeni İçerik Üreticisi Kaydı",
+            details: `Yeni bir içerik üreticisi olan ${metadata.creatorName}, ${metadata.creatorEmail} e-posta adresi ve ${metadata.creatorPhoneNumber} telefon numarası ile başarıyla kayıt oldu.`,
             userType: "customer",
             eventType: "admin",
             users: targetUsers,
@@ -34,19 +34,23 @@ export const notificationTemplates = {
         };
     },
 
+
     creatorApplyForOrder: ({
         targetUsers = [],
         metadata = {},
     }) => {
+        const { creatorName, creatorEmail, creatorPhoneNumber } = metadata;
+
         return {
-            title: "Creator Application for Order",
-            details: `Creator ${creatorName} has applied for an order using the email ${creatorEmail} and phone number ${creatorPhoneNumber}.`,
+            title: "İçerik Üreticisi Siparişe Başvurdu",
+            details: `İçerik üreticisi ${creatorName}, ${creatorEmail} e-posta adresi ve ${creatorPhoneNumber} telefon numarası ile bir siparişe başvurdu.`,
             userType: "customer",
             eventType: "admin",
             users: targetUsers,
             metadata,
         };
     },
+
 
     creatorApprovalForOrderByAdmin: ({
         orderTitle = "Order Title",
