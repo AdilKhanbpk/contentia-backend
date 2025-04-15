@@ -123,7 +123,20 @@ const getTotalOrders = asyncHandler(async (req, res) => {
     const now = new Date();
     const startOfYear = new Date(now.getFullYear(), 0, 1);
 
-    const [monthlyOrders, totalOrdersCount, statusCounts, totalPriceOfCompletedOrdersResult] = await Promise.all([
+    // Get start of current week (Monday)
+    const startOfWeek = new Date(now);
+    const day = startOfWeek.getDay();
+    const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1); // adjust when Sunday
+    startOfWeek.setDate(diff);
+    startOfWeek.setHours(0, 0, 0, 0);
+
+    const [
+        monthlyOrders,
+        totalOrdersCount,
+        statusCounts,
+        totalPriceOfCompletedOrdersResult,
+        dailyOrdersThisWeek
+    ] = await Promise.all([
         // Orders grouped by month
         Order.aggregate([
             { $match: { createdAt: { $gte: startOfYear } } },
@@ -158,17 +171,30 @@ const getTotalOrders = asyncHandler(async (req, res) => {
             {
                 $group: {
                     _id: null,
-                    total: { $sum: "$totalPrice" }, // Make sure the field name matches your schema
+                    total: { $sum: "$totalPrice" },
+                },
+            },
+        ]),
+
+        // Orders grouped by day of current week
+        Order.aggregate([
+            { $match: { createdAt: { $gte: startOfWeek } } },
+            {
+                $group: {
+                    _id: { dayOfWeek: { $dayOfWeek: "$createdAt" } },
+                    count: { $sum: 1 },
                 },
             },
         ]),
     ]);
 
+    // Monthly order array (Jan - Dec)
     const totalOrdersByMonth = Array(12).fill(0);
     monthlyOrders.forEach(({ _id: { month }, count }) => {
         totalOrdersByMonth[month - 1] = count;
     });
 
+    // Current and previous month count
     const currentMonthCount =
         monthlyOrders.find(
             ({ _id }) =>
@@ -183,10 +209,12 @@ const getTotalOrders = asyncHandler(async (req, res) => {
                 _id.month === now.getMonth()
         )?.count || 0;
 
+    // Monthly percentage change
     const percentageChange = previousMonthCount
         ? ((currentMonthCount - previousMonthCount) / previousMonthCount) * 100
         : currentMonthCount * 100;
 
+    // Order status counts
     const statusCountsMap = statusCounts.reduce((acc, { _id, count }) => {
         acc[_id] = count;
         return acc;
@@ -198,7 +226,15 @@ const getTotalOrders = asyncHandler(async (req, res) => {
     const activeOrders = statusCountsMap["active"] || 0;
     const canceledOrders = statusCountsMap["canceled"] || 0;
 
+    // Total price of completed orders
     const totalPriceOfCompletedOrders = totalPriceOfCompletedOrdersResult[0]?.total || 0;
+
+    // Weekly orders (Mon - Sun)
+    const dayOrderMap = Array(7).fill(0); // [Sun, Mon, ..., Sat]
+    dailyOrdersThisWeek.forEach(({ _id: { dayOfWeek }, count }) => {
+        dayOrderMap[dayOfWeek - 1] = count;
+    });
+    const totalOrdersByWeek = [...dayOrderMap.slice(1), dayOrderMap[0]]; // Rearranged to [Mon, ..., Sun]
 
     return res.status(200).json(
         new ApiResponse(
@@ -211,6 +247,7 @@ const getTotalOrders = asyncHandler(async (req, res) => {
                 revisionOrders,
                 canceledOrders,
                 totalOrdersByMonth,
+                totalOrdersByWeek, // ← new!
                 currentMonthCount,
                 previousMonthCount,
                 percentageChange: percentageChange.toFixed(2),
@@ -221,11 +258,21 @@ const getTotalOrders = asyncHandler(async (req, res) => {
     );
 });
 
+
+
 const getTotalSales = asyncHandler(async (req, res) => {
     const now = new Date();
     const startOfYear = new Date(now.getFullYear(), 0, 1);
 
-    const [monthlySalesData, totalSalesResult] = await Promise.all([
+    // Get start of current week (Monday)
+    const startOfWeek = new Date(now);
+    const day = startOfWeek.getDay();
+    const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1); // Adjust if Sunday
+    startOfWeek.setDate(diff);
+    startOfWeek.setHours(0, 0, 0, 0);
+
+    const [monthlySalesData, totalSalesResult, dailySalesThisWeek] = await Promise.all([
+        // Monthly sales aggregation
         Order.aggregate([
             {
                 $match: {
@@ -245,6 +292,7 @@ const getTotalSales = asyncHandler(async (req, res) => {
             { $sort: { "_id.month": 1 } },
         ]),
 
+        // Total sales (all time)
         Order.aggregate([
             { $match: { orderStatus: "completed" } },
             {
@@ -254,15 +302,31 @@ const getTotalSales = asyncHandler(async (req, res) => {
                 },
             },
         ]),
+
+        // Daily sales in current week
+        Order.aggregate([
+            {
+                $match: {
+                    createdAt: { $gte: startOfWeek },
+                    orderStatus: "completed",
+                },
+            },
+            {
+                $group: {
+                    _id: { dayOfWeek: { $dayOfWeek: "$createdAt" } },
+                    totalSales: { $sum: "$totalPrice" },
+                },
+            },
+        ]),
     ]);
 
+    // Monthly sales data
     const totalSalesByMonth = Array(12).fill(0);
-    monthlySalesData.forEach(
-        ({ _id: { month }, totalSales }) => {
-            totalSalesByMonth[month - 1] = totalSales;
-        }
-    );
+    monthlySalesData.forEach(({ _id: { month }, totalSales }) => {
+        totalSalesByMonth[month - 1] = totalSales;
+    });
 
+    // Current and previous month sales
     const currentMonthTotal =
         monthlySalesData.find(
             ({ _id }) =>
@@ -281,7 +345,18 @@ const getTotalSales = asyncHandler(async (req, res) => {
         ? ((currentMonthTotal - previousMonthTotal) / previousMonthTotal) * 100
         : currentMonthTotal * 100;
 
+    // Total sales for all time
     const totalSales = totalSalesResult[0]?.total || 0;
+
+    // Weekly sales (Sun to Sat → reorder to Mon to Sun)
+    const dailySalesMap = Array(7).fill(0); // [Sun, Mon, ..., Sat]
+    dailySalesThisWeek.forEach(({ _id: { dayOfWeek }, totalSales }) => {
+        dailySalesMap[dayOfWeek - 1] = totalSales;
+    });
+    const totalSalesByWeek = [...dailySalesMap.slice(1), dailySalesMap[0]]; // [Mon, Tue, ..., Sun]
+
+    // Sum of the week's sales
+    const currentWeekTotalSale = totalSalesByWeek.reduce((acc, curr) => acc + curr, 0);
 
     return res.status(200).json(
         new ApiResponse(
@@ -289,6 +364,8 @@ const getTotalSales = asyncHandler(async (req, res) => {
             {
                 totalSales,
                 totalSalesByMonth,
+                totalSalesByWeek,
+                currentWeekTotalSale,
                 currentMonthTotal,
                 previousMonthTotal,
                 percentageChange: percentageChange.toFixed(2),
@@ -297,6 +374,8 @@ const getTotalSales = asyncHandler(async (req, res) => {
         )
     );
 });
+
+
 
 
 const recentOrders = asyncHandler(async (req, res) => {
