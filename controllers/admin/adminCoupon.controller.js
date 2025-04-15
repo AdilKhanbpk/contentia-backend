@@ -153,9 +153,7 @@ const deleteCoupon = asyncHandler(async (req, res) => {
 });
 
 const validateCoupon = asyncHandler(async (req, res) => {
-    const { code, orderId } = req.body;
-
-    isValidId(orderId);
+    const { code } = req.body;
 
     if (!code) {
         throw new ApiError(400, "Coupon code is required");
@@ -175,52 +173,15 @@ const validateCoupon = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Coupon usage limit exceeded");
     }
 
-    const order = await OrderModel.findById(orderId);
-
-    if (!order) {
-        throw new ApiError(404, "Order not found");
-    }
-
-    if (order.coupon && order.coupon.toString() === coupon._id.toString()) {
-        throw new ApiError(
-            400,
-            "This coupon has already been applied to the order"
-        );
-    }
-
-    let discountAmount = 0;
-
-    if (coupon.discountTl) {
-        if (coupon.discountTl > order.totalPrice) {
-            throw new ApiError(400, "Coupon discount exceeds order total");
-        }
-        discountAmount = coupon.discountTl;
-    } else if (coupon.discountPercentage) {
-        if (coupon.discountPercentage < 0 || coupon.discountPercentage > 100) {
-            throw new ApiError(400, "Invalid discount percentage");
-        }
-        discountAmount = (order.totalPrice * coupon.discountPercentage) / 100;
-    }
-
-    order.coupon = coupon._id;
-    order.totalPrice =
-        Math.round((order.totalPrice - discountAmount) * 100) / 100;
-
-    await Promise.all([
-        order.save(),
-        CouponModel.findOneAndUpdate(
-            { _id: coupon._id },
-            { $inc: { usedCount: 1 } },
-            { new: true }
-        ),
-    ]);
+    // Increase the usedCount by 1
+    coupon.usedCount = (coupon.usedCount || 0) + 1;
+    await coupon.save();
 
     return res
         .status(200)
-        .json(new ApiResponse(200, coupon, "Coupon applied successfully"));
+        .json(new ApiResponse(200, coupon, "Coupon is valid"));
 });
 
-export default validateCoupon;
 
 export {
     createCoupon,
