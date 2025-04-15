@@ -9,8 +9,10 @@ import {
 import { isValidId } from "../../utils/commonHelpers.js";
 
 const createBlog = asyncHandler(async (req, res) => {
-    const { title, category, metaKeywords, metaDescription, content } =
+    const { title, category, metaDescription, content } =
         req.body;
+
+    let { metaKeywords } = req.body;
 
     if (!title || !category || !metaKeywords || !metaDescription || !content) {
         throw new ApiError(400, "Please provide all the required fields");
