@@ -4,7 +4,6 @@ import ApiResponse from "../utils/ApiResponse.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import { uploadFileToCloudinary } from "../utils/Cloudinary.js";
 import { isValidId, resolvePath } from "../utils/commonHelpers.js";
-import { createFolder } from "../utils/googleDrive.js";
 
 export const cookieOptions = {
     httpOnly: true,

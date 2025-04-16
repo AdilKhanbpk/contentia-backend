@@ -47,6 +47,7 @@ import adminEmailNotificationRoute from "./routes/admin/adminEmailNotification.r
 import adminDashboardRoute from "./routes/admin/adminDashboard.routes.js";
 import adminIncomingPayments from "./routes/admin/adminIncomingPayment.routes.js"
 import adminTermsAndConditionsRoute from "./routes/admin/adminT&C.route.js"
+import adminFilesRoutes from "./routes/admin/adminFiles.routes.js"
 
 import ApiError from "./utils/ApiError.js";
 
@@ -153,6 +154,7 @@ app.use("/api/v1/admin/emailNotifications", adminEmailNotificationRoute);
 app.use("/api/v1/admin/dashboard", adminDashboardRoute);
 app.use("/api/v1/admin/incomingPayment", adminIncomingPayments)
 app.use("/api/v1/admin/terms", adminTermsAndConditionsRoute)
+app.use("/api/v1/admin/files", adminFilesRoutes)
 
 app.all("*", (req, res) => {
     const message = `Can't find ${req.originalUrl} on this server!`;

@@ -364,6 +364,45 @@ const deleteFolder = async (folderId) => {
     }
 };
 
+
+/**
+ * Get or create a nested folder structure (orderId/creatorId) and return the folder URL.
+ * 
+ * @param {string} orderId - The ID (name) of the order folder.
+ * @param {string} creatorId - The ID (name) of the creator folder.
+ * @returns {Promise<string>} The URL of the creator's folder.
+ */
+const getCreatorFolderUrl = async (orderId, creatorId) => {
+    try {
+        // Get or create order folder
+        let orderFolderId = await getFolderIdByName(orderId);
+        if (!orderFolderId) {
+            orderFolderId = await createFolder(orderId);
+        }
+
+        // Get or create creator folder inside order folder
+        let creatorFolderId = await getFolderIdByName(creatorId, orderFolderId);
+        if (!creatorFolderId) {
+            creatorFolderId = await createFolder(creatorId, orderFolderId);
+        }
+
+        // Make folder publicly viewable
+        await drive.permissions.create({
+            fileId: creatorFolderId,
+            requestBody: {
+                role: "reader",
+                type: "anyone",
+            },
+        });
+
+        // Return the public folder URL
+        return `https://drive.google.com/drive/folders/${creatorFolderId}`;
+    } catch (error) {
+        throw new ApiError(500, `Unable to generate folder URL: ${error.message}`);
+    }
+};
+
+
 export {
     listAllFilesInFolder,
     listAllFoldersInFolder,
@@ -374,4 +413,5 @@ export {
     getFolderIdByName,
     getFileUrlsFromFolder,
     deleteFolder,
+    getCreatorFolderUrl,
 };
