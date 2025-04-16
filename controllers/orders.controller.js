@@ -74,6 +74,7 @@ const createOrder = asyncHandler(async (req, res) => {
         orderOwner: req.user._id,
         noOfUgc,
         totalPrice,
+        basePrice: totalPrice,
         orderStatus,
         paymentStatus,
         contentsDelivered,

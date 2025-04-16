@@ -3,21 +3,6 @@ const Schema = mongoose.Schema;
 
 const additionalServiceSchema = new Schema(
     {
-        name: {
-            type: String,
-        },
-        price: {
-            type: Number,
-        },
-        image: {
-            type: String,
-        },
-        platform: {
-            type: String,
-        },
-        aspectRatio: {
-            type: String,
-        },
         editPrice: {
             type: Number,
         },

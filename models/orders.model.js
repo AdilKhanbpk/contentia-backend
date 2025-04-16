@@ -1,4 +1,5 @@
 import mongoose, { Schema } from "mongoose";
+import AdditionalServiceModel from "./admin/adminAdditionalService.model.js";
 
 const ordersProfileSchema = new Schema(
     {
@@ -41,6 +42,18 @@ const ordersProfileSchema = new Schema(
         totalPrice: {
             type: Number,
             required: true,
+        },
+        basePrice: {
+            type: Number,
+        },
+        totalPriceForCustomer: {
+            type: Number,
+        },
+        totalPriceForCreator: {
+            type: Number,
+        },
+        totalPriceForPlatform: {
+            type: Number,
         },
         orderStatus: {
             type: String,
@@ -175,6 +188,92 @@ const ordersProfileSchema = new Schema(
     },
     { timestamps: true }
 );
+
+
+async function fetchServicePrices() {
+    const additionalService = await AdditionalServiceModel.findOne({});
+
+    if (!additionalService) {
+        throw new Error("Additional service data not found");
+    }
+
+    return additionalService;
+}
+
+ordersProfileSchema.methods.calculateTotalPriceForCustomer = async function () {
+    const additionalService = await fetchServicePrices();
+
+    let totalCustomerPrice = this.basePrice;
+
+    if (this.additionalServices.edit) totalCustomerPrice += additionalService.editPrice || 0;
+    if (this.additionalServices.coverPicture) totalCustomerPrice += additionalService.coverPicPrice || 0;
+    if (this.additionalServices.duration === "30s") totalCustomerPrice += additionalService.thirtySecondDurationPrice || 0;
+    if (this.additionalServices.duration === "60s") totalCustomerPrice += additionalService.sixtySecondDurationPrice || 0;
+    if (this.additionalServices.share) totalCustomerPrice += additionalService.sharePrice || 0;
+
+    if (this.additionalServices.creatorType) {
+        totalCustomerPrice += additionalService.creatorTypePrice || 0;
+    }
+
+    if (this.additionalServices.productShipping) {
+        totalCustomerPrice += additionalService.shippingPrice || 0;
+    }
+
+    return totalCustomerPrice;
+};
+
+ordersProfileSchema.methods.calculateTotalPriceForCreator = async function () {
+    const additionalService = await fetchServicePrices();
+
+    let totalCreatorPrice = 0;
+
+    // 50% of base price
+    totalCreatorPrice += (this.basePrice || 0) / 2;
+
+    // Additional services
+    if (this.additionalServices.edit)
+        totalCreatorPrice += (additionalService.editPrice || 0) / 2;
+
+    if (this.additionalServices.coverPicture)
+        totalCreatorPrice += (additionalService.coverPicPrice || 0) / 2;
+
+    if (this.additionalServices.duration === "30s")
+        totalCreatorPrice += (additionalService.thirtySecondDurationPrice || 0) / 2;
+
+    if (this.additionalServices.duration === "60s")
+        totalCreatorPrice += (additionalService.sixtySecondDurationPrice || 0) / 2;
+
+    if (this.additionalServices.share)
+        totalCreatorPrice += (additionalService.sharePrice || 0) / 2;
+
+    // Creator gets full price of creatorType
+    if (this.additionalServices.creatorType)
+        totalCreatorPrice += additionalService.creatorTypePrice || 0;
+
+    // 100% of productShipping will be paid to platform
+
+    return totalCreatorPrice;
+};
+
+
+ordersProfileSchema.methods.calculateTotalPriceForPlatform = async function () {
+    const customerTotal = await this.calculateTotalPriceForCustomer();
+    const creatorTotal = await this.calculateTotalPriceForCreator();
+
+    return customerTotal - creatorTotal;
+};
+
+
+ordersProfileSchema.pre("save", async function (next) {
+    try {
+        this.totalPriceForCustomer = await this.calculateTotalPriceForCustomer();
+        this.totalPriceForCreator = await this.calculateTotalPriceForCreator();
+        this.totalPriceForPlatform = await this.calculateTotalPriceForPlatform();
+        next();
+    } catch (err) {
+        next(err);
+    }
+});
 
 const Order = mongoose.model("Order", ordersProfileSchema);
 

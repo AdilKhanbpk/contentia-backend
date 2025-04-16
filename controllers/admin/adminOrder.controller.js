@@ -74,6 +74,7 @@ const createOrder = asyncHandler(async (req, res) => {
         assignedCreators: validatedCreators,
         noOfUgc,
         totalPrice,
+        basePrice: totalPrice,
         additionalServices,
         numberOfRequests: validatedCreators.length,
     });
