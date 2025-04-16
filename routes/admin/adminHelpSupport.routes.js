@@ -17,7 +17,7 @@ const router = express.Router();
 
 // GET Routes
 router.get("/", getHelpSupports);
-router.get("/:helpSupportId", isAuthenticated, isAdmin, getHelpSupportById);
+router.get("/:helpSupportId", getHelpSupportById);
 
 // POST Routes
 router.post("/", isAuthenticated, isAdmin, uploadOnMulter.single("icon"), createHelpSupport);

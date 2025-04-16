@@ -16,8 +16,8 @@ import { uploadOnMulter } from "../../middlewares/multer.middleware.js";
 const router = express.Router();
 
 // GET Routes
-router.get("/", isAuthenticated, getBlogs);
-router.get("/:blogId", isAuthenticated, isAdmin, getBlogById);
+router.get("/", getBlogs);
+router.get("/:blogId", getBlogById);
 
 // POST Routes
 router.post(
