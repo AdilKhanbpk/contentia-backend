@@ -77,14 +77,36 @@ const updateHelpSupport = asyncHandler(async (req, res) => {
     const { title, category, content } = req.body;
 
     isValidId(helpSupportId);
+    const helpSupport = await HelpSupportModel.findById(helpSupportId);
+
+    if (!helpSupport) {
+        throw new ApiError(404, "Help support not found.");
+    }
+
+    const updatePayload = {
+        title,
+        category,
+        content,
+    };
+
+    if (req.file) {
+        if (helpSupport.icon) {
+            await deleteFileFromCloudinary(helpSupport.icon);
+        }
+
+        const icon = req.file.path;
+
+        if (!icon) {
+            throw new ApiError(400, "Icon is required.");
+        }
+
+        const uploadedImage = await uploadFileToCloudinary(icon);
+        updatePayload.icon = uploadedImage?.secure_url;
+    }
 
     const updatedHelpSupport = await HelpSupportModel.findByIdAndUpdate(
         helpSupportId,
-        {
-            title,
-            category,
-            content,
-        },
+        updatePayload,
         { new: true }
     );
 
@@ -99,43 +121,7 @@ const updateHelpSupport = asyncHandler(async (req, res) => {
         );
 });
 
-const updateHelpSupportIcon = asyncHandler(async (req, res) => {
-    const { helpSupportId } = req.params;
 
-    isValidId(helpSupportId);
-
-    const helpSupport = await HelpSupportModel.findById(helpSupportId);
-
-    if (helpSupport.icon) {
-        await deleteFileFromCloudinary(helpSupport.icon);
-    }
-
-    const icon = req.file?.path;
-
-    if (!icon) {
-        throw new ApiError(400, "Icon is required.");
-    }
-
-    const uploadedImage = await uploadFileToCloudinary(icon);
-
-    const updatedHelpSupport = await HelpSupportModel.findByIdAndUpdate(
-        helpSupportId,
-        {
-            icon: uploadedImage?.secure_url,
-        },
-        { new: true }
-    );
-
-    return res
-        .status(200)
-        .json(
-            new ApiResponse(
-                200,
-                updatedHelpSupport,
-                "Help support icon updated successfully"
-            )
-        );
-});
 
 const deleteHelpSupport = asyncHandler(async (req, res) => {
     const { helpSupportId } = req.params;
@@ -168,6 +154,5 @@ export {
     getHelpSupports,
     getHelpSupportById,
     updateHelpSupport,
-    updateHelpSupportIcon,
     deleteHelpSupport,
 };

@@ -9,7 +9,6 @@ import {
     getHelpSupportById,
     getHelpSupports,
     updateHelpSupport,
-    updateHelpSupportIcon,
 } from "../../controllers/admin/adminHelpSupport.controller.js";
 import { uploadOnMulter } from "../../middlewares/multer.middleware.js";
 
@@ -26,13 +25,10 @@ router.get("/:helpSupportId", isAdmin, getHelpSupportById);
 router.post("/", isAdmin, uploadOnMulter.single("icon"), createHelpSupport);
 
 // PATCH Routes
-router.patch("/:helpSupportId", updateHelpSupport);
 router.patch(
-    "/:helpSupportId/change-icon",
-    isAdmin,
+    "/:helpSupportId",
     uploadOnMulter.single("icon"),
-    updateHelpSupportIcon
-);
+    updateHelpSupport);
 
 // DELETE Routes
 router.delete("/:helpSupportId", isAdmin, deleteHelpSupport);
