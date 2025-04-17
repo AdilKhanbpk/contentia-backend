@@ -15,7 +15,7 @@ const createOrder = asyncHandler(async (req, res) => {
     const {
         customer,
         noOfUgc,
-        totalPrice,
+        basePrice,
         assignedCreators = [],
         additionalServices,
     } = req.body;
@@ -73,8 +73,7 @@ const createOrder = asyncHandler(async (req, res) => {
         orderOwner: customerExists._id,
         assignedCreators: validatedCreators,
         noOfUgc,
-        totalPrice,
-        basePrice: totalPrice,
+        basePrice,
         additionalServices,
         numberOfRequests: validatedCreators.length,
     });
@@ -171,7 +170,7 @@ const updateOrder = asyncHandler(async (req, res) => {
         orderOwner,
         assignedCreators = [],
         orderStatus,
-        totalPrice,
+        basePrice,
         paymentStatus,
         contentsDelivered,
         additionalServices,
@@ -277,7 +276,7 @@ const updateOrder = asyncHandler(async (req, res) => {
             noOfUgc,
             orderOwner: orderOwnerToHex,
             orderStatus,
-            totalPrice,
+            basePrice,
             paymentStatus,
             contentsDelivered,
             additionalServices,

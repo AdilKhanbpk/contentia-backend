@@ -41,10 +41,10 @@ const ordersProfileSchema = new Schema(
 
         totalPrice: {
             type: Number,
-            required: true,
         },
         basePrice: {
             type: Number,
+            required: true,
         },
         totalPriceForCustomer: {
             type: Number,
