@@ -21,6 +21,7 @@ const asyncHandler = (requestHandler) => {
                 }), // Include stack trace and details if in development mode.
             };
 
+
             res.status(code).json(response); // Send the error response with the appropriate status code.
         }
     };
