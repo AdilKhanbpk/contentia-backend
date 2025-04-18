@@ -10,6 +10,7 @@ import {
     getNotificationById,
     getNotifications,
     getUnreadNotifications,
+    markAllNotificationsAsRead,
     markNotificationAsRead,
     updateNotification,
 } from "../../controllers/admin/adminNotification.controller.js";
@@ -19,6 +20,7 @@ const router = express.Router();
 // Public/User-Specific Routes
 router.get("/my-notifications", isAuthenticated, getMyNotifications);
 router.get("/my-unread-notifications", isAuthenticated, isAdmin, getUnreadNotifications);
+router.patch("/mark-all-as-read", isAuthenticated, isAdmin, markAllNotificationsAsRead);
 
 // Admin Routes
 router.get("/", isAuthenticated, getNotifications);

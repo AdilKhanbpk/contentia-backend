@@ -306,6 +306,24 @@ const getUnreadNotifications = asyncHandler(async (req, res) => {
     );
 });
 
+const markAllNotificationsAsRead = asyncHandler(async (req, res) => {
+    const userId = req.user._id;
+
+    const notifications = await Notification.find({ users: userId });
+
+    for (const notification of notifications) {
+        if (!notification.readBy.includes(userId)) {
+            notification.readBy.push(userId);
+            await notification.save();
+        }
+    }
+
+    return res.status(200).json(
+        new ApiResponse(200, notifications, "All notifications marked as read successfully")
+    );
+});
+
+
 
 
 export {
@@ -317,5 +335,6 @@ export {
     deleteNotification,
     getMyNotifications,
     markNotificationAsRead,
-    getUnreadNotifications
+    getUnreadNotifications,
+    markAllNotificationsAsRead,
 };
