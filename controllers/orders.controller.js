@@ -262,8 +262,7 @@ const createClaimOnOrder = asyncHandler(async (req, res) => {
         claimContent,
     });
 
-    order.orderStatus = "revision";
-    await order.save();
+
 
     return res
         .status(200)
