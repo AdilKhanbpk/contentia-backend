@@ -5,7 +5,7 @@ import asyncHandler from "../../utils/asyncHandler.js";
 import { getCreatorFolderUrl } from "../../utils/googleDrive.js";
 
 const getCreatorsFiles = asyncHandler(async (req, res) => {
-    const orders = await Order.find({ orderStatus: "completed" })
+    const orders = await Order.find()
         .populate({
             path: "assignedCreators",
             select: "_id fullName email profilePic",
