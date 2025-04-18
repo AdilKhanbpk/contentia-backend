@@ -863,7 +863,7 @@ const getTotalPriceEarnedByCreator = asyncHandler(async (req, res) => {
         {
             $group: {
                 _id: null,
-                totalPrice: { $sum: "$totalPrice" },
+                totalPrice: { $sum: "$totalPriceForCreator" },
             },
         },
     ]);
