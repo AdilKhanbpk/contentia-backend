@@ -11,6 +11,10 @@ const adminClaimsSchema = new mongoose.Schema(
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",
         },
+        creator: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Creator",
+        },
         order: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Order",

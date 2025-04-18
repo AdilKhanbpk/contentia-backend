@@ -256,7 +256,8 @@ const createClaimOnOrder = asyncHandler(async (req, res) => {
     await sendNotification(notificationData);
 
     const claim = await Claims.create({
-        customer: req.user._id,
+        customer: order.orderOwner,
+        creator: req.user._id,
         order: orderId,
         claimContent,
     });

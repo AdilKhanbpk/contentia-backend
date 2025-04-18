@@ -5,25 +5,26 @@ import asyncHandler from "../../utils/asyncHandler.js";
 import { isValidId } from "../../utils/commonHelpers.js";
 import Claims from "../../models/admin/adminClaims.model.js";
 import Order from "../../models/orders.model.js";
+import Creator from "../../models/creator.model.js";
 import User from "../../models/user.model.js";
 import { notificationTemplates } from "../../helpers/notificationTemplates.js";
 
 const createClaim = asyncHandler(async (req, res) => {
-    const { claimContent, customerId, orderId, claimDate } = req.body;
+    const { claimContent, creatorId, orderId, claimDate } = req.body;
 
     if (!claimContent) {
         throw new ApiError(400, "Please provide claim content");
     }
 
-    isValidId(customerId);
+    isValidId(creatorId);
     isValidId(orderId);
 
-    const checkCustomer = await User.findById(customerId);
+    const checkCreator = await Creator.findById(creatorId);
     const checkOrder = await Order.findById(orderId).populate(
         "assignedCreators"
     );
 
-    if (!checkCustomer) {
+    if (!checkCreator) {
         throw new ApiError(404, "Customer not found");
     }
 
@@ -32,7 +33,8 @@ const createClaim = asyncHandler(async (req, res) => {
     }
 
     const createdClaim = await Claims.create({
-        customer: checkCustomer._id,
+        customer: checkOrder?.orderOwner,
+        creator: checkCreator._id,
         order: checkOrder._id,
         claimContent,
         claimDate,
@@ -64,13 +66,19 @@ const createClaim = asyncHandler(async (req, res) => {
 });
 
 const getClaims = asyncHandler(async (req, res) => {
-    const claims = await Claims.find().populate({
-        path: "customer",
-        select: "_id fullName email profilePic"
-    }).populate({
-        path: "order",
-        select: "_id briefContent.brandName"
-    })
+    const claims = await Claims.find().
+        populate({
+            path: "customer",
+            select: "_id fullName email profilePic"
+        }).
+        populate({
+            path: "creator",
+            select: "_id fullName email profilePic"
+        }).
+        populate({
+            path: "order",
+            select: "_id briefContent.brandName"
+        })
     return res
         .status(200)
         .json(new ApiResponse(200, claims, "Claims retrieved successfully"));
@@ -81,9 +89,19 @@ const getClaimById = asyncHandler(async (req, res) => {
 
     isValidId(claimId);
 
-    const claim = await Claims.findById(claimId)
-        .populate("customer")
-        .populate("order");
+    const claim = await Claims.findById(claimId).
+        populate({
+            path: "customer",
+            select: "_id fullName email profilePic"
+        }).
+        populate({
+            path: "creator",
+            select: "_id fullName email profilePic"
+        }).
+        populate({
+            path: "order",
+            select: "_id briefContent.brandName"
+        })
 
     return res
         .status(200)
