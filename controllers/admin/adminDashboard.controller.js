@@ -304,20 +304,17 @@ const getTotalSales = asyncHandler(async (req, res) => {
     const now = new Date();
     const startOfYear = new Date(now.getFullYear(), 0, 1);
 
-    // Get start of the current week (Monday)
     const startOfWeek = new Date(now);
     const day = startOfWeek.getDay();
-    const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1); // Adjust if Sunday
+    const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1);
     startOfWeek.setDate(diff);
     startOfWeek.setHours(0, 0, 0, 0);
 
     const [monthlySalesData, totalSalesResult, dailySalesThisWeek, currentWeekTotalResult] = await Promise.all([
-        // Monthly sales (this year)
         Order.aggregate([
             {
                 $match: {
                     createdAt: { $gte: startOfYear },
-                    orderStatus: "completed",
                 },
             },
             {
@@ -326,45 +323,39 @@ const getTotalSales = asyncHandler(async (req, res) => {
                         year: { $year: "$createdAt" },
                         month: { $month: "$createdAt" },
                     },
-                    totalSales: { $sum: "$totalPrice" },
+                    totalSales: { $sum: "$totalPriceForCustomer" },
                 },
             },
             { $sort: { "_id.month": 1 } },
         ]),
 
-        // Total sales (all time)
         Order.aggregate([
-            { $match: { orderStatus: "completed" } },
             {
                 $group: {
                     _id: null,
-                    total: { $sum: "$totalPrice" },
+                    total: { $sum: "$totalPriceForCustomer" },
                 },
             },
         ]),
 
-        // Daily sales this week
         Order.aggregate([
             {
                 $match: {
                     createdAt: { $gte: startOfWeek },
-                    orderStatus: "completed",
                 },
             },
             {
                 $group: {
-                    _id: { dayOfWeek: { $dayOfWeek: "$createdAt" } }, // 1 (Sun) to 7 (Sat)
-                    totalSales: { $sum: "$totalPrice" },
+                    _id: { dayOfWeek: { $dayOfWeek: "$createdAt" } },
+                    totalSales: { $sum: "$totalPriceForCustomer" },
                 },
             },
         ]),
 
-        // Count of completed orders this week
         Order.aggregate([
             {
                 $match: {
                     createdAt: { $gte: startOfWeek },
-                    orderStatus: "completed",
                 },
             },
             {
@@ -376,13 +367,11 @@ const getTotalSales = asyncHandler(async (req, res) => {
         ]),
     ]);
 
-    // Monthly sales array [Jan, Feb, ..., Dec]
     const totalSalesByMonth = Array(12).fill(0);
     monthlySalesData.forEach(({ _id: { month }, totalSales }) => {
         totalSalesByMonth[month - 1] = totalSales;
     });
 
-    // Current and previous month totals
     const currentMonthTotal =
         monthlySalesData.find(
             ({ _id }) =>
@@ -397,25 +386,19 @@ const getTotalSales = asyncHandler(async (req, res) => {
                 _id.month === now.getMonth()
         )?.totalSales || 0;
 
-    // Monthly percentage change
     const percentageChange = previousMonthTotal
         ? ((currentMonthTotal - previousMonthTotal) / previousMonthTotal) * 100
         : currentMonthTotal * 100;
 
-    // Total sales (all time)
     const totalSales = totalSalesResult[0]?.total || 0;
 
-    // Weekly sales: reorder from Sun-Sat → Mon-Sun
-    const dailySalesMap = Array(7).fill(0); // [Sun, Mon, ..., Sat]
+    const dailySalesMap = Array(7).fill(0);
     dailySalesThisWeek.forEach(({ _id: { dayOfWeek }, totalSales }) => {
         dailySalesMap[dayOfWeek - 1] = totalSales;
     });
-    const totalSalesByWeek = [...dailySalesMap.slice(1), dailySalesMap[0]]; // [Mon, ..., Sun]
+    const totalSalesByWeek = [...dailySalesMap.slice(1), dailySalesMap[0]];
 
-    // Weekly total sales amount
     const currentWeekTotalSale = totalSalesByWeek.reduce((acc, curr) => acc + curr, 0);
-
-    // Weekly total number of orders
     const currentWeekTotal = currentWeekTotalResult[0]?.count || 0;
 
     return res.status(200).json(
@@ -436,31 +419,31 @@ const getTotalSales = asyncHandler(async (req, res) => {
     );
 });
 
+
 const getTotalPlatformRevenue = asyncHandler(async (req, res) => {
     const now = new Date();
     const startOfYear = new Date(now.getFullYear(), 0, 1);
 
-    // Get start of the current week (Monday)
     const startOfWeek = new Date(now);
     const day = startOfWeek.getDay();
     const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1);
     startOfWeek.setDate(diff);
     startOfWeek.setHours(0, 0, 0, 0);
 
-    const completedOrders = await Order.find({ orderStatus: "completed" });
+    const allOrders = await Order.find();
 
     let monthlyRevenue = Array(12).fill(0);
-    let weeklyRevenue = Array(7).fill(0); // [Sun, Mon, ..., Sat]
+    let weeklyRevenue = Array(7).fill(0); // [Sun, ..., Sat]
     let totalPlatformRevenue = 0;
 
-    for (const order of completedOrders) {
+    for (const order of allOrders) {
         const creatorPrice = await order.calculateTotalPriceForCreator();
-        const platformRevenue = order.totalPrice - creatorPrice;
+        const platformRevenue = order.totalPriceForCustomer - creatorPrice;
         totalPlatformRevenue += platformRevenue;
 
         const createdAt = new Date(order.createdAt);
-        const month = createdAt.getMonth(); // 0-based
-        const dayOfWeek = createdAt.getDay(); // 0 (Sun) to 6 (Sat)
+        const month = createdAt.getMonth();
+        const dayOfWeek = createdAt.getDay();
 
         if (createdAt >= startOfYear) {
             monthlyRevenue[month] += platformRevenue;
@@ -471,9 +454,7 @@ const getTotalPlatformRevenue = asyncHandler(async (req, res) => {
         }
     }
 
-    // Rearrange weeklyRevenue from [Sun, ..., Sat] to [Mon, ..., Sun]
     const totalRevenueByWeek = [...weeklyRevenue.slice(1), weeklyRevenue[0]];
-
     const currentMonthRevenue = monthlyRevenue[now.getMonth()];
     const previousMonthRevenue = now.getMonth() > 0 ? monthlyRevenue[now.getMonth() - 1] : 0;
 
@@ -492,6 +473,7 @@ const getTotalPlatformRevenue = asyncHandler(async (req, res) => {
         }, "Platform revenue statistics retrieved successfully")
     );
 });
+
 
 
 const recentOrders = asyncHandler(async (req, res) => {
