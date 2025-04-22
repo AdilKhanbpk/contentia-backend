@@ -119,7 +119,7 @@ export const notificationTemplates = {
     }) => {
         return {
             title: "Yeni Bir İş İlanı Eklendi!",
-            details: `Bir marka yeni bir sipariş oluşturdu! Tüm ilanlara hemen göz at!`,
+            details: ` Bir marka yeni bir sipariş oluşturdu! Tüm ilanlara hemen göz at!`,
             userType: "customer",
             eventType: "admin",
             users: targetUsers,
@@ -163,8 +163,8 @@ export const notificationTemplates = {
         metadata = {},
     }) => {
         return {
-            title: " Siparişin Tamamlandı!",
-            details: ` ${orderTitle} siparişin tamamlandı.`,
+            title: "çerik Yüklend",
+            details: ` İçerik üreticisi ${metadata.creatorName}, ${metadata.creatorEmail} ve ${metadata.creatorPhoneNumber} ile ${orderTitle} siparişi için içerik yükledi.`,
             userType: "customer",
             eventType: "customer",
             users: targetUsers,

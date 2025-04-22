@@ -55,6 +55,9 @@ const ordersProfileSchema = new Schema(
         totalPriceForPlatform: {
             type: Number,
         },
+        creatorNoteOnOrder: {
+            type: String,
+        },
         orderStatus: {
             type: String,
             enum: ["pending", "active", "completed", "rejected", "cancelled", "revision"],

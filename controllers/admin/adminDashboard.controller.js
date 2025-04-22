@@ -302,15 +302,36 @@ const getTotalUsersForCurrentMonth = asyncHandler(async (req, res) => {
 
 const getTotalSales = asyncHandler(async (req, res) => {
     const now = new Date();
-    const startOfYear = new Date(now.getFullYear(), 0, 1);
 
+    // --- Month boundaries ---
+    const startOfYear = new Date(now.getFullYear(), 0, 1);
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
+    const startOfPreviousMonth = new Date(currentYear, currentMonth - 1, 1);
+    const endOfPreviousMonth = new Date(currentYear, currentMonth, 0, 23, 59, 59, 999);
+
+    // --- Week boundaries ---
     const startOfWeek = new Date(now);
     const day = startOfWeek.getDay();
     const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1);
     startOfWeek.setDate(diff);
     startOfWeek.setHours(0, 0, 0, 0);
 
-    const [monthlySalesData, totalSalesResult, dailySalesThisWeek, currentWeekTotalResult] = await Promise.all([
+    const startOfPreviousWeek = new Date(startOfWeek);
+    startOfPreviousWeek.setDate(startOfPreviousWeek.getDate() - 7);
+    const endOfPreviousWeek = new Date(startOfWeek);
+    endOfPreviousWeek.setMilliseconds(-1); // One ms before current week's start
+
+    const [
+        monthlySalesData,
+        totalSalesResult,
+        dailySalesThisWeek,
+        currentWeekTotalResult,
+        previousMonthSalesResult,
+        previousWeekSalesResult,
+    ] = await Promise.all([
+        // Monthly aggregation
         Order.aggregate([
             {
                 $match: {
@@ -329,6 +350,7 @@ const getTotalSales = asyncHandler(async (req, res) => {
             { $sort: { "_id.month": 1 } },
         ]),
 
+        // All-time total sales
         Order.aggregate([
             {
                 $group: {
@@ -338,6 +360,7 @@ const getTotalSales = asyncHandler(async (req, res) => {
             },
         ]),
 
+        // Daily sales this week
         Order.aggregate([
             {
                 $match: {
@@ -352,6 +375,7 @@ const getTotalSales = asyncHandler(async (req, res) => {
             },
         ]),
 
+        // Count of orders this week
         Order.aggregate([
             {
                 $match: {
@@ -365,6 +389,42 @@ const getTotalSales = asyncHandler(async (req, res) => {
                 },
             },
         ]),
+
+        // Total sales for previous month
+        Order.aggregate([
+            {
+                $match: {
+                    createdAt: {
+                        $gte: startOfPreviousMonth,
+                        $lte: endOfPreviousMonth,
+                    },
+                },
+            },
+            {
+                $group: {
+                    _id: null,
+                    totalSales: { $sum: "$totalPriceForCustomer" },
+                },
+            },
+        ]),
+
+        // Total sales for previous week
+        Order.aggregate([
+            {
+                $match: {
+                    createdAt: {
+                        $gte: startOfPreviousWeek,
+                        $lte: endOfPreviousWeek,
+                    },
+                },
+            },
+            {
+                $group: {
+                    _id: null,
+                    totalSales: { $sum: "$totalPriceForCustomer" },
+                },
+            },
+        ]),
     ]);
 
     const totalSalesByMonth = Array(12).fill(0);
@@ -375,16 +435,11 @@ const getTotalSales = asyncHandler(async (req, res) => {
     const currentMonthTotal =
         monthlySalesData.find(
             ({ _id }) =>
-                _id.year === now.getFullYear() &&
-                _id.month === now.getMonth() + 1
+                _id.year === currentYear &&
+                _id.month === currentMonth + 1
         )?.totalSales || 0;
 
-    const previousMonthTotal =
-        monthlySalesData.find(
-            ({ _id }) =>
-                _id.year === now.getFullYear() &&
-                _id.month === now.getMonth()
-        )?.totalSales || 0;
+    const previousMonthTotal = previousMonthSalesResult[0]?.totalSales || 0;
 
     const percentageChange = previousMonthTotal
         ? ((currentMonthTotal - previousMonthTotal) / previousMonthTotal) * 100
@@ -401,6 +456,8 @@ const getTotalSales = asyncHandler(async (req, res) => {
     const currentWeekTotalSale = totalSalesByWeek.reduce((acc, curr) => acc + curr, 0);
     const currentWeekTotal = currentWeekTotalResult[0]?.count || 0;
 
+    const previousWeekTotalSale = previousWeekSalesResult[0]?.totalSales || 0;
+
     return res.status(200).json(
         new ApiResponse(
             200,
@@ -409,6 +466,7 @@ const getTotalSales = asyncHandler(async (req, res) => {
                 totalSalesByMonth,
                 totalSalesByWeek,
                 currentWeekTotalSale,
+                previousWeekTotalSale,
                 currentWeekTotal,
                 currentMonthTotal,
                 previousMonthTotal,
@@ -418,6 +476,7 @@ const getTotalSales = asyncHandler(async (req, res) => {
         )
     );
 });
+
 
 
 const getTotalPlatformRevenue = asyncHandler(async (req, res) => {

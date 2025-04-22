@@ -24,6 +24,7 @@ import userAuthRoutes from "./routes/user.routes.js";
 import ordersRoute from "./routes/orders.routes.js";
 import becomeCreatorRoute from "./routes/creator.routes.js";
 import brandRoute from "./routes/brand.routes.js";
+import revisionRoute from "./routes/revision.routes.js";
 
 // ADMIN ROUTES
 import adminCustomerRoutes from "./routes/admin/adminCustomer.routes.js";
@@ -133,6 +134,8 @@ app.use("/api/v1/orders", ordersRoute);
 app.use("/api/v1/creators", becomeCreatorRoute);
 app.use("/api/v1/brands", brandRoute);
 app.use("/api/v1/page-views", pageViewsRoute);
+app.use("/api/v1/revisions", revisionRoute);
+
 
 // ADMIN ROUTES
 app.use("/api/v1/admin/customers", adminCustomerRoutes);

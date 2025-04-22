@@ -1,0 +1,106 @@
+// controllers/adminRevisionsController.js
+import ApiError from "../utils/ApiError.js";
+import ApiResponse from "../utils/ApiResponse.js";
+import asyncHandler from "../utils/asyncHandler.js";
+import { isValidId } from "../utils/commonHelpers.js";
+import Revisions from "../models/revision.model.js";
+import Order from "../models/orders.model.js";
+import User from "../models/user.model.js";
+import { notificationTemplates } from "../helpers/notificationTemplates.js";
+
+const createRevision = asyncHandler(async (req, res) => {
+    const { revisionContent } = req.body;
+    const { orderId } = req.params;
+    isValidId(orderId);
+    if (!revisionContent) {
+        throw new ApiError(400, "Please provide revision content");
+    }
+    const order = await Order.findById(orderId);
+    if (!order) {
+        throw new ApiError(404, "Order not found");
+    }
+
+    const revision = await Revisions.create({
+        customer: req.user._id,
+        order: orderId,
+        revisionContent,
+    });
+
+    order.orderStatus = "revision";
+    await order.save();
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, revision, "Revision created successfully"));
+
+});
+
+const getRevisions = asyncHandler(async (req, res) => {
+    const claims = await Revisions.find().
+        populate({
+            path: "customer",
+            select: "_id fullName email profilePic"
+        }).
+        populate({
+            path: "order",
+            select: "_id briefContent.brandName"
+        })
+    return res
+        .status(200)
+        .json(new ApiResponse(200, claims, "Revisions retrieved successfully"));
+});
+
+const getRevisionById = asyncHandler(async (req, res) => {
+    const { revisionId } = req.params;
+
+    isValidId(revisionId);
+
+    const claim = await Revisions.findById(revisionId).
+        populate({
+            path: "customer",
+            select: "_id fullName email profilePic"
+        }).
+        populate({
+            path: "order",
+            select: "_id briefContent.brandName"
+        })
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, claim, "Revision retrieved successfully"));
+});
+
+const updateRevision = asyncHandler(async (req, res) => {
+    const { revisionId } = req.params;
+    const { claimContent, claimDate, status } = req.body;
+
+    isValidId(revisionId);
+
+    const updatedRevision = await Revisions.findByIdAndUpdate(
+        revisionId,
+        {
+            claimContent,
+            claimDate,
+            status,
+        },
+        { new: true }
+    );
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, updatedRevision, "Revision updated successfully"));
+});
+
+const deleteRevision = asyncHandler(async (req, res) => {
+    const { revisionId } = req.params;
+
+    isValidId(revisionId);
+
+    const deletedRevision = await Revisions.findByIdAndDelete(revisionId);
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, deletedRevision, "Revision deleted successfully"));
+});
+
+export { createRevision, getRevisions, getRevisionById, updateRevision, deleteRevision };
