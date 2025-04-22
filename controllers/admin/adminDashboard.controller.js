@@ -497,7 +497,8 @@ const getTotalPlatformRevenue = asyncHandler(async (req, res) => {
 
     for (const order of allOrders) {
         const creatorPrice = await order.calculateTotalPriceForCreator();
-        const platformRevenue = order.totalPriceForCustomer - creatorPrice;
+        const customerPrice = await order.calculateTotalPriceForCustomer()
+        const platformRevenue = customerPrice - creatorPrice;
         totalPlatformRevenue += platformRevenue;
 
         const createdAt = new Date(order.createdAt);
