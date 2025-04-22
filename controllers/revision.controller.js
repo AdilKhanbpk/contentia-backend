@@ -11,13 +11,24 @@ import { notificationTemplates } from "../helpers/notificationTemplates.js";
 const createRevision = asyncHandler(async (req, res) => {
     const { revisionContent } = req.body;
     const { orderId } = req.params;
+
     isValidId(orderId);
+
     if (!revisionContent) {
         throw new ApiError(400, "Please provide revision content");
     }
+
     const order = await Order.findById(orderId);
     if (!order) {
         throw new ApiError(404, "Order not found");
+    }
+
+    if (order.orderStatus === "revision") {
+        throw new ApiError(400, "Order is already in revision status");
+    }
+
+    if (order.orderStatus !== "completed") {
+        throw new ApiError(400, "Only completed orders can be revised");
     }
 
     const revision = await Revisions.create({
@@ -32,8 +43,8 @@ const createRevision = asyncHandler(async (req, res) => {
     return res
         .status(200)
         .json(new ApiResponse(200, revision, "Revision created successfully"));
-
 });
+
 
 const getRevisions = asyncHandler(async (req, res) => {
     const claims = await Revisions.find().
@@ -72,14 +83,14 @@ const getRevisionById = asyncHandler(async (req, res) => {
 
 const updateRevision = asyncHandler(async (req, res) => {
     const { revisionId } = req.params;
-    const { claimContent, claimDate, status } = req.body;
+    const { revisionContent, claimDate, status } = req.body;
 
     isValidId(revisionId);
 
     const updatedRevision = await Revisions.findByIdAndUpdate(
         revisionId,
         {
-            claimContent,
+            revisionContent,
             claimDate,
             status,
         },

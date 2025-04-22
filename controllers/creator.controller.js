@@ -568,7 +568,12 @@ const uploadContentToOrder = asyncHandler(async (req, res) => {
 
 const completeTheOrder = asyncHandler(async (req, res) => {
     const { orderId } = req.params;
+    const { creatorNoteOnOrder } = req.body;
     const creatorId = req.user._id;
+
+    if (!creatorNoteOnOrder) {
+        throw new ApiError(400, "Please provide creator note on order");
+    }
 
     isValidId(orderId);
     isValidId(creatorId);
@@ -578,6 +583,10 @@ const completeTheOrder = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Order not found");
     }
 
+    if (order.orderStatus === "completed") {
+        throw new ApiError(400, "Order is already completed");
+    }
+
     const creator = await Creator.findById(creatorId);
     if (!creator) {
         throw new ApiError(404, "Creator not found");
@@ -585,7 +594,7 @@ const completeTheOrder = asyncHandler(async (req, res) => {
 
     const allAdminIds = await User.find({ role: "admin" }).select("_id");
 
-
+    order.creatorNoteOnOrder = creatorNoteOnOrder;
     order.orderStatus = "completed";
     await order.save();
 
