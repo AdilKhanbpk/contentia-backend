@@ -22,6 +22,7 @@ import { sendNotification } from "./admin/adminNotification.controller.js";
 import User from "../models/user.model.js";
 import { notificationTemplates } from "../helpers/notificationTemplates.js";
 import Order from "../models/orders.model.js";
+import mongoose from "mongoose";
 
 /**
  * Generates and returns a new access token for the given creator user ID
@@ -902,6 +903,62 @@ const getTotalPriceEarnedByCreator = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, 0, "Total price retrieved"));
 })
 
+const getCreatorStats = asyncHandler(async (req, res) => {
+    const { creatorId } = req.params;
+
+    isValidId(creatorId);
+
+    const creator = await Creator.findById(creatorId);
+    if (!creator) {
+        throw new ApiError(404, "Creator not found");
+    }
+
+    const creatorTotalActiveOrder = await Order.countDocuments({
+        assignedCreators: creatorId,
+        orderStatus: "active",
+    });
+
+    const creatorTotalOrders = await Order.countDocuments({
+        assignedCreators: creatorId,
+    });
+
+    const creatorTotalCompletedOrders = await Order.countDocuments({
+        assignedCreators: creatorId,
+        orderStatus: "completed",
+    });
+
+    const completedOrders = await Order.find({
+        assignedCreators: creatorId,
+        orderStatus: "completed"
+    });
+
+    console.log(completedOrders);
+
+
+
+    const creatorCompletedOrderTotalPriceValue = await Order.aggregate([
+        {
+            $match: {
+                assignedCreators: new mongoose.Types.ObjectId(creatorId),
+                orderStatus: "completed",
+            },
+        },
+        {
+            $group: {
+                _id: null,
+                totalPrice: { $sum: "$totalPriceForCreator" },
+            },
+        },
+    ]);
+
+    const creatorCompletedOrderTotalPrice = creatorCompletedOrderTotalPriceValue.length > 0 ? creatorCompletedOrderTotalPriceValue[0].totalPrice : 0;
+
+    console.log("🚀 ~ getCreatorStats ~ creatorCompletedOrderTotalPrice:", creatorCompletedOrderTotalPrice)
+    return res
+        .status(200)
+        .json(new ApiResponse(200, { creatorTotalActiveOrder, creatorTotalOrders, creatorTotalCompletedOrders, creatorCompletedOrderTotalPrice }, "Creator stats retrieved successfully"));
+})
+
 
 
 
@@ -928,5 +985,7 @@ export {
     totalAssignedOrders,
     deleteCreatorAccount,
     getDashboardChartDetails,
-    getTotalPriceEarnedByCreator
+    getTotalPriceEarnedByCreator,
+    getCreatorStats,
+
 };

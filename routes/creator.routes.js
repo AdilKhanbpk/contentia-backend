@@ -23,6 +23,7 @@ import {
     deleteCreatorAccount,
     getDashboardChartDetails,
     getTotalPriceEarnedByCreator,
+    getCreatorStats,
 } from "../controllers/creator.controller.js";
 import { isAuthenticated } from "../middlewares/authentication.middleware.js";
 import { uploadOnMulter } from "../middlewares/multer.middleware.js";
@@ -58,6 +59,7 @@ router.get(
 router.get("/total-assigned-orders", isAuthenticated, totalAssignedOrders);
 router.get("/creator-dashboard-chart", isAuthenticated, getDashboardChartDetails);
 router.get("/get-total-price-earned-by-creator", isAuthenticated, getTotalPriceEarnedByCreator);
+router.get("/get-creator-stats/:creatorId", isAuthenticated, getCreatorStats);
 
 // POST Routes
 router.post("/create", createCreator);
