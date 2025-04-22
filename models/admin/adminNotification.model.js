@@ -29,18 +29,7 @@ const notificationSchema = new mongoose.Schema(
             type: String,
             required: true,
         },
-        eventType: {
-            type: String,
-            enum: [
-                "order",
-                "creator",
-                "admin",
-                "customer",
-                "package",
-                "general",
-            ],
-            required: true,
-        },
+
         metadata: {
             type: Object,
             default: {},

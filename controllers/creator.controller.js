@@ -598,9 +598,9 @@ const completeTheOrder = asyncHandler(async (req, res) => {
     order.orderStatus = "completed";
     await order.save();
 
+    notificationDataToAdmin
 
-
-    const notificationData = notificationTemplates.orderCompletionByCreator({
+    const notificationDataToAdmin = notificationTemplates.orderCompletionByCreatorToAdmin({
         orderTitle: order.briefContent.brandName || "Order",
         targetUsers: allAdminIds.map((admin) => admin._id),
         metadata: {
@@ -610,6 +610,17 @@ const completeTheOrder = asyncHandler(async (req, res) => {
             orderId: order._id,
         },
     });
+    const notificationData = notificationTemplates.orderCompletionByCreator({
+        orderTitle: order.briefContent.brandName || "Order",
+        targetUsers: [order.orderOwner],
+        metadata: {
+            creatorId: creator._id,
+            creatorEmail: creator.email,
+            creatorPhoneNumber: creator.phoneNumber,
+            orderId: order._id,
+        },
+    })
+    await sendNotification(notificationDataToAdmin);
     await sendNotification(notificationData);
 
     return res

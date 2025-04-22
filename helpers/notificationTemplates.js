@@ -6,7 +6,6 @@ export const notificationTemplates = {
         title,
         details,
         userType = "all",
-        eventType = "general",
         targetUsers = [],
         metadata = {},
     }) => {
@@ -14,7 +13,6 @@ export const notificationTemplates = {
             title,
             details: `${details}`,
             userType,
-            eventType,
             users: targetUsers,
             metadata,
         };
@@ -28,7 +26,6 @@ export const notificationTemplates = {
             title: "Yeni İçerik Üreticisi Kaydı",
             details: `Yeni bir içerik üreticisi olan ${metadata.creatorName}, ${metadata.creatorEmail} e-posta adresi ve ${metadata.creatorPhoneNumber} telefon numarası ile başarıyla kayıt oldu.`,
             userType: "customer",
-            eventType: "admin",
             users: targetUsers,
             metadata,
         };
@@ -45,7 +42,6 @@ export const notificationTemplates = {
             title: "İçerik Üreticisi Siparişe Başvurdu",
             details: `İçerik üreticisi ${creatorName}, ${creatorEmail} e-posta adresi ve ${creatorPhoneNumber} telefon numarası ile bir siparişe başvurdu.`,
             userType: "customer",
-            eventType: "admin",
             users: targetUsers,
             metadata,
         };
@@ -61,7 +57,6 @@ export const notificationTemplates = {
             title: " Başvurun Onaylandı!",
             details: ` ${orderTitle} başvurun Onaylandı, siparişlerim sayfasında görüntüleyebilir içerik üretmeye başlayabilirsin.`,
             userType: "creator",
-            eventType: "creator",
             users: targetUsers,
             metadata,
         };
@@ -75,7 +70,6 @@ export const notificationTemplates = {
             title: "Yeni Paket Oluşturuldu",
             details: `Aşağıdaki ayrıntılarla yeni bir paket oluşturuldu: ${metadata.packageId}`,
             userType: "customer",
-            eventType: "admin",
             users: targetUsers,
             metadata,
         }
@@ -92,7 +86,6 @@ export const notificationTemplates = {
     //         title: "Order Assigned Notification",
     //         details: `Your order has been assigned to creator ${creatorName}, who can be reached via email at ${creatorEmail} and phone number ${creatorPhoneNumber}.`,
     //         userType: "customer",
-    //         eventType: "customer",
     //         users: targetUsers,
     //         metadata,
     //     };
@@ -107,7 +100,6 @@ export const notificationTemplates = {
             title: "Başvuru Reddedildi!",
             details: ` ${orderTitle} başvurun marka kriterlerini karşılamadığından reddedildi, yeni iş ilanlarına göz at!`,
             userType: "creator",
-            eventType: "creator",
             users: targetUsers,
             metadata,
         };
@@ -120,8 +112,7 @@ export const notificationTemplates = {
         return {
             title: "Yeni Bir İş İlanı Eklendi!",
             details: ` Bir marka yeni bir sipariş oluşturdu! Tüm ilanlara hemen göz at!`,
-            userType: "customer",
-            eventType: "admin",
+            userType: "creator",
             users: targetUsers,
             metadata,
         };
@@ -136,7 +127,6 @@ export const notificationTemplates = {
             title: " Revizyon Talebi Alındı!",
             details: `${orderTitle} siparişin için revizyon talebi alındı. `,
             userType: "customer",
-            eventType: "admin",
             users: targetUsers,
             metadata,
         };
@@ -151,13 +141,12 @@ export const notificationTemplates = {
             title: " Revizyon Talebi Alındı!",
             details: `${orderTitle} siparişin için revizyon talebi alındı. `,
             userType: "customer",
-            eventType: "admin",
             users: targetUsers,
             metadata,
         };
     },
 
-    orderCompletionByCreator: ({
+    orderCompletionByCreatorToAdmin: ({
         orderTitle,
         targetUsers = [],
         metadata = {},
@@ -166,7 +155,45 @@ export const notificationTemplates = {
             title: "çerik Yüklend",
             details: ` İçerik üreticisi ${metadata.creatorName}, ${metadata.creatorEmail} ve ${metadata.creatorPhoneNumber} ile ${orderTitle} siparişi için içerik yükledi.`,
             userType: "customer",
-            eventType: "customer",
+            users: targetUsers,
+            metadata,
+        };
+    },
+    orderCompletionByCreatorToAdmin: ({
+        orderTitle,
+        targetUsers = [],
+        metadata = {},
+    }) => {
+        return {
+            title: "çerik Yüklend",
+            details: ` İçerik üreticisi ${metadata.creatorName}, ${metadata.creatorEmail} ve ${metadata.creatorPhoneNumber} ile ${orderTitle} siparişi için içerik yükledi.`,
+            userType: "customer",
+            users: targetUsers,
+            metadata,
+        };
+    },
+    orderCompletionByCreator: ({
+        orderTitle,
+        targetUsers = [],
+        metadata = {},
+    }) => {
+        return {
+            title: "Siparişin Tamamlandı!",
+            details: `${orderTitle} siparişin tamamlandı.`,
+            userType: "creator",
+            users: targetUsers,
+            metadata,
+        };
+    },
+    orderRevisionByCustomerOrAdmin: ({
+        orderTitle = "Order",
+        targetUsers = [],
+        metadata = {},
+    }) => {
+        return {
+            title: "Revizyon Talebi Alındı!",
+            details: `${orderTitle} siparişin için ${metadata.revisionId} talebi alındı. `,
+            userType: "creator",
             users: targetUsers,
             metadata,
         };

@@ -37,6 +37,18 @@ const createRevision = asyncHandler(async (req, res) => {
         revisionContent,
     });
 
+    const notificationData = notificationTemplates.orderRevisionByCustomerOrAdmin({
+        orderTitle: order.briefContent.brandName,
+        targetUsers: [order.orderOwner],
+        metadata: {
+            revisionId: revision._id,
+            customerName: req.user.fullName,
+            customerEmail: req.user.email,
+            customerPhoneNumber: req.user.phoneNumber,
+        },
+    });
+    await sendNotification(notificationData);
+
     order.orderStatus = "revision";
     await order.save();
 
