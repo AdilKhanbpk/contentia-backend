@@ -931,6 +931,15 @@ const getCreatorStats = asyncHandler(async (req, res) => {
         orderStatus: "completed"
     });
 
+    const creatorAllStatusesOrders = await Order.countDocuments({
+        $or: [
+            { assignedCreators: creatorId },
+            { appliedCreators: creatorId },
+            { rejectedCreators: creatorId },
+        ],
+    });
+
+
 
     const totalNumberOfUgcsFromCompletedOrders = completedOrders.reduce((acc, order) => {
         return acc + (order.noOfUgc || 0);
@@ -957,7 +966,7 @@ const getCreatorStats = asyncHandler(async (req, res) => {
     console.log("🚀 ~ getCreatorStats ~ creatorCompletedOrderTotalPrice:", creatorCompletedOrderTotalPrice)
     return res
         .status(200)
-        .json(new ApiResponse(200, { totalNumberOfUgcsFromCompletedOrders, creatorTotalActiveOrder, creatorTotalOrders, creatorTotalCompletedOrders, creatorCompletedOrderTotalPrice }, "Creator stats retrieved successfully"));
+        .json(new ApiResponse(200, { totalNumberOfUgcsFromCompletedOrders, creatorTotalActiveOrder, creatorTotalOrders, creatorTotalCompletedOrders, creatorCompletedOrderTotalPrice, creatorAllStatusesOrders }, "Creator stats retrieved successfully"));
 })
 
 
