@@ -931,8 +931,10 @@ const getCreatorStats = asyncHandler(async (req, res) => {
         orderStatus: "completed"
     });
 
-    console.log(completedOrders);
 
+    const totalNumberOfUgcsFromCompletedOrders = completedOrders.reduce((acc, order) => {
+        return acc + (order.noOfUgc || 0);
+    }, 0);
 
 
     const creatorCompletedOrderTotalPriceValue = await Order.aggregate([
@@ -955,8 +957,9 @@ const getCreatorStats = asyncHandler(async (req, res) => {
     console.log("🚀 ~ getCreatorStats ~ creatorCompletedOrderTotalPrice:", creatorCompletedOrderTotalPrice)
     return res
         .status(200)
-        .json(new ApiResponse(200, { creatorTotalActiveOrder, creatorTotalOrders, creatorTotalCompletedOrders, creatorCompletedOrderTotalPrice }, "Creator stats retrieved successfully"));
+        .json(new ApiResponse(200, { totalNumberOfUgcsFromCompletedOrders, creatorTotalActiveOrder, creatorTotalOrders, creatorTotalCompletedOrders, creatorCompletedOrderTotalPrice }, "Creator stats retrieved successfully"));
 })
+
 
 
 
