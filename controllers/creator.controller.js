@@ -599,8 +599,6 @@ const completeTheOrder = asyncHandler(async (req, res) => {
     order.orderStatus = "completed";
     await order.save();
 
-    notificationDataToAdmin
-
     const notificationDataToAdmin = notificationTemplates.orderCompletionByCreatorToAdmin({
         orderTitle: order.briefContent.brandName || "Order",
         targetUsers: allAdminIds.map((admin) => admin._id),

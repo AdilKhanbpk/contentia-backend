@@ -7,6 +7,7 @@ import Revisions from "../models/revision.model.js";
 import Order from "../models/orders.model.js";
 import User from "../models/user.model.js";
 import { notificationTemplates } from "../helpers/notificationTemplates.js";
+import { sendNotification } from "./admin/adminNotification.controller.js";
 
 const createRevision = asyncHandler(async (req, res) => {
     const { revisionContent } = req.body;

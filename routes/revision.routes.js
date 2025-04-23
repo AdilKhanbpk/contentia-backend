@@ -18,7 +18,7 @@ router.get("/", isAuthenticated, getRevisions);
 router.get("/:revisionId", isAuthenticated, getRevisionById);
 
 // POST Routes
-router.post("/", isAuthenticated, createRevision);
+router.post("/create-revision/:orderId", isAuthenticated, createRevision);
 
 // PATCH Routes
 router.patch("/:revisionId", isAuthenticated, updateRevision);
