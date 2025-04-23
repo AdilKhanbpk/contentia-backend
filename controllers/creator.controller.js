@@ -604,6 +604,7 @@ const completeTheOrder = asyncHandler(async (req, res) => {
         targetUsers: allAdminIds.map((admin) => admin._id),
         metadata: {
             creatorId: creator._id,
+            creatorName: creator.fullName,
             creatorEmail: creator.email,
             creatorPhoneNumber: creator.phoneNumber,
             orderId: order._id,
