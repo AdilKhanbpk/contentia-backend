@@ -55,6 +55,10 @@ const ordersProfileSchema = new Schema(
         totalPriceForPlatform: {
             type: Number,
         },
+        priceForSingleCreator: {
+            type: Number,
+        },
+
         creatorNoteOnOrder: {
             type: String,
         },
@@ -272,6 +276,11 @@ ordersProfileSchema.pre("save", async function (next) {
         this.totalPriceForCustomer = await this.calculateTotalPriceForCustomer();
         this.totalPriceForCreator = await this.calculateTotalPriceForCreator();
         this.totalPriceForPlatform = await this.calculateTotalPriceForPlatform();
+        if (this.noOfUgc && this.noOfUgc > 0) {
+            this.priceForSingleCreator = this.totalPriceForCreator / this.noOfUgc;
+        } else {
+            this.priceForSingleCreator = 0;
+        }
         next();
     } catch (err) {
         next(err);
