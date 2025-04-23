@@ -190,9 +190,12 @@ export const notificationTemplates = {
         targetUsers = [],
         metadata = {},
     }) => {
+        const { revisionId } = metadata;
+        const revisionLink = `/revisions/${revisionId}`;
         return {
             title: "Revizyon Talebi Alındı!",
-            details: `${orderTitle} siparişin için ${metadata.revisionId} talebi alındı. `,
+            details: `${orderTitle} siparişin için <a href="${revisionLink}">revizyon</a> talebi alındı. `,
+            // details: `${orderTitle} siparişin için revizyon talebi alındı.`,
             userType: "creator",
             users: targetUsers,
             metadata,
