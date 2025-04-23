@@ -969,7 +969,24 @@ const getCreatorStats = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, { totalNumberOfUgcsFromCompletedOrders, creatorTotalActiveOrder, creatorTotalOrders, creatorTotalCompletedOrders, creatorCompletedOrderTotalPrice, creatorAllStatusesOrders }, "Creator stats retrieved successfully"));
 })
 
+const getTotalOrdersOfCreator = asyncHandler(async (req, res) => {
+    const creatorId = req.user._id;
 
+    const orders = await Order.find({
+        $or: [
+            { assignedCreators: creatorId },
+            { appliedCreators: creatorId },
+            { rejectedCreators: creatorId },
+        ],
+    }).populate({
+        path: "associatedBrands",
+        select: "-associatedOrders",
+    });
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, orders, "Total orders retrieved successfully"));
+})
 
 
 
@@ -998,5 +1015,6 @@ export {
     getDashboardChartDetails,
     getTotalPriceEarnedByCreator,
     getCreatorStats,
+    getTotalOrdersOfCreator
 
 };
