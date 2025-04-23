@@ -42,6 +42,7 @@ const createRevision = asyncHandler(async (req, res) => {
         orderTitle: order.briefContent.brandName,
         targetUsers: [order.orderOwner],
         metadata: {
+            orderId: order._id,
             revisionId: revision._id,
             customerName: req.user.fullName,
             customerEmail: req.user.email,
