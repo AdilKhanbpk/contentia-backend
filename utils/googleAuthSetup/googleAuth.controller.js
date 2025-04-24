@@ -14,15 +14,19 @@ export const googleAuthCallback = async (req, res) => {
         const appAccessToken = user.appAccessToken;
         const userType = JSON.parse(req.query.state).userType;
 
-        res.cookie("accessToken", appAccessToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "strict",
-        }).redirect(
+        // Append token to redirect URL
+        const redirectUrl = new URL(
             userType === "creator"
                 ? process.env.CREATOR_SUCCESS_REDIRECT_URL
                 : process.env.GOOGLE_SUCCESS_URL
         );
+        redirectUrl.searchParams.append('accessToken', appAccessToken);
+
+        res.cookie("accessToken", appAccessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+        }).redirect(redirectUrl.toString());
     } catch (error) {
         console.error("Error in Google authentication callback:", error);
         res.redirect(process.env.FAILURE_REDIRECT_URL);
