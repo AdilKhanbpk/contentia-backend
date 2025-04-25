@@ -579,49 +579,59 @@ const completeTheOrder = asyncHandler(async (req, res) => {
     isValidId(orderId);
     isValidId(creatorId);
 
-    const order = await Order.findById(orderId);
-    if (!order) {
-        throw new ApiError(404, "Order not found");
-    }
+    const [order, creator] = await Promise.all([
+        Order.findById(orderId),
+        Creator.findById(creatorId),
+    ]);
+
+    if (!order) throw new ApiError(404, "Order not found");
+    if (!creator) throw new ApiError(404, "Creator not found");
 
     if (order.orderStatus === "completed") {
         throw new ApiError(400, "Order is already completed");
     }
 
-    const creator = await Creator.findById(creatorId);
-    if (!creator) {
-        throw new ApiError(404, "Creator not found");
+    if (order.quotaLeft <= 0) {
+        throw new ApiError(400, "Order quota already completed");
     }
 
-    const allAdminIds = await User.find({ role: "admin" }).select("_id");
-
+    // Update order progress
     order.creatorNoteOnOrder = creatorNoteOnOrder;
-    order.orderStatus = "completed";
+    order.quotaLeft -= 1;
+
+    if (order.quotaLeft <= 0) {
+        order.quotaLeft = 0; // safeguard
+        order.orderStatus = "completed";
+    }
+
     await order.save();
 
-    const notificationDataToAdmin = notificationTemplates.orderCompletionByCreatorToAdmin({
-        orderTitle: order.briefContent.brandName || "Order",
-        targetUsers: allAdminIds.map((admin) => admin._id),
-        metadata: {
-            creatorId: creator._id,
-            creatorName: creator.fullName,
-            creatorEmail: creator.email,
-            creatorPhoneNumber: creator.phoneNumber,
-            orderId: order._id,
-        },
-    });
-    const notificationData = notificationTemplates.orderCompletionByCreator({
-        orderTitle: order.briefContent.brandName || "Order",
-        targetUsers: [order.orderOwner],
-        metadata: {
-            creatorId: creator._id,
-            creatorEmail: creator.email,
-            creatorPhoneNumber: creator.phoneNumber,
-            orderId: order._id,
-        },
-    })
-    await sendNotification(notificationDataToAdmin);
-    await sendNotification(notificationData);
+    const adminUsers = await User.find({ role: "admin" }).select("_id");
+
+    const metadata = {
+        creatorId: creator._id,
+        creatorName: creator.fullName,
+        creatorEmail: creator.email,
+        creatorPhoneNumber: creator.phoneNumber,
+        orderId: order._id,
+    };
+
+    await Promise.all([
+        sendNotification(
+            notificationTemplates.orderCompletionByCreatorToAdmin({
+                orderTitle: order.briefContent.brandName || "Order",
+                targetUsers: adminUsers.map((admin) => admin._id),
+                metadata,
+            })
+        ),
+        sendNotification(
+            notificationTemplates.orderCompletionByCreator({
+                orderTitle: order.briefContent.brandName || "Order",
+                targetUsers: [order.orderOwner],
+                metadata,
+            })
+        ),
+    ]);
 
     return res
         .status(200)

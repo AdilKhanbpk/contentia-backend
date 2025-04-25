@@ -281,6 +281,8 @@ ordersProfileSchema.pre("save", async function (next) {
         } else {
             this.priceForSingleCreator = 0;
         }
+        this.orderQuota = this.noOfUgc;
+        this.quotaLeft = this.noOfUgc;
         next();
     } catch (err) {
         next(err);
