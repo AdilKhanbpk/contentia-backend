@@ -3,7 +3,7 @@ import {
     isAuthenticated,
     isAdmin,
 } from "../../middlewares/authentication.middleware.js";
-import { getCreatorsFiles } from "../../controllers/admin/adminFiles.controller.js";
+import { getCreatorsFiles, getSingleOrderFiles } from "../../controllers/admin/adminFiles.controller.js";
 
 
 const router = express.Router();
@@ -13,6 +13,7 @@ router.use(isAuthenticated);
 
 // GET Routes
 router.get("/", isAdmin, getCreatorsFiles);
+router.get("/single-order-files/:orderId", getSingleOrderFiles);
 
 // POST Route
 
