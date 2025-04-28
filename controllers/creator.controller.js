@@ -12,6 +12,7 @@ import {
     createFolder,
     getFolderIdByName,
     listSpecificFolderInParentFolder,
+    getCreatorFolderUrl,
 } from "../utils/googleDrive.js";
 import {
     deleteFileFromCloudinary,
@@ -490,6 +491,7 @@ const changeProfilePicture = asyncHandler(async (req, res) => {
         );
 });
 
+
 const uploadContentToOrder = asyncHandler(async (req, res) => {
     const { orderId } = req.params;
     const creatorId = req.user._id;
@@ -514,20 +516,66 @@ const uploadContentToOrder = asyncHandler(async (req, res) => {
     const filesPath = req.files.map((file) => file.path);
 
     // UPLOAD TO GOOGLE DRIVE LOGIC
+    // try {
+    //     let orderFolderId = await getFolderIdByName(orderId);
+    //     if (!orderFolderId) {
+    //         orderFolderId = await createFolder(orderId);
+    //     }
+
+    //     let creatorFolderId = await getFolderIdByName(creatorId, orderFolderId); // Pass the parent folder ID
+    //     if (!creatorFolderId) {
+    //         creatorFolderId = await createFolder(creatorId, orderFolderId);
+    //     }
+
+    //     const uploadedFilesToGoogleDrive = await uploadFilesToFolder(
+    //         creatorFolderId,
+    //         filesPath
+    //     );
+
+    //     if (
+    //         !uploadedFilesToGoogleDrive ||
+    //         uploadedFilesToGoogleDrive.length === 0
+    //     ) {
+    //         throw new ApiError(500, "Failed to upload files to Google Drive");
+    //     }
+
+    //     const fileUrlsFromGoogleDrive = uploadedFilesToGoogleDrive.map(
+    //         (file) =>
+    //             `https://drive.google.com/uc?id=${file.id}&export=download`
+    //     );
+
+
+    //     order.uploadFiles.push({
+    //         uploadedBy: creatorId,
+    //         fileUrls: fileUrlsFromGoogleDrive,
+    //         uploadedDate: new Date(),
+    //     });
+    //     await order.save();
+
+    //     return res.status(200).json(
+    //         new ApiResponse(
+    //             200,
+    //             {
+    //                 order,
+    //             },
+    //             "Content uploaded successfully to Google Drive"
+    //         )
+    //     );
+    // } catch (error) {
+    //     throw new ApiError(500, `Google Drive upload error: ${error.message}`);
+    // }
+
     try {
-        // Check or create order folder
         let orderFolderId = await getFolderIdByName(orderId);
         if (!orderFolderId) {
             orderFolderId = await createFolder(orderId);
         }
 
-        // Check or create creator folder within the order folder
-        let creatorFolderId = await getFolderIdByName(creatorId, orderFolderId); // Pass the parent folder ID
+        let creatorFolderId = await getFolderIdByName(creatorId, orderFolderId);
         if (!creatorFolderId) {
             creatorFolderId = await createFolder(creatorId, orderFolderId);
         }
 
-        // Upload files to the creator's folder
         const uploadedFilesToGoogleDrive = await uploadFilesToFolder(
             creatorFolderId,
             filesPath
@@ -540,15 +588,11 @@ const uploadContentToOrder = asyncHandler(async (req, res) => {
             throw new ApiError(500, "Failed to upload files to Google Drive");
         }
 
-        const fileUrlsFromGoogleDrive = uploadedFilesToGoogleDrive.map(
-            (file) =>
-                `https://drive.google.com/uc?id=${file.id}&export=download`
-        );
-
+        const creatorFolderUrl = await getCreatorFolderUrl(orderId, creatorId);
 
         order.uploadFiles.push({
             uploadedBy: creatorId,
-            fileUrls: fileUrlsFromGoogleDrive,
+            fileUrls: creatorFolderUrl,
             uploadedDate: new Date(),
         });
         await order.save();
@@ -565,7 +609,9 @@ const uploadContentToOrder = asyncHandler(async (req, res) => {
     } catch (error) {
         throw new ApiError(500, `Google Drive upload error: ${error.message}`);
     }
+
 });
+
 
 const completeTheOrder = asyncHandler(async (req, res) => {
     const { orderId } = req.params;
