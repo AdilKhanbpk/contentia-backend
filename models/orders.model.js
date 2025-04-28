@@ -212,19 +212,20 @@ ordersProfileSchema.methods.calculateTotalPriceForCustomer = async function () {
 
     let totalCustomerPrice = this.basePrice;
 
-    if (this.additionalServices.edit) totalCustomerPrice += additionalService.editPrice || 0;
-    if (this.additionalServices.coverPicture) totalCustomerPrice += additionalService.coverPicPrice || 0;
-    if (this.additionalServices.duration === "30s") totalCustomerPrice += additionalService.thirtySecondDurationPrice || 0;
-    if (this.additionalServices.duration === "60s") totalCustomerPrice += additionalService.sixtySecondDurationPrice || 0;
-    if (this.additionalServices.share) totalCustomerPrice += additionalService.sharePrice || 0;
-
-    if (this.additionalServices.creatorType) {
-        totalCustomerPrice += additionalService.creatorTypePrice || 0;
-    }
-
-    if (this.additionalServices.productShipping) {
-        totalCustomerPrice += additionalService.shippingPrice || 0;
-    }
+    if (this.additionalServices.edit)
+        totalCustomerPrice += (additionalService.editPrice || 0) * this.noOfUgc;
+    if (this.additionalServices.coverPicture)
+        totalCustomerPrice += (additionalService.coverPicPrice || 0) * this.noOfUgc;
+    if (this.additionalServices.duration === "30s")
+        totalCustomerPrice += (additionalService.thirtySecondDurationPrice || 0) * this.noOfUgc;
+    if (this.additionalServices.duration === "60s")
+        totalCustomerPrice += (additionalService.sixtySecondDurationPrice || 0) * this.noOfUgc;
+    if (this.additionalServices.share)
+        totalCustomerPrice += (additionalService.sharePrice || 0) * this.noOfUgc;
+    if (this.additionalServices.creatorType)
+        totalCustomerPrice += (additionalService.creatorTypePrice || 0) * this.noOfUgc;
+    if (this.additionalServices.productShipping)
+        totalCustomerPrice += (additionalService.shippingPrice || 0) * this.noOfUgc;
 
     return totalCustomerPrice;
 };
@@ -239,23 +240,23 @@ ordersProfileSchema.methods.calculateTotalPriceForCreator = async function () {
 
     // Additional services
     if (this.additionalServices.edit)
-        totalCreatorPrice += (additionalService.editPrice || 0) / 2;
+        totalCreatorPrice += ((additionalService.editPrice || 0) * this.noOfUgc) / 2;
 
     if (this.additionalServices.coverPicture)
-        totalCreatorPrice += (additionalService.coverPicPrice || 0) / 2;
+        totalCreatorPrice += ((additionalService.coverPicPrice || 0) * this.noOfUgc) / 2;
 
     if (this.additionalServices.duration === "30s")
-        totalCreatorPrice += (additionalService.thirtySecondDurationPrice || 0) / 2;
+        totalCreatorPrice += ((additionalService.thirtySecondDurationPrice || 0) * this.noOfUgc) / 2;
 
     if (this.additionalServices.duration === "60s")
-        totalCreatorPrice += (additionalService.sixtySecondDurationPrice || 0) / 2;
+        totalCreatorPrice += ((additionalService.sixtySecondDurationPrice || 0) * this.noOfUgc) / 2;
 
     if (this.additionalServices.share)
-        totalCreatorPrice += (additionalService.sharePrice || 0) / 2;
+        totalCreatorPrice += ((additionalService.sharePrice || 0) * this.noOfUgc) / 2;
 
     // Creator gets full price of creatorType
     if (this.additionalServices.creatorType)
-        totalCreatorPrice += additionalService.creatorTypePrice || 0;
+        totalCreatorPrice += (additionalService.creatorTypePrice || 0) * this.noOfUgc;
 
     // 100% of productShipping will be paid to platform
 
