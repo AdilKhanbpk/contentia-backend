@@ -29,6 +29,7 @@ const createBlog = asyncHandler(async (req, res) => {
     }
 
     const blogImage = req.file?.path;
+    console.log("🚀 ~ createBlog ~ blogImage:", blogImage)
     if (!blogImage) {
         throw new ApiError(400, "Please provide a banner image");
     }
