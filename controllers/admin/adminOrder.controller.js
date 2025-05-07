@@ -459,7 +459,9 @@ const getAppliedCreatorsOnOrders = asyncHandler(async (req, res) => {
 
 const getAllAssignedOrders = asyncHandler(async (req, res) => {
 
-    const assignedOrders = await Order.find({ orderStatus: "active" })
+    const assignedOrders = await Order.find({
+        orderStatus: { $in: ["active", "completed"] }
+    })
         .sort({ createdAt: -1 })
         .populate({
             path: "assignedCreators",
@@ -468,6 +470,10 @@ const getAllAssignedOrders = asyncHandler(async (req, res) => {
         .populate({
             path: "associatedBrands",
             select: "-associatedOrders",
+        })
+        .populate({
+            path: "orderOwner",
+            select: "fullName email _id",
         });
 
     return res
