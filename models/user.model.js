@@ -72,7 +72,8 @@ const userSchema = new mongoose.Schema(
 
         invoiceType: {
             type: String,
-            enum: ["individual", "institutional"],
+            enum: ["individual", "institutional", null],
+            default: null,
         },
         billingInformation: {
             invoiceStatus: {
@@ -100,7 +101,12 @@ const userSchema = new mongoose.Schema(
         refreshToken: {
             type: String,
         },
-
+        resetPasswordToken: {
+            type: String,
+        },
+        resetPasswordExpires: {
+            type: Date,
+        },
         rememberMe: {
             type: Boolean,
             default: false,

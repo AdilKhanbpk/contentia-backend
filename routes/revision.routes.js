@@ -7,7 +7,7 @@ import {
     createRevision,
     deleteRevision,
     getRevisionById,
-    getRevisions,
+    getRevisions, 
     updateRevision,
 } from "../controllers/revision.controller.js";
 

@@ -25,6 +25,7 @@ import ordersRoute from "./routes/orders.routes.js";
 import becomeCreatorRoute from "./routes/creator.routes.js";
 import brandRoute from "./routes/brand.routes.js";
 import revisionRoute from "./routes/revision.routes.js";
+import passwordRoutes from "./routes/password.routes.js";
 
 // ADMIN ROUTES
 import adminCustomerRoutes from "./routes/admin/adminCustomer.routes.js";
@@ -130,6 +131,7 @@ app.use("/", facebookAuthRoutes);
 // app.use("/", appleAuthRoutes);
 
 app.use("/api/v1/users", userAuthRoutes);
+app.use("/api/v1/users", passwordRoutes);
 app.use("/api/v1/orders", ordersRoute);
 app.use("/api/v1/creators", becomeCreatorRoute);
 app.use("/api/v1/brands", brandRoute);
