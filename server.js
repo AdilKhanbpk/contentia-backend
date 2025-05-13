@@ -28,7 +28,12 @@ const startServer = async () => {
     try {
         const PORT = process.env.PORT || 8000;
         const serverListener = server.listen(PORT, () => {
-            console.log(`Server running on http://localhost:${PORT}/`);
+            // Check if running on Render
+            if (process.env.RENDER) {
+                console.log(`Server running on Render deployment`);
+            } else {
+                console.log(`Server running on http://localhost:${PORT}/`);
+            }
         });
 
         // Handle unhandled promise rejections

@@ -111,7 +111,12 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 const corsOptions = {
-    origin: ["https://contentia-frontend.vercel.app", "http://localhost:3000"],
+    origin: [
+        "https://contentia-frontend.vercel.app",
+        "http://localhost:3000",
+        // Add your Render frontend URL if different from the above
+        process.env.FRONTEND_URL
+    ].filter(Boolean), // Remove any undefined/null values
     methods: "GET,POST,PUT,DELETE,OPTIONS,PATCH",
     allowedHeaders: "X-Requested-With, Content-Type, Authorization",
     credentials: true,
@@ -129,6 +134,48 @@ app.use(express.static(path.join(__dirname, "")));
 app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10kb" }));
 app.use(cookieParser());
+
+// Add routes for the root path and health check to confirm the server is running
+app.get("/", (_req, res) => {
+    res.status(200).json({
+        success: true,
+        message: "Contentia API is running",
+        environment: process.env.NODE_ENV,
+        timestamp: new Date().toISOString()
+    });
+});
+
+// Health check endpoint for monitoring
+app.get("/health", (_req, res) => {
+    res.status(200).json({
+        status: "UP",
+        uptime: process.uptime(),
+        timestamp: new Date().toISOString()
+    });
+});
+
+// API documentation endpoint
+app.get("/api", (_req, res) => {
+    res.status(200).json({
+        success: true,
+        message: "Welcome to Contentia API",
+        version: "1.0.0",
+        baseUrl: "/api/v1",
+        endpoints: {
+            users: "/api/v1/users",
+            orders: "/api/v1/orders",
+            creators: "/api/v1/creators",
+            brands: "/api/v1/brands",
+            admin: {
+                customers: "/api/v1/admin/customers",
+                creators: "/api/v1/admin/creators",
+                orders: "/api/v1/admin/orders",
+                // Add other admin endpoints as needed
+            }
+        },
+        documentation: "For more information, contact the development team"
+    });
+});
 
 const server = http.createServer(app);
 export const io = initializeSocketSetup(server);
