@@ -52,7 +52,7 @@ import adminTermsAndConditionsRoute from "./routes/admin/adminT&C.route.js"
 import adminFilesRoutes from "./routes/admin/adminFiles.routes.js"
 import pageViewsRoute from "./routes/pageViews.route.js";
 
-import ApiError from "./utils/ApiError.js";
+// ApiError import removed as it's no longer used
 
 const app = express();
 const morganFormat =
@@ -96,9 +96,17 @@ app.use(
         saveUninitialized: false,
     })
 );
-googleSetup(passport);
-facebookSetup(passport);
-// appleSetup(passport);
+// Initialize authentication strategies
+try {
+    googleSetup(passport);
+    facebookSetup(passport);
+    // appleSetup(passport);
+} catch (error) {
+    console.error("Error initializing authentication strategies:", error);
+    // Continue without failing the app startup
+}
+
+// Initialize passport middleware
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -126,8 +134,15 @@ const server = http.createServer(app);
 export const io = initializeSocketSetup(server);
 app.set("io", io);
 
-app.use("/", googleAuthRoutes);
-app.use("/", facebookAuthRoutes);
+// Only use authentication routes if the required environment variables are set
+if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && process.env.GOOGLE_CALLBACK_URL) {
+    app.use("/", googleAuthRoutes);
+}
+
+if (process.env.FACEBOOK_CLIENT_ID && process.env.FACEBOOK_CLIENT_SECRET && process.env.FACEBOOK_CALLBACK_URL) {
+    app.use("/", facebookAuthRoutes);
+}
+
 // app.use("/", appleAuthRoutes);
 
 app.use("/api/v1/users", userAuthRoutes);
@@ -165,7 +180,10 @@ app.use("/api/v1/admin/files", adminFilesRoutes)
 app.all("*", (req, res) => {
     const message = `Can't find ${req.originalUrl} on this server!`;
     logger.warn(message);
-    throw new ApiError(404, message);
+    res.status(404).json({
+        success: false,
+        message: message
+    });
 });
 
 export { app, server };

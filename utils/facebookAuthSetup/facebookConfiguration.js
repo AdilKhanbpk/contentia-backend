@@ -8,6 +8,12 @@ import CreatorModel from "../../models/creator.model.js";
 dotenv.config();
 
 export const facebookSetup = () => {
+    // Check if required environment variables are set
+    if (!process.env.FACEBOOK_CLIENT_ID || !process.env.FACEBOOK_CLIENT_SECRET || !process.env.FACEBOOK_CALLBACK_URL) {
+        console.warn("Facebook authentication is disabled: Missing required environment variables");
+        return; // Skip Facebook strategy initialization
+    }
+
     passport.use(
         new FacebookStrategy(
             {

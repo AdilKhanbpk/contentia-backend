@@ -11,6 +11,12 @@ import logger from "../logger/logger.js";
 dotenv.config();
 
 export const googleSetup = () => {
+    // Check if required environment variables are set
+    if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET || !process.env.GOOGLE_CALLBACK_URL) {
+        console.warn("Google authentication is disabled: Missing required environment variables");
+        return; // Skip Google strategy initialization
+    }
+
     passport.use(
         new GoogleStrategy(
             {
