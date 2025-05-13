@@ -201,7 +201,16 @@ async function fetchServicePrices() {
     const additionalService = await AdditionalServiceModel.findOne({});
 
     if (!additionalService) {
-        throw new Error("Additional service data not found");
+        // Return default values if no additional service data is found
+        return {
+            editPrice: 50,
+            sharePrice: 30,
+            coverPicPrice: 20,
+            creatorTypePrice: 100,
+            shippingPrice: 25,
+            thirtySecondDurationPrice: 75,
+            sixtySecondDurationPrice: 150
+        };
     }
 
     return additionalService;

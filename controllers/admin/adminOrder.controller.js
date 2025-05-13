@@ -59,14 +59,43 @@ const createOrder = asyncHandler(async (req, res) => {
         }
     }
 
-    if (
-        !additionalServices ||
-        !("platform" in additionalServices) ||
-        !("duration" in additionalServices) ||
-        !("edit" in additionalServices) ||
-        !("aspectRatio" in additionalServices)
-    ) {
-        throw new ApiError(400, "Please provide all additional services");
+    // Provide default values for additionalServices if not provided or incomplete
+    if (!additionalServices) {
+        additionalServices = {};
+    }
+
+    // Set default values for required fields if they don't exist
+    if (!("platform" in additionalServices)) {
+        additionalServices.platform = "Instagram";
+    }
+
+    if (!("duration" in additionalServices)) {
+        additionalServices.duration = "30s";
+    }
+
+    if (!("edit" in additionalServices)) {
+        additionalServices.edit = true;
+    }
+
+    if (!("aspectRatio" in additionalServices)) {
+        additionalServices.aspectRatio = "9:16";
+    }
+
+    // Set default values for optional fields if they don't exist
+    if (!("share" in additionalServices)) {
+        additionalServices.share = false;
+    }
+
+    if (!("coverPicture" in additionalServices)) {
+        additionalServices.coverPicture = false;
+    }
+
+    if (!("creatorType" in additionalServices)) {
+        additionalServices.creatorType = false;
+    }
+
+    if (!("productShipping" in additionalServices)) {
+        additionalServices.productShipping = false;
     }
 
     const newOrder = await Order.create({

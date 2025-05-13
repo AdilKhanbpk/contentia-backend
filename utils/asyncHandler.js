@@ -9,20 +9,41 @@ const asyncHandler = (requestHandler) => {
         try {
             await requestHandler(req, res, next); // Execute the provided request handler.
         } catch (error) {
-            const { code = 500, message, details, stack } = error; // Destructure error object, with default code of 500.
+            console.error("Error in asyncHandler:", error);
+
+            // Handle MongoDB duplicate key error (code 11000)
+            if (error.code === 11000) {
+                const duplicateField = Object.keys(error.keyPattern)[0];
+                const errorMessage = `Duplicate value for ${duplicateField}. This ${duplicateField} is already in use.`;
+
+                return res.status(409).json({
+                    message: errorMessage,
+                    success: false,
+                    ...(process.env.NODE_ENV === "development" && {
+                        details: error.keyValue,
+                        stack: error.stack,
+                    }),
+                });
+            }
+
+            // For other errors, use the provided status code or default to 500
+            let statusCode = 500;
+
+            // Only use the error.code as status if it's a valid HTTP status code (100-599)
+            if (error.statusCode && error.statusCode >= 100 && error.statusCode < 600) {
+                statusCode = error.statusCode;
+            }
 
             const response = {
-                message, // Error message.
-                success: false, // Success status is always false for errors.
-                // stack: stack, // Stack trace (commented out by default).
+                message: error.message || "Something went wrong",
+                success: false,
                 ...(process.env.NODE_ENV === "development" && {
-                    details,
-                    stack,
-                }), // Include stack trace and details if in development mode.
+                    details: error.details,
+                    stack: error.stack,
+                }),
             };
 
-
-            res.status(code).json(response); // Send the error response with the appropriate status code.
+            res.status(statusCode).json(response);
         }
     };
 };

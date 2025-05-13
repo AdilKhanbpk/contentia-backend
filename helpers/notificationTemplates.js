@@ -1,6 +1,21 @@
 
 
 export const notificationTemplates = {
+    creatorRegistrationByAdmin: ({
+        creatorName,
+        creatorEmail,
+        creatorPhoneNumber,
+        targetUsers = [],
+        metadata = {},
+    }) => {
+        return {
+            title: "Hesabınız Oluşturuldu",
+            details: `Merhaba ${creatorName}, hesabınız bir yönetici tarafından oluşturuldu. Artık Contentia platformunu kullanabilirsiniz.`,
+            userType: "creator",
+            users: targetUsers,
+            metadata,
+        };
+    },
     generalNotification: ({
         adminName,
         title,
@@ -152,20 +167,7 @@ export const notificationTemplates = {
         metadata = {},
     }) => {
         return {
-            title: "çerik Yüklend",
-            details: ` İçerik üreticisi ${metadata.creatorName}, ${metadata.creatorEmail} ve ${metadata.creatorPhoneNumber} ile ${orderTitle} siparişi için içerik yükledi.`,
-            userType: "customer",
-            users: targetUsers,
-            metadata,
-        };
-    },
-    orderCompletionByCreatorToAdmin: ({
-        orderTitle,
-        targetUsers = [],
-        metadata = {},
-    }) => {
-        return {
-            title: "çerik Yüklend",
+            title: "İçerik Yüklendi",
             details: ` İçerik üreticisi ${metadata.creatorName}, ${metadata.creatorEmail} ve ${metadata.creatorPhoneNumber} ile ${orderTitle} siparişi için içerik yükledi.`,
             userType: "customer",
             users: targetUsers,

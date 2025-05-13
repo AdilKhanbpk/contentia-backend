@@ -12,13 +12,13 @@ import { notificationTemplates } from "../helpers/notificationTemplates.js";
 import Revision from "../models/revision.model.js";
 
 const createOrder = asyncHandler(async (req, res) => {
-    const {
+    let {
         noOfUgc,
         totalPrice,
-        basePrice,
-        orderStatus,
-        paymentStatus,
-        contentsDelivered,
+        basePrice = 100, // Default base price of 100 TL per video
+        orderStatus = "pending",
+        paymentStatus = "pending",
+        contentsDelivered = 0,
         additionalServices,
         preferences,
         briefContent,
@@ -26,14 +26,48 @@ const createOrder = asyncHandler(async (req, res) => {
         numberOfRequests,
     } = req.body;
 
-    if (
-        !additionalServices ||
-        !("platform" in additionalServices) ||
-        !("duration" in additionalServices) ||
-        !("edit" in additionalServices) ||
-        !("aspectRatio" in additionalServices)
-    ) {
-        throw new ApiError(400, "Please provide all additional services");
+    // Calculate total price if not provided
+    if (!totalPrice && noOfUgc) {
+        totalPrice = basePrice * noOfUgc;
+    }
+
+    // Provide default values for additionalServices if not provided or incomplete
+    if (!additionalServices) {
+        additionalServices = {};
+    }
+
+    // Set default values for required fields if they don't exist
+    if (!("platform" in additionalServices)) {
+        additionalServices.platform = "Instagram";
+    }
+
+    if (!("duration" in additionalServices)) {
+        additionalServices.duration = "30s";
+    }
+
+    if (!("edit" in additionalServices)) {
+        additionalServices.edit = true;
+    }
+
+    if (!("aspectRatio" in additionalServices)) {
+        additionalServices.aspectRatio = "9:16";
+    }
+
+    // Set default values for optional fields if they don't exist
+    if (!("share" in additionalServices)) {
+        additionalServices.share = false;
+    }
+
+    if (!("coverPicture" in additionalServices)) {
+        additionalServices.coverPicture = false;
+    }
+
+    if (!("creatorType" in additionalServices)) {
+        additionalServices.creatorType = false;
+    }
+
+    if (!("productShipping" in additionalServices)) {
+        additionalServices.productShipping = false;
     }
 
     let fileUrls = [];
