@@ -6,7 +6,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 // Connect to MongoDB
-mongoose.connect(process.env.MONGODB_URI || "mongodb://localhost:27017/contentia")
+mongoose.connect(process.env.DATABASE || "mongodb://localhost:27017/contentia", { useNewUrlParser: true, useUnifiedTopology: true })
   .then(async () => {
     console.log("Connected to MongoDB");
     
