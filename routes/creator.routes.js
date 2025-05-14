@@ -26,6 +26,9 @@ import {
     getCreatorStats,
     getTotalOrdersOfCreator,
 } from "../controllers/creator.controller.js";
+import { forgotPassword } from "../controllers/creator/forgotPassword.controller.js";
+import { resetPassword } from "../controllers/creator/resetPassword.controller.js";
+import { verifyResetToken } from "../controllers/creator/verifyResetToken.controller.js";
 import { isAuthenticated } from "../middlewares/authentication.middleware.js";
 import { uploadOnMulter } from "../middlewares/multer.middleware.js";
 
@@ -66,6 +69,11 @@ router.get("/get-all-orders", isAuthenticated, getTotalOrdersOfCreator);
 // POST Routes
 router.post("/create", createCreator);
 router.post("/login", loginCreator);
+router.post("/forgot-password", forgotPassword);
+router.post("/reset-password/:token", resetPassword);
+
+// GET Routes for password reset
+router.get("/verify-reset-token/:token", verifyResetToken);
 router.post("/apply-for-order/:orderId", isAuthenticated, applyForOrder);
 router.post(
     "/upload-content-to-order/:orderId",

@@ -86,7 +86,7 @@ const getDashboardStats = async () => {
             byDevice: {},
             byCountry: {},
             trends: []
-        };
+        }; 
     }
 };
 

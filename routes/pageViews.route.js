@@ -6,4 +6,4 @@ const router = express.Router();
 
 router.get("/dashboard-stats", isAuthenticated, getAnalyticsDashboardStats);
 
-export default router;
+export default router; 
