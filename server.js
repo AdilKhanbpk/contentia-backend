@@ -14,7 +14,8 @@ process.on("uncaughtException", (err) => {
 
 const connectDB = async () => {
     try {
-        const connection = await mongoose.connect(process.env.DATABASE);
+        // const connection = await mongoose.connect(process.env.DATABASE);
+        const connection = await mongoose.connect("mongodb+srv://saudkhanbpk:saudkhanbpk3939@cluster0.t6wy40b.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0");
         console.log(
             `Database connection successful with ==> '${connection.connection.name}'`
         );

@@ -6,8 +6,9 @@ import dotenv from "dotenv";
 dotenv.config();
 
 // Connect to MongoDB
-mongoose.connect(process.env.DATABASE , { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(async () => {
+// mongoose.connect(process.env.DATABASE , { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect("mongodb+srv://saudkhanbpk:saudkhanbpk3939@cluster0.t6wy40b.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
+.then(async () => {
     console.log("Connected to MongoDB");
     
     try {
