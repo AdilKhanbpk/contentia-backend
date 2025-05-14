@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 
 // Load environment variables from config.env file
-dotenv.config({ path: "./.env" });
+dotenv.config();
 
 import { server } from "./app.js";
 
@@ -32,7 +32,7 @@ const startServer = async () => {
             if (process.env.RENDER) {
                 console.log(`Server running on Render deployment`);
             } else {
-                console.log(`Server running on http://localhost:${PORT}/`);
+                console.log(`Server running on ${PORT}`);
             }
         });
 
