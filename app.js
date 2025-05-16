@@ -51,6 +51,7 @@ import adminIncomingPayments from "./routes/admin/adminIncomingPayment.routes.js
 import adminTermsAndConditionsRoute from "./routes/admin/adminT&C.route.js"
 import adminFilesRoutes from "./routes/admin/adminFiles.routes.js"
 import pageViewsRoute from "./routes/pageViews.route.js";
+import analyticsTestRoute from "./routes/analytics-test.route.js";
 
 // ApiError import removed as it's no longer used
 
@@ -199,6 +200,7 @@ app.use("/api/v1/creators", becomeCreatorRoute);
 app.use("/api/v1/brands", brandRoute);
 app.use("/api/v1/page-views", pageViewsRoute);
 app.use("/api/v1/revisions", revisionRoute);
+app.use("/api/v1/analytics-test", analyticsTestRoute); // Test route for Google Analytics
 
 
 // ADMIN ROUTES

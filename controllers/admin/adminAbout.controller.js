@@ -20,18 +20,23 @@ const createAbout = asyncHandler(async (req, res) => {
         buttonUrl,
     } = req.body;
 
+    // Check if req.file exists before accessing its properties
+    if (!req.file) {
+        throw new ApiError(400, "Please provide an image file");
+    }
+
     const aboutImage = req.file.path;
 
     if (!aboutImage) {
-        throw new ApiError(400, "Please provide an image");
+        throw new ApiError(400, "Please provide a valid image");
     }
 
     const uploadImage = await uploadFileToCloudinary(aboutImage);
 
     const lengthOfAbout = await AboutModel.find({});
 
-    if (lengthOfAbout.length > 1) {
-        throw new ApiError(400, "About cannot be created more than one");
+    if (lengthOfAbout.length > 0) {
+        throw new ApiError(400, "About section already exists. Please update the existing one.");
     }
 
     const newAbout = await AboutModel.create({
@@ -85,33 +90,53 @@ const updateAbout = asyncHandler(async (req, res) => {
 
 const updateAboutImage = asyncHandler(async (req, res) => {
     const { aboutId } = req.params;
+
+    // Check if req.file exists before accessing its properties
+    if (!req.file) {
+        throw new ApiError(400, "Please provide an image file");
+    }
+
     const aboutImage = req.file.path;
 
     isValidId(aboutId);
 
     const about = await AboutModel.findById(aboutId);
 
+    if (!about) {
+        throw new ApiError(404, "About section not found");
+    }
+
+    // Delete old image if it exists
     if (about.aboutImage) {
-        await deleteFileFromCloudinary(about.aboutImage);
+        try {
+            await deleteFileFromCloudinary(about.aboutImage);
+        } catch (error) {
+            console.error("Error deleting old image:", error);
+            // Continue even if deletion fails
+        }
     }
 
     if (!aboutImage) {
-        throw new ApiError(400, "Please provide an image");
+        throw new ApiError(400, "Please provide a valid image");
     }
 
     const uploadImage = await uploadFileToCloudinary(aboutImage);
 
+    if (!uploadImage || !uploadImage.secure_url) {
+        throw new ApiError(500, "Failed to upload image to cloud storage");
+    }
+
     const updatedAbout = await AboutModel.findOneAndUpdate(
         { _id: aboutId },
         {
-            aboutImage: uploadImage?.secure_url,
+            aboutImage: uploadImage.secure_url,
         },
         { new: true }
     );
 
     return res
         .status(200)
-        .json(new ApiResponse(200, updatedAbout, "About updated successfully"));
+        .json(new ApiResponse(200, updatedAbout, "About image updated successfully"));
 });
 
 const getAbout = asyncHandler(async (req, res) => {

@@ -5,6 +5,7 @@ import Creator from "../../models/creator.model.js";
 import User from "../../models/user.model.js";
 import Order from "../../models/orders.model.js";
 import AdditionalServiceModel from "../../models/admin/adminAdditionalService.model.js";
+import { getDashboardStats } from "../analytics.controller.js";
 
 const getTotalCreators = asyncHandler(async (req, res) => {
     const now = new Date();
@@ -545,4 +546,108 @@ const recentOrders = asyncHandler(async (req, res) => {
         );
 });
 
-export { getTotalCreators, getTotalUsers, getTotalOrders, recentOrders, getTotalSales, getTotalPlatformRevenue, getTotalUsersForCurrentMonth };
+// Get Google Analytics data for the current month
+const getGoogleAnalyticsData = asyncHandler(async (req, res) => {
+    try {
+        console.log('\n=== ADMIN DASHBOARD GOOGLE ANALYTICS REQUEST ===');
+
+        // Get analytics data for the current month
+        console.log('Fetching analytics data for current month...');
+        const analyticsData = await getDashboardStats('currentMonth');
+
+        console.log('Analytics data received:');
+        console.log('- Page Views:', analyticsData.overview.pageViews);
+        console.log('- Total Users:', analyticsData.overview.totalUsers);
+        console.log('- Period:', analyticsData.period.startDate, 'to', analyticsData.period.endDate);
+
+        // Format the data for the dashboard boxes
+        // Client specifically requested Total Page Views and Total Users for the current month
+        const formattedData = {
+            // Formatted values with commas for display
+            totalPageViews: parseInt(analyticsData.overview.pageViews).toLocaleString(),
+            totalUsers: parseInt(analyticsData.overview.totalUsers).toLocaleString(),
+
+            // Raw values for calculations if needed
+            rawData: {
+                pageViews: parseInt(analyticsData.overview.pageViews),
+                totalUsers: parseInt(analyticsData.overview.totalUsers)
+            },
+
+            // Period information
+            period: {
+                startDate: analyticsData.period.startDate,
+                endDate: analyticsData.period.endDate,
+                label: 'Current Month'
+            },
+
+            // Descriptions for the metrics as requested by the client
+            description: {
+                totalPageViews: "Total Page Views by users in the current month (If one user visits more than once, it shows the total views & traffic)",
+                totalUsers: "Number of Total Users in the current month → Total Users are the number of users who visited the platform. They are not customers but total user traffic of the website"
+            }
+        };
+
+        console.log('Formatted data for response:');
+        console.log('- Total Page Views:', formattedData.totalPageViews);
+        console.log('- Total Users:', formattedData.totalUsers);
+
+        return res.status(200).json(new ApiResponse(
+            200,
+            formattedData,
+            "Google Analytics data retrieved successfully"
+        ));
+    } catch (error) {
+        console.error('\n=== ERROR IN ADMIN DASHBOARD GOOGLE ANALYTICS ===');
+        console.error('Error type:', error.name);
+        console.error('Error message:', error.message);
+
+        if (error.stack) {
+            console.error('Stack trace:');
+            console.error(error.stack);
+        }
+
+        // Return a proper error response
+        return res.status(500).json(new ApiResponse(
+            500,
+            {
+                error: error.message,
+                totalPageViews: "0",
+                totalUsers: "0",
+                period: {
+                    label: 'Current Month'
+                },
+                description: {
+                    totalPageViews: "Total Page Views by users in the current month (If one user visits more than once, it shows the total views & traffic)",
+                    totalUsers: "Number of Total Users in the current month → Total Users are the number of users who visited the platform. They are not customers but total user traffic of the website"
+                }
+            },
+            "Failed to retrieve Google Analytics data: " + error.message
+        ));
+    }
+});
+
+// Simple test endpoint to verify admin authentication
+const testAdminAuth = asyncHandler(async (req, res) => {
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            {
+                message: "Admin authentication successful",
+                user: req.user
+            },
+            "Admin authentication verified"
+        )
+    );
+});
+
+export {
+    getTotalCreators,
+    getTotalUsers,
+    getTotalOrders,
+    recentOrders,
+    getTotalSales,
+    getTotalPlatformRevenue,
+    getTotalUsersForCurrentMonth,
+    getGoogleAnalyticsData,
+    testAdminAuth
+};
