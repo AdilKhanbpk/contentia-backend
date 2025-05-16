@@ -21,6 +21,7 @@ const landingPageSchema = new Schema(
         videos: {
             type: [String], // This allows multiple videos to be stored in an array
             validate: [arrayLimit, "{PATH} exceeds the limit of 10 videos"],
+            default: Array(10).fill(null) // Default to an array of 10 null values
         },
     },
     {
