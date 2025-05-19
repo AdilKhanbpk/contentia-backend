@@ -113,7 +113,7 @@ app.use(passport.session());
 
 const corsOptions = {
     origin: [
-        "https://contentia-frontend.vercel.app",
+        "https://contentia-frontend-lv2qr4g0d-saudkhanbpks-projects.vercel.app",
         "http://localhost:3000",
         // Add your Render frontend URL if different from the above
         process.env.FRONTEND_URL
