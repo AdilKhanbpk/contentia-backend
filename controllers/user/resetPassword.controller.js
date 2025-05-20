@@ -1,4 +1,5 @@
 import Creator from "../../models/creator.model.js";
+import User from "../../models/user.model.js";
 import ApiError from "../../utils/ApiError.js";
 import ApiResponse from "../../utils/ApiResponse.js";
 import asyncHandler from "../../utils/asyncHandler.js";
@@ -20,14 +21,27 @@ export const resetPassword = asyncHandler(async (req, res) => {
         console.log(`Attempting to reset password with token: ${token}`);
     }
 
-    // Find user with valid reset token
-    const user = await Creator.findOne({
+    // Find user with valid reset token - first check User model
+    let user = await User.findOne({
         resetPasswordToken: token,
         resetPasswordExpires: { $gt: Date.now() },
     });
 
+    // If not found in User model, check Creator model
+    if (!user) {
+        user = await Creator.findOne({
+            resetPasswordToken: token,
+            resetPasswordExpires: { $gt: Date.now() },
+        });
+    }
+
     if (!user) {
         throw new ApiError(400, "Token is invalid or has expired");
+    }
+
+    // Log the found user type for debugging in development
+    if (process.env.NODE_ENV === 'development') {
+        console.log(`Found user with token. User type: ${user.userType || 'creator'}`);
     }
 
     // Validate password
