@@ -111,16 +111,23 @@ try {
 app.use(passport.initialize());
 app.use(passport.session());
 
+// const corsOptions = {
+//     origin: [
+//         "http://localhost:3000",
+//         "https://contentia-frontend-2mobnp3rn-saudkhanbpks-projects.vercel.app/api/v1",
+//         "https://contentia-frontend-2mobnp3rn-saudkhanbpks-projects.vercel.app/api/v1/",
+//         "https://contentia-frontend-2mobnp3rn-saudkhanbpks-projects.vercel.app/",
+//         "https://contentia-frontend-2mobnp3rn-saudkhanbpks-projects.vercel.app",
+//         // Add your Render frontend URL if different from the above
+//         process.env.FRONTEND_URL
+//     ].filter(Boolean), // Remove any undefined/null values
+//     methods: "GET,POST,PUT,DELETE,OPTIONS,PATCH",
+//     allowedHeaders: "X-Requested-With, Content-Type, Authorization",
+//     credentials: true,
+// };
+
 const corsOptions = {
-    origin: [
-        "http://localhost:3000",
-        "https://contentia-frontend-2mobnp3rn-saudkhanbpks-projects.vercel.app/api/v1",
-        "https://contentia-frontend-2mobnp3rn-saudkhanbpks-projects.vercel.app/api/v1/",
-        "https://contentia-frontend-2mobnp3rn-saudkhanbpks-projects.vercel.app/",
-        "https://contentia-frontend-2mobnp3rn-saudkhanbpks-projects.vercel.app",
-        // Add your Render frontend URL if different from the above
-        process.env.FRONTEND_URL
-    ].filter(Boolean), // Remove any undefined/null values
+    origin: true,
     methods: "GET,POST,PUT,DELETE,OPTIONS,PATCH",
     allowedHeaders: "X-Requested-With, Content-Type, Authorization",
     credentials: true,
