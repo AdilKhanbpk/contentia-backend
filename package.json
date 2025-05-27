@@ -19,6 +19,7 @@
     "@analytics/core": "^0.12.17",
     "@analytics/google-analytics": "^1.1.0",
     "@google-analytics/data": "^5.1.0",
+    "@sendgrid/mail": "^8.1.5",
     "analytics": "^0.8.16",
     "axios": "^1.7.7",
     "bcrypt": "^5.1.1",

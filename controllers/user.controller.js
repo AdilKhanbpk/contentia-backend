@@ -23,7 +23,7 @@ export const generateTokens = async (userId) => {
 };
 
 export const signup = asyncHandler(async (req, res) => {
-    const { email, password, ...rest } = req.body;
+    const { email, password, phoneNumber, ...rest } = req.body;
 
     if (!email || !password) {
         throw new ApiError(400, "Please provide email and password");
@@ -35,9 +35,16 @@ export const signup = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Email address is already in use.");
     }
 
+    const existingnumber = await User.findOne({ phoneNumber });
+
+    if (existingnumber) {
+        throw new ApiError(400, "Phone Number is already in use.");
+    }
+
     const newUser = await User.create({
         email,
         password,
+        phoneNumber,
         authProvider: "credentials",
         ...rest,
     });
