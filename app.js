@@ -206,7 +206,7 @@ if (process.env.FACEBOOK_CLIENT_ID && process.env.FACEBOOK_CLIENT_SECRET && proc
 
 app.use("/api/v1/users", userAuthRoutes);
 app.use("/api/v1/users", passwordRoutes);
-app.use("/api/v1/users", appPasswordRoutes);
+app.use("/api/v1/creators", appPasswordRoutes);
 app.use("/api/v1/orders", ordersRoute);
 app.use("/api/v1/creators", becomeCreatorRoute);
 app.use("/api/v1/brands", brandRoute);
