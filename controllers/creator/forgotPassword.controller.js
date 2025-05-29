@@ -34,7 +34,7 @@ export const forgotPassword = asyncHandler(async (req, res) => {
 
     if (appType === "mobile") {
         // Mobile app deep link
-        resetURL = `Contentia_App://reset-password?token=${token}`;
+        resetURL = `ContentiaApp://reset-password?token=${token}`;
         
         emailContent = `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
@@ -53,7 +53,7 @@ export const forgotPassword = asyncHandler(async (req, res) => {
         `;
     } else {
         // Web app URL
-        resetURL = `Contentia_App://reset-password?token=${token}`;
+        resetURL = `ContentiaApp://reset-password?token=${token}`;
         
         emailContent = `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
