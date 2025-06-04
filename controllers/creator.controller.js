@@ -492,9 +492,146 @@ const changeProfilePicture = asyncHandler(async (req, res) => {
 });
 
 
+// const uploadContentToOrder = asyncHandler(async (req, res) => {
+//     const { orderId } = req.params;
+//     const creatorId = req.user._id;
+//     const ordernote = req.creatorNoteOnOrder
+
+//     isValidId(orderId);
+//     isValidId(creatorId);
+
+//     const order = await Order.findById(orderId);
+//     if (!order) {
+//         throw new ApiError(404, "Order not found");
+//     }
+
+//     const creator = await Creator.findById(creatorId);
+//     if (!creator) {
+//         throw new ApiError(404, "Creator not found");
+//     }
+
+//     if (!req.files || req.files.length === 0) {
+//         throw new ApiError(400, "No files uploaded");
+//     }
+
+//     const filesPath = req.files.map((file) => file.path);
+
+//     // UPLOAD TO GOOGLE DRIVE LOGIC
+//     // try {
+//     //     let orderFolderId = await getFolderIdByName(orderId);
+//     //     if (!orderFolderId) {
+//     //         orderFolderId = await createFolder(orderId);
+//     //     }
+
+//     //     let creatorFolderId = await getFolderIdByName(creatorId, orderFolderId); // Pass the parent folder ID
+//     //     if (!creatorFolderId) {
+//     //         creatorFolderId = await createFolder(creatorId, orderFolderId);
+//     //     }
+
+//     //     const uploadedFilesToGoogleDrive = await uploadFilesToFolder(
+//     //         creatorFolderId,
+//     //         filesPath
+//     //     );
+
+//     //     if (
+//     //         !uploadedFilesToGoogleDrive ||
+//     //         uploadedFilesToGoogleDrive.length === 0
+//     //     ) {
+//     //         throw new ApiError(500, "Failed to upload files to Google Drive");
+//     //     }
+
+//     //     const fileUrlsFromGoogleDrive = uploadedFilesToGoogleDrive.map(
+//     //         (file) =>
+//     //             `https://drive.google.com/uc?id=${file.id}&export=download`
+//     //     );
+
+
+//     //     order.uploadFiles.push({
+//     //         uploadedBy: creatorId,
+//     //         fileUrls: fileUrlsFromGoogleDrive,
+//     //         uploadedDate: new Date(),
+//     //     });
+//     //     await order.save();
+
+//     //     return res.status(200).json(
+//     //         new ApiResponse(
+//     //             200,
+//     //             {
+//     //                 order,
+//     //             },
+//     //             "Content uploaded successfully to Google Drive"
+//     //         )
+//     //     );
+//     // } catch (error) {
+//     //     throw new ApiError(500, `Google Drive upload error: ${error.message}`);
+//     // }
+
+//     try {
+//         let orderFolderId = await getFolderIdByName(orderId);
+//         if (!orderFolderId) {
+//             orderFolderId = await createFolder(orderId);
+//         }
+
+//         let creatorFolderId = await getFolderIdByName(creatorId, orderFolderId);
+//         if (!creatorFolderId) {
+//             creatorFolderId = await createFolder(creatorId, orderFolderId);
+//         }
+
+//         const uploadedFilesToGoogleDrive = await uploadFilesToFolder(
+//             creatorFolderId,
+//             filesPath
+//         );
+
+//         if (
+//             !uploadedFilesToGoogleDrive ||
+//             uploadedFilesToGoogleDrive.length === 0
+//         ) {
+//             throw new ApiError(500, "Failed to upload files to Google Drive");
+//         }
+
+//         const creatorFolderUrl = await getCreatorFolderUrl(orderId, creatorId);
+
+//         order.uploadFiles.push({
+//             uploadedBy: creatorId,
+//             fileUrls: creatorFolderUrl,
+//             uploadedDate: new Date(),
+//             creatorNoteOnOrder : ordernote,
+//         });
+//         const existingUpload = order.uploadFiles.find(upload => upload.uploadedBy.toString() === creatorId.toString());
+
+//         if (!existingUpload) {
+//             // Only push if there's no existing record for this creator
+//             order.uploadFiles.push({
+//                 uploadedBy: creatorId,
+//                 fileUrls: creatorFolderUrl,
+//                 uploadedDate: new Date(),
+//             });
+//         } else {
+//             // Optionally, update the timestamp or fileUrls if needed
+//             existingUpload.uploadedDate = new Date();
+//             existingUpload.fileUrls = creatorFolderUrl; // Or append to an array if you're saving individual files
+//         }
+
+//         await order.save();
+
+//         return res.status(200).json(
+//             new ApiResponse(
+//                 200,
+//                 {
+//                     order,
+//                 },
+//                 "Content uploaded successfully to Google Drive"
+//             )
+//         );
+//     } catch (error) {
+//         throw new ApiError(500, `Google Drive upload error: ${error.message}`);
+//     }
+
+// });
 const uploadContentToOrder = asyncHandler(async (req, res) => {
     const { orderId } = req.params;
     const creatorId = req.user._id;
+    const creatorNoteOnOrder = req.body.creatorNoteOnOrder; // Make sure you're sending this from frontend
 
     isValidId(orderId);
     isValidId(creatorId);
@@ -515,57 +652,8 @@ const uploadContentToOrder = asyncHandler(async (req, res) => {
 
     const filesPath = req.files.map((file) => file.path);
 
-    // UPLOAD TO GOOGLE DRIVE LOGIC
-    // try {
-    //     let orderFolderId = await getFolderIdByName(orderId);
-    //     if (!orderFolderId) {
-    //         orderFolderId = await createFolder(orderId);
-    //     }
-
-    //     let creatorFolderId = await getFolderIdByName(creatorId, orderFolderId); // Pass the parent folder ID
-    //     if (!creatorFolderId) {
-    //         creatorFolderId = await createFolder(creatorId, orderFolderId);
-    //     }
-
-    //     const uploadedFilesToGoogleDrive = await uploadFilesToFolder(
-    //         creatorFolderId,
-    //         filesPath
-    //     );
-
-    //     if (
-    //         !uploadedFilesToGoogleDrive ||
-    //         uploadedFilesToGoogleDrive.length === 0
-    //     ) {
-    //         throw new ApiError(500, "Failed to upload files to Google Drive");
-    //     }
-
-    //     const fileUrlsFromGoogleDrive = uploadedFilesToGoogleDrive.map(
-    //         (file) =>
-    //             `https://drive.google.com/uc?id=${file.id}&export=download`
-    //     );
-
-
-    //     order.uploadFiles.push({
-    //         uploadedBy: creatorId,
-    //         fileUrls: fileUrlsFromGoogleDrive,
-    //         uploadedDate: new Date(),
-    //     });
-    //     await order.save();
-
-    //     return res.status(200).json(
-    //         new ApiResponse(
-    //             200,
-    //             {
-    //                 order,
-    //             },
-    //             "Content uploaded successfully to Google Drive"
-    //         )
-    //     );
-    // } catch (error) {
-    //     throw new ApiError(500, `Google Drive upload error: ${error.message}`);
-    // }
-
     try {
+        // Step 1: Ensure Order and Creator folders exist
         let orderFolderId = await getFolderIdByName(orderId);
         if (!orderFolderId) {
             orderFolderId = await createFolder(orderId);
@@ -576,119 +664,62 @@ const uploadContentToOrder = asyncHandler(async (req, res) => {
             creatorFolderId = await createFolder(creatorId, orderFolderId);
         }
 
+        // Step 2: Upload files to Google Drive
         const uploadedFilesToGoogleDrive = await uploadFilesToFolder(
             creatorFolderId,
             filesPath
         );
 
-        if (
-            !uploadedFilesToGoogleDrive ||
-            uploadedFilesToGoogleDrive.length === 0
-        ) {
+        if (!uploadedFilesToGoogleDrive || uploadedFilesToGoogleDrive.length === 0) {
             throw new ApiError(500, "Failed to upload files to Google Drive");
         }
 
+        // Step 3: Get the creator's folder URL
         const creatorFolderUrl = await getCreatorFolderUrl(orderId, creatorId);
 
-        order.uploadFiles.push({
-            uploadedBy: creatorId,
-            fileUrls: creatorFolderUrl,
-            uploadedDate: new Date(),
-        });
+        // Step 4: Check if this creator already has an upload entry
+        const existingUpload = order.uploadFiles.find(
+            (upload) => upload.uploadedBy.toString() === creatorId.toString()
+        );
+
+        if (existingUpload) {
+            // ✅ Update existing entry
+            existingUpload.uploadedDate = new Date();
+            existingUpload.creatorNoteOnOrder = creatorNoteOnOrder || existingUpload.creatorNoteOnOrder;
+            existingUpload.fileUrls = creatorFolderUrl; // Only if you want to refresh the folder link
+        } else {
+            // ✅ Add new entry only if none exists
+            order.uploadFiles.push({
+                uploadedBy: creatorId,
+                fileUrls: creatorFolderUrl,
+                uploadedDate: new Date(),
+                creatorNoteOnOrder: creatorNoteOnOrder || "",
+            });
+        }
+
         await order.save();
 
         return res.status(200).json(
             new ApiResponse(
                 200,
-                {
-                    order,
-                },
+                { order },
                 "Content uploaded successfully to Google Drive"
             )
         );
     } catch (error) {
         throw new ApiError(500, `Google Drive upload error: ${error.message}`);
     }
-
 });
-
-
-// const completeTheOrder = asyncHandler(async (req, res) => {
-//     const { orderId } = req.params;
-//     const { creatorNoteOnOrder } = req.body;
-//     const creatorId = req.user._id;
-
-//     if (!creatorNoteOnOrder) {
-//         throw new ApiError(400, "Please provide creator note on order");
-//     }
-
-//     isValidId(orderId);
-//     isValidId(creatorId);
-
-//     const [order, creator] = await Promise.all([
-//         Order.findById(orderId),
-//         Creator.findById(creatorId),
-//     ]);
-
-//     if (!order) throw new ApiError(404, "Order not found");
-//     if (!creator) throw new ApiError(404, "Creator not found");
-
-//     if (order.orderStatus === "completed") {
-//         throw new ApiError(400, "Order is already completed");
-//     }
-
-//     if (order.quotaLeft <= 0) {
-//         throw new ApiError(400, "Order quota already completed");
-//     }
-
-//     // Update order progress
-//     order.creatorNoteOnOrder = creatorNoteOnOrder;
-
-//     order.quotaLeft -= 1;
-
-//     if (order.quotaLeft <= 0) {
-//         order.quotaLeft = 0; // safeguard
-//         order.orderStatus = "completed";
-//     }
-
-//     await order.save();
-
-//     const adminUsers = await User.find({ role: "admin" }).select("_id");
-
-//     const metadata = {
-//         creatorId: creator._id,
-//         creatorName: creator.fullName,
-//         creatorEmail: creator.email,
-//         creatorPhoneNumber: creator.phoneNumber,
-//         orderId: order._id,
-//     };
-
-//     await Promise.all([
-//         sendNotification(
-//             notificationTemplates.orderCompletionByCreatorToAdmin({
-//                 orderTitle: order.briefContent.brandName || "Order",
-//                 targetUsers: adminUsers.map((admin) => admin._id),
-//                 metadata,
-//             })
-//         ),
-//         sendNotification(
-//             notificationTemplates.orderCompletionByCreator({
-//                 orderTitle: order.briefContent.brandName || "Order",
-//                 targetUsers: [order.orderOwner],
-//                 metadata,
-//             })
-//         ),
-//     ]);
-
-//     return res
-//         .status(200)
-//         .json(new ApiResponse(200, order, "Order completed successfully"));
-// });
 
 
 const completeTheOrder = asyncHandler(async (req, res) => {
     const { orderId } = req.params;
+    const { creatorNoteOnOrder } = req.body;
     const creatorId = req.user._id;
+
+    if (!creatorNoteOnOrder) {
+        throw new ApiError(400, "Please provide creator note on order");
+    }
 
     isValidId(orderId);
     isValidId(creatorId);
@@ -709,17 +740,13 @@ const completeTheOrder = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Order quota already completed");
     }
 
-    // ✅ Check if at least one upload file has a non-empty creatorNoteOnOrder
-    const hasValidNote = order.uploadFiles?.some(file => file.creatorNoteOnOrder?.trim());
-    if (!hasValidNote) {
-        throw new ApiError(400, "At least one creator note on order is required");
-    }
+    // Update order progress
+    order.creatorNoteOnOrder = creatorNoteOnOrder;
 
-    // ✅ Decrement quota and complete the order if necessary
     order.quotaLeft -= 1;
 
     if (order.quotaLeft <= 0) {
-        order.quotaLeft = 0;
+        order.quotaLeft = 0; // safeguard
         order.orderStatus = "completed";
     }
 
@@ -756,6 +783,78 @@ const completeTheOrder = asyncHandler(async (req, res) => {
         .status(200)
         .json(new ApiResponse(200, order, "Order completed successfully"));
 });
+
+
+// const completeTheOrder = asyncHandler(async (req, res) => {
+//     const { orderId } = req.params;
+//     const creatorId = req.user._id;
+
+//     isValidId(orderId);
+//     isValidId(creatorId);
+
+//     const [order, creator] = await Promise.all([
+//         Order.findById(orderId),
+//         Creator.findById(creatorId),
+//     ]);
+
+//     if (!order) throw new ApiError(404, "Order not found");
+//     if (!creator) throw new ApiError(404, "Creator not found");
+
+//     if (order.orderStatus === "completed") {
+//         throw new ApiError(400, "Order is already completed");
+//     }
+
+//     if (order.quotaLeft <= 0) {
+//         throw new ApiError(400, "Order quota already completed");
+//     }
+
+//     // ✅ Check if at least one upload file has a non-empty creatorNoteOnOrder
+//     const hasValidNote = order.uploadFiles?.some(file => file.creatorNoteOnOrder?.trim());
+//     if (!hasValidNote) {
+//         throw new ApiError(400, "At least one creator note on order is required");
+//     }
+
+//     // ✅ Decrement quota and complete the order if necessary
+//     order.quotaLeft -= 1;
+
+//     if (order.quotaLeft <= 0) {
+//         order.quotaLeft = 0;
+//         order.orderStatus = "completed";
+//     }
+
+//     await order.save();
+
+//     const adminUsers = await User.find({ role: "admin" }).select("_id");
+
+//     const metadata = {
+//         creatorId: creator._id,
+//         creatorName: creator.fullName,
+//         creatorEmail: creator.email,
+//         creatorPhoneNumber: creator.phoneNumber,
+//         orderId: order._id,
+//     };
+
+//     await Promise.all([
+//         sendNotification(
+//             notificationTemplates.orderCompletionByCreatorToAdmin({
+//                 orderTitle: order.briefContent.brandName || "Order",
+//                 targetUsers: adminUsers.map((admin) => admin._id),
+//                 metadata,
+//             })
+//         ),
+//         sendNotification(
+//             notificationTemplates.orderCompletionByCreator({
+//                 orderTitle: order.briefContent.brandName || "Order",
+//                 targetUsers: [order.orderOwner],
+//                 metadata,
+//             })
+//         ),
+//     ]);
+
+//     return res
+//         .status(200)
+//         .json(new ApiResponse(200, order, "Order completed successfully"));
+// });
 
 
 
