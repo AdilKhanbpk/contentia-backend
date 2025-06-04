@@ -29,3 +29,4 @@ router.post('/track-conversion', async (req, res) => {
     res.status(500).json({ success: false, error: error.response?.data || 'Failed to track conversion' });
   }
 });
+export const trackingRoutes = router;
