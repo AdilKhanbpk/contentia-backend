@@ -6,7 +6,6 @@ import { fileURLToPath } from "url";
 import expressSession from "express-session";
 import http from "http";
 import initializeSocketSetup from "./socket/socket.js";
-import trackingRoutes from "./routes/tracking.routes.js";
 import morgan from "morgan";
 import logger from "./utils/logger/logger.js";
 
@@ -213,7 +212,6 @@ app.use("/api/v1/brands", brandRoute);
 app.use("/api/v1/page-views", pageViewsRoute);
 app.use("/api/v1/revisions", revisionRoute);
 app.use("/api/v1/analytics-test", analyticsTestRoute); // Test route for Google Analytics
-app.use("/api/v1/tracking", trackingRoutes);
 
 // ADMIN ROUTES
 app.use("/api/v1/admin/customers", adminCustomerRoutes);
