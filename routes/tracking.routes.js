@@ -2,7 +2,7 @@
 import express from 'express';
 import axios from 'axios';
 
-const router = express.Router();
+const trackingRoutes = express.Router();
 router.post('/track-conversion', async (req, res) => {
   const { action, customData } = req.body; // e.g., action: "signup", customData: { u1: "user123" }
 
@@ -29,4 +29,4 @@ router.post('/track-conversion', async (req, res) => {
     res.status(500).json({ success: false, error: error.response?.data || 'Failed to track conversion' });
   }
 });
-export const trackingRoutes = router;
+export default trackingRoutes;
