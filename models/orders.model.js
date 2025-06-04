@@ -59,9 +59,9 @@ const ordersProfileSchema = new Schema(
             type: Number,
         },
 
-        creatorNoteOnOrder: {
-            type: String,
-        },
+        // creatorNoteOnOrder: {
+        //     type: String,
+        // },
         orderStatus: {
             type: String,
             enum: ["pending", "active", "completed", "rejected", "cancelled", "revision"],
@@ -189,6 +189,9 @@ const ordersProfileSchema = new Schema(
                 uploadedDate: {
                     type: Date,
                     default: Date.now,
+                },
+                creatorNoteOnOrder: {
+                    type: String,
                 },
             },
         ],
