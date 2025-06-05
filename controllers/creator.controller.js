@@ -628,23 +628,109 @@ const changeProfilePicture = asyncHandler(async (req, res) => {
 //     }
 
 // });
+
+
+
+
+
+// const uploadContentToOrder = asyncHandler(async (req, res) => {
+//     const { orderId } = req.params;
+//     const creatorId = req.user._id;
+//     const creatorNoteOnOrder = req.body.creatorNoteOnOrder; // Make sure you're sending this from frontend
+
+//     isValidId(orderId);
+//     isValidId(creatorId);
+
+//     const order = await Order.findById(orderId);
+//     if (!order) {
+//         throw new ApiError(404, "Order not found");
+//     }
+
+//     const creator = await Creator.findById(creatorId);
+//     if (!creator) {
+//         throw new ApiError(404, "Creator not found");
+//     }
+
+//     if (!req.files || req.files.length === 0) {
+//         throw new ApiError(400, "No files uploaded");
+//     }
+
+//     const filesPath = req.files.map((file) => file.path);
+
+//     try {
+//         // Step 1: Ensure Order and Creator folders exist
+//         let orderFolderId = await getFolderIdByName(orderId);
+//         if (!orderFolderId) {
+//             orderFolderId = await createFolder(orderId);
+//         }
+
+//         let creatorFolderId = await getFolderIdByName(creatorId, orderFolderId);
+//         if (!creatorFolderId) {
+//             creatorFolderId = await createFolder(creatorId, orderFolderId);
+//         }
+
+//         // Step 2: Upload files to Google Drive
+//         const uploadedFilesToGoogleDrive = await uploadFilesToFolder(
+//             creatorFolderId,
+//             filesPath
+//         );
+
+//         if (!uploadedFilesToGoogleDrive || uploadedFilesToGoogleDrive.length === 0) {
+//             throw new ApiError(500, "Failed to upload files to Google Drive");
+//         }
+
+//         // Step 3: Get the creator's folder URL
+//         const creatorFolderUrl = await getCreatorFolderUrl(orderId, creatorId);
+
+//         // Step 4: Check if this creator already has an upload entry
+//         const existingUpload = order.uploadFiles.find(
+//             (upload) => upload.uploadedBy.toString() === creatorId.toString()
+//         );
+
+//         if (existingUpload) {
+//             // ✅ Update existing entry
+//             existingUpload.uploadedDate = new Date();
+//             existingUpload.creatorNoteOnOrder = creatorNoteOnOrder || existingUpload.creatorNoteOnOrder;
+//             existingUpload.fileUrls = creatorFolderUrl; // Only if you want to refresh the folder link
+//         } else {
+//             // ✅ Add new entry only if none exists
+//             order.uploadFiles.push({
+//                 uploadedBy: creatorId,
+//                 fileUrls: creatorFolderUrl,
+//                 uploadedDate: new Date(),
+//                 creatorNoteOnOrder: creatorNoteOnOrder || "",
+//             });
+//         }
+
+//         await order.save();
+
+//         return res.status(200).json(
+//             new ApiResponse(
+//                 200,
+//                 { order },
+//                 "Content uploaded successfully to Google Drive"
+//             )
+//         );
+//     } catch (error) {
+//         throw new ApiError(500, `Google Drive upload error: ${error.message}`);
+//     }
+// });
+
 const uploadContentToOrder = asyncHandler(async (req, res) => {
     const { orderId } = req.params;
     const creatorId = req.user._id;
-    const creatorNoteOnOrder = req.body.creatorNoteOnOrder; // Make sure you're sending this from frontend
+    const creatorNoteOnOrder = req.body.creatorNoteOnOrder;
 
     isValidId(orderId);
     isValidId(creatorId);
 
-    const order = await Order.findById(orderId);
-    if (!order) {
-        throw new ApiError(404, "Order not found");
-    }
+    const [order, creator] = await Promise.all([
+        Order.findById(orderId),
+        Creator.findById(creatorId),
+    ]);
 
-    const creator = await Creator.findById(creatorId);
-    if (!creator) {
-        throw new ApiError(404, "Creator not found");
-    }
+    if (!order) throw new ApiError(404, "Order not found");
+    if (!creator) throw new ApiError(404, "Creator not found");
 
     if (!req.files || req.files.length === 0) {
         throw new ApiError(400, "No files uploaded");
@@ -653,18 +739,22 @@ const uploadContentToOrder = asyncHandler(async (req, res) => {
     const filesPath = req.files.map((file) => file.path);
 
     try {
-        // Step 1: Ensure Order and Creator folders exist
+        // Step 1: Ensure order folder
         let orderFolderId = await getFolderIdByName(orderId);
         if (!orderFolderId) {
             orderFolderId = await createFolder(orderId);
         }
 
+        // Step 2: Check if creator folder exists
         let creatorFolderId = await getFolderIdByName(creatorId, orderFolderId);
+        const isNewFolder = !creatorFolderId;
+
+        // Step 3: Create creator folder only if it doesn't exist
         if (!creatorFolderId) {
             creatorFolderId = await createFolder(creatorId, orderFolderId);
         }
 
-        // Step 2: Upload files to Google Drive
+        // Step 4: Upload files to Google Drive
         const uploadedFilesToGoogleDrive = await uploadFilesToFolder(
             creatorFolderId,
             filesPath
@@ -674,37 +764,32 @@ const uploadContentToOrder = asyncHandler(async (req, res) => {
             throw new ApiError(500, "Failed to upload files to Google Drive");
         }
 
-        // Step 3: Get the creator's folder URL
         const creatorFolderUrl = await getCreatorFolderUrl(orderId, creatorId);
 
-        // Step 4: Check if this creator already has an upload entry
+        // Step 5: Modify database depending on folder existence
         const existingUpload = order.uploadFiles.find(
             (upload) => upload.uploadedBy.toString() === creatorId.toString()
         );
 
-        if (existingUpload) {
-            // ✅ Update existing entry
-            existingUpload.uploadedDate = new Date();
-            existingUpload.creatorNoteOnOrder = creatorNoteOnOrder || existingUpload.creatorNoteOnOrder;
-            existingUpload.fileUrls = creatorFolderUrl; // Only if you want to refresh the folder link
-        } else {
-            // ✅ Add new entry only if none exists
+        if (isNewFolder || !existingUpload) {
+            // ✅ New folder: add new entry
             order.uploadFiles.push({
                 uploadedBy: creatorId,
                 fileUrls: creatorFolderUrl,
                 uploadedDate: new Date(),
                 creatorNoteOnOrder: creatorNoteOnOrder || "",
             });
+        } else {
+            // ✅ Existing folder: only update note and date
+            existingUpload.uploadedDate = new Date();
+            existingUpload.creatorNoteOnOrder = creatorNoteOnOrder || existingUpload.creatorNoteOnOrder;
+            // Do NOT push a new entry
         }
 
         await order.save();
 
         return res.status(200).json(
-            new ApiResponse(
-                200,
-                { order },
-                "Content uploaded successfully to Google Drive"
-            )
+            new ApiResponse(200, { order }, "Content uploaded successfully to Google Drive")
         );
     } catch (error) {
         throw new ApiError(500, `Google Drive upload error: ${error.message}`);
