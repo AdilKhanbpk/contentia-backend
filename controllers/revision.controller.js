@@ -75,12 +75,34 @@ const getRevisions = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, claims, "Revisions retrieved successfully"));
 });
 
+// const getRevisionById = asyncHandler(async (req, res) => {
+//     const { revisionId } = req.params;
+
+//     isValidId(revisionId);
+
+//     const claim = await Revisions.findById(revisionId).
+//         populate({
+//             path: "customer",
+//             select: "_id fullName email profilePic"
+//         }).
+//         populate({
+//             path: "order",
+//             select: "_id briefContent.brandName"
+//         })
+
+//     return res
+//         .status(200)
+//         .json(new ApiResponse(200, claim, "Revision retrieved successfully"));
+// });
+
 const getRevisionById = asyncHandler(async (req, res) => {
     const { revisionId } = req.params;
 
-    isValidId(revisionId);
 
-    const claim = await Revisions.findById(revisionId).
+    isValidId(revisionId);
+    
+
+    const claim = await Revisions.find({order: revisionId}).
         populate({
             path: "customer",
             select: "_id fullName email profilePic"
@@ -89,6 +111,14 @@ const getRevisionById = asyncHandler(async (req, res) => {
             path: "order",
             select: "_id briefContent.brandName"
         })
+        
+
+         if (!claim) {
+        return res
+            .status(404)
+            .json(new ApiResponse(404, null, "Revision not found for this order"));
+    }
+
 
     return res
         .status(200)

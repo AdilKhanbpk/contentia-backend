@@ -196,8 +196,19 @@ const ordersProfileSchema = new Schema(
             },
         ],
     },
-    { timestamps: true }
+    { 
+        timestamps: true,
+        toJSON: { virtuals: true },
+        toObject: { virtuals: true }
+    }
 );
+
+ordersProfileSchema.virtual('revisions', {
+    ref: 'Revision',
+    localField: '_id',
+    foreignField: 'order'
+});
+
 
 
 async function fetchServicePrices() {

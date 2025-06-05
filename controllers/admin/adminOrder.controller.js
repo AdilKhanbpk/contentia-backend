@@ -156,6 +156,42 @@ const createOrder = asyncHandler(async (req, res) => {
         .json(new ApiResponse(201, newOrder, "Order created successfully"));
 });
 
+// const getOrders = asyncHandler(async (req, res) => {
+//     const orders = await Order.find()
+//         .sort({ createdAt: -1 })
+//         .populate({
+//             path: "orderOwner",
+//             select: "-password",
+//         })
+//         .populate({
+//             path: "associatedBrands",
+//             select: "-associatedOrders",
+//         })
+//         .populate("assignedCreators");
+
+//     return res
+//         .status(200)
+//         .json(new ApiResponse(200, orders, "Orders retrieved successfully"));
+// });
+
+// const getOrderById = asyncHandler(async (req, res) => {
+//     const { orderId } = req.params;
+
+//     isValidId(orderId);
+
+//     const order = await Order.findById(orderId)
+//         .populate("orderOwner")
+//         .populate("assignedCreators");
+
+//     if (!order) {
+//         throw new ApiError(404, "Order not found");
+//     }
+
+//     return res
+//         .status(200)
+//         .json(new ApiResponse(200, order, "Order retrieved successfully"));
+// });
+
 const getOrders = asyncHandler(async (req, res) => {
     const orders = await Order.find()
         .sort({ createdAt: -1 })
@@ -167,7 +203,15 @@ const getOrders = asyncHandler(async (req, res) => {
             path: "associatedBrands",
             select: "-associatedOrders",
         })
-        .populate("assignedCreators");
+        .populate("assignedCreators")
+        .populate({
+            path: 'revisions',
+            select: 'revisionContent status revisionDate customer',
+            populate: {
+                path: 'customer',
+                select: 'fullName email profilePic'
+            }
+        });
 
     return res
         .status(200)
@@ -181,7 +225,15 @@ const getOrderById = asyncHandler(async (req, res) => {
 
     const order = await Order.findById(orderId)
         .populate("orderOwner")
-        .populate("assignedCreators");
+        .populate("assignedCreators")
+        .populate({
+            path: 'revisions',
+            select: 'revisionContent status revisionDate customer',
+            populate: {
+                path: 'customer',
+                select: 'fullName email profilePic'
+            }
+        });
 
     if (!order) {
         throw new ApiError(404, "Order not found");
