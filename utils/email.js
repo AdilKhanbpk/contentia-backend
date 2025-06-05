@@ -106,4 +106,4 @@ const sendEmail = ({ email, subject, text = null, html = null }) => {
 //     });
 // };
 
-// export default sendEmail;
+export default sendEmail;
