@@ -7,6 +7,8 @@ import {
     logout,
     signup,
     updateUser,
+    verifyOtp,
+    resendOtp,  // Add resendOtp to imports
 } from "../controllers/user.controller.js";
 import { uploadOnMulter } from "../middlewares/multer.middleware.js";
 import { isAuthenticated } from "../middlewares/authentication.middleware.js";
@@ -20,6 +22,8 @@ router.get("/logout", isAuthenticated, logout);
 // POST Routes
 router.post("/signup", signup);
 router.post("/login", login);
+router.post("/verify-otp", verifyOtp);
+router.post("/resend-otp", resendOtp);  // Add the new resend OTP endpoint
 
 // PATCH Routes
 router.patch("/update-me", isAuthenticated, updateUser);

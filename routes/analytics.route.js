@@ -13,7 +13,7 @@ router.get("/test", (req, res) => {
 });
 
 // Get analytics data without authentication (for testing)
-router.get("/dashboard", async (req, res) => {
+router.get("/", async (req, res) => {
     try {
         // Default to currentMonth
         const period = req.query.period || 'currentMonth';

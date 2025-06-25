@@ -115,6 +115,23 @@ const userSchema = new mongoose.Schema(
             type: Boolean,
             default: false,
         },
+        verificationCode: {
+            type: String,
+        },
+        otpExpiresAt: {
+            type: Date,
+        },
+        isPhoneVerified: {
+            type: Boolean,
+            default: false,
+        },
+        otpJobID: {
+            type: String,
+        },
+        verified: {
+            type: Boolean,
+            default: false,
+        },
     },
     {
         timestamps: true,

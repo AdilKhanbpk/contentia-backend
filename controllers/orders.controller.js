@@ -10,6 +10,7 @@ import { sendNotification } from "./admin/adminNotification.controller.js";
 import User from "../models/user.model.js";
 import { notificationTemplates } from "../helpers/notificationTemplates.js";
 import Revision from "../models/revision.model.js";
+import parasutApiService from "../utils/parasutApi.service.js";
 
 const createOrder = asyncHandler(async (req, res) => {
     let {
@@ -128,9 +129,91 @@ const createOrder = asyncHandler(async (req, res) => {
     brand.associatedOrders.push(newOrder._id);
     await brand.save();
 
+    // Try to create invoice in Paraşüt automatically
+    let invoiceInfo = null;
+    let invoiceError = null;
+
+    try {
+        // Get customer information from the user
+        const customer = await User.findById(req.user._id);
+
+        if (customer && newOrder.totalPriceForCustomer > 0) {
+            // Prepare customer information for Paraşüt
+            const customerName = customer.fullName ||
+                                (customer.firstName && customer.lastName ? `${customer.firstName} ${customer.lastName}` : null) ||
+                                customer.firstName ||
+                                customer.lastName ||
+                                customer.email?.split('@')[0] ||
+                                'Customer';
+
+            const customerInfo = {
+                name: customerName,
+                email: customer.email,
+                phone: customer.phoneNumber,
+                address: customer.address,
+                city: customer.city,
+                taxNumber: customer.taxNumber,
+                taxOffice: customer.taxOffice,
+                contactType: 'person'
+            };
+
+            // Create complete invoice workflow in Paraşüt (7 steps)
+            const paymentInfo = {
+                isSuccessful: true, // Assuming payment was successful if we reach this point
+                amount: newOrder.totalPriceForCustomer,
+                currency: 'TRY',
+                date: new Date().toISOString().split('T')[0],
+                description: `Payment for Order #${newOrder._id}`
+            };
+
+            const invoice = await parasutApiService.createCompleteInvoiceWorkflow(
+                customerInfo,
+                newOrder,
+                paymentInfo,
+                `Order #${newOrder._id} - Video Content Services`
+            );
+
+            if (invoice.status === 'disabled') {
+                console.log('⚠️ Paraşüt integration is disabled - skipping invoice creation');
+            } else if (invoice.status === 'access_denied') {
+                console.log('⚠️ Paraşüt access denied - skipping invoice creation');
+                console.log('💡 Please verify Paraşüt credentials and company ID');
+                invoiceError = 'Paraşüt access denied - please verify credentials';
+            } else if (invoice.invoiceId) {
+                invoiceInfo = {
+                    invoiceId: invoice.invoiceId,
+                    invoiceNumber: invoice.invoiceNumber,
+                    totalAmount: newOrder.totalPriceForCustomer
+                };
+                console.log('✅ Invoice created automatically for order:', newOrder._id, 'Invoice ID:', invoice.invoiceId);
+            } else {
+                invoiceInfo = {
+                    invoiceId: invoice.id,
+                    invoiceNumber: invoice.attributes?.invoice_no,
+                    totalAmount: newOrder.totalPriceForCustomer
+                };
+                console.log('✅ Invoice created automatically for order:', newOrder._id, 'Invoice ID:', invoice.id);
+            }
+        }
+    } catch (error) {
+        invoiceError = error.message;
+        console.error('Failed to create invoice automatically for order:', newOrder._id, error);
+        // Don't fail the order creation if invoice fails
+    }
+
+    const responseMessage = invoiceError
+        ? `Order created successfully, but invoice creation failed: ${invoiceError}`
+        : invoiceInfo
+        ? `Order created successfully and invoice generated (${invoiceInfo.invoiceNumber})`
+        : "Order created successfully";
+
     return res
         .status(201)
-        .json(new ApiResponse(201, newOrder, "Order created successfully"));
+        .json(new ApiResponse(201, {
+            ...newOrder.toObject(),
+            invoiceInfo: invoiceInfo,
+            invoiceError: invoiceError
+        }, responseMessage));
 });
 
 const getMyOrders = asyncHandler(async (req, res) => {
