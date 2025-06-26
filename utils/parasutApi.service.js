@@ -1,8 +1,12 @@
-import axios from 'axios';
 import dotenv from 'dotenv';
-import retry from 'async-retry';
+import axios from 'axios';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 dotenv.config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const CLIENT_ID = process.env.PARASUT_CLIENT_ID;
 const CLIENT_SECRET = process.env.PARASUT_CLIENT_SECRET;
@@ -96,10 +100,12 @@ class ParasutApiService {
                 this.accessToken = process.env.PARASUT_ACCESS_TOKEN;
                 this.refreshToken = process.env.PARASUT_REFRESH_TOKEN;
                 this.tokenExpiry = expiry;
+                console.log('   Token accessToken:', this.accessToken + '...');
+
                 if (this.refreshToken) {
                     this.refreshAccessToken()
-                        .then(() => {
-                            console.log('✅ Token refreshed successfully in loadStoredTokens');
+                        .then((tokenData) => {
+                            console.log('✅ Token refreshed successfully in loadStoredTokens', tokenData);
                         })
                         .catch((err) => {
                             console.log('❌ Failed to refresh token in loadStoredTokens:', err.message);
@@ -174,12 +180,12 @@ class ParasutApiService {
      * Refresh access token using refresh token
      */
     async refreshAccessToken() {
-        if (!this.refreshToken) {
-            throw new Error('No refresh token available. Please re-authenticate using Authorization Code Grant.');
-        }
+        // if (!this.refreshToken) {
+        //     throw new Error('No refresh token available. Please re-authenticate using Authorization Code Grant.');
+        // }
 
         try {
-            console.log('🔄 Refreshing Paraşüt access token...');
+            console.log('🚀🚀👨 Refreshing Paraşüt access token...for client', this.clientId, "Client Secret:", this.clientSecret, "old token:", this.refreshToken);
             const formData = new URLSearchParams({
                 client_id: this.clientId,
                 client_secret: this.clientSecret,
@@ -196,9 +202,44 @@ class ParasutApiService {
 
             this.storeTokens(response.data); // This will update accessToken, refreshToken, expiry, and process.env
             console.log('✅ Token refreshed successfully');
+            console.log("Here are the refresh and access tokens" , response.data);
+                    const { access_token, refresh_token, expires_in } = response.data;
+
+
+                  // Calculate expiry timestamp
+                    const expiryTimestamp = Date.now() + (expires_in * 1000);
+            
+                    // Read current .env file
+                    const envPath = path.join(__dirname, '..', '.env');
+                    let envContent = '';
+                    
+                    if (fs.existsSync(envPath)) {
+                        envContent = fs.readFileSync(envPath, 'utf8');
+                    }
+            
+                    // Update or add Paraşüt tokens
+                    const tokenLines = [
+                        `PARASUT_ACCESS_TOKEN=${access_token}`,
+                        `PARASUT_REFRESH_TOKEN=${refresh_token}`,
+                        `PARASUT_TOKEN_EXPIRY=${expiryTimestamp}`
+                    ];
+            
+                    // Remove existing Paraşüt token lines
+                    const lines = envContent.split('\n').filter(line => 
+                        !line.startsWith('PARASUT_ACCESS_TOKEN=') &&
+                        !line.startsWith('PARASUT_REFRESH_TOKEN=') &&
+                        !line.startsWith('PARASUT_TOKEN_EXPIRY=')
+                    );
+            
+                    // Add new token lines
+                    const newEnvContent = [...lines, ...tokenLines].join('\n');
+            
+                    // Write back to .env file
+                    fs.writeFileSync(envPath, newEnvContent);
+            
             return response.data;
         } catch (error) {
-            console.error('❌ Token refresh failed:', error.response?.data?.error_description || error.message);
+            console.error('❌ Token refresh failed:', error.response || error.message);
             if (error.response?.status === 401 || error.response?.data?.error === 'invalid_grant') {
                 console.log('🔄 Invalid refresh token, clearing tokens...');
                 this.clearTokens();
@@ -292,36 +333,84 @@ class ParasutApiService {
 
 /**
  * Get a default financial account for payments
+//  */
+// async getDefaultAccount() {
+//     try {
+//         // Use the accounts endpoint without filter
+//         const response = await this.makeRequest('GET', '/accounts');
+
+//         // Log full response for debugging
+//         console.log('API Response:', JSON.stringify(response, null, 2));
+
+//         // Check if data is returned
+//         if (response.data && response.data.length > 0) {
+//             // Prefer bank account, fallback to cash
+//             const account = response.data.find(acc => acc.attributes.account_type === 'bank') ||
+//                            response.data.find(acc => acc.attributes.account_type === 'cash') ||
+//                            response.data[0];
+//             if (!account) {
+//                 throw new Error('No suitable bank or cash accounts found in Paraşüt.');
+//             }
+//             console.log('✅ Found default account:', account.id, account.attributes.name);
+//             return account.id;
+//         }
+//         throw new Error('No accounts found in Paraşüt. Please configure an account in the Paraşüt dashboard.');
+//     } catch (error) {
+//         console.error('❌ Failed to fetch accounts:', error.response?.data || error.message);
+//         throw new Error(
+//             'Failed to retrieve default account. Please configure a bank or cash account in Paraşüt: https://uygulama.parasut.com/469071/kasa-ve-bankalar'
+//         );
+//     }
+// }
+
+/**
+ * Get a default financial account for payments
+ */
+// async getDefaultAccount() {
+//     try {
+//         const response = await this.makeRequest('GET', '/accounts');
+//         console.log('📋 Available Accounts:', JSON.stringify(response.data, null, 2));
+
+//         if (response.data && response.data.length > 0) {
+//             // Prefer cash account, fallback to bank, ensure it's valid for payments
+//             const validAccount = response.data.find(acc => acc.attributes.account_type === 'cash' && acc.attributes.can_be_paid) ||
+//                                 response.data.find(acc => acc.attributes.account_type === 'bank' && acc.attributes.can_be_paid);
+//             if (!validAccount) {
+//                 throw new Error('No valid cash or bank accounts found for payments in Paraşüt.');
+//             }
+//             console.log('✅ Selected default account:', validAccount.id, validAccount.attributes.name);
+//             return validAccount.id.toString();
+//         }
+//         throw new Error('No accounts found in Paraşüt. Please configure an account.');
+//     } catch (error) {
+//         console.error('❌ Failed to fetch accounts:', error.response?.data || error.message);
+//         throw new Error('Failed to retrieve default account. Please configure a valid cash or bank account in Paraşüt: https://uygulama.parasut.com/469071/kasa-ve-bankalar');
+//     }
+// }
+/**
+ * Get a default financial account for payments
  */
 async getDefaultAccount() {
     try {
-        // Use the accounts endpoint without filter
         const response = await this.makeRequest('GET', '/accounts');
+        console.log('📋 Available Accounts:', JSON.stringify(response.data, null, 2));
 
-        // Log full response for debugging
-        console.log('API Response:', JSON.stringify(response, null, 2));
-
-        // Check if data is returned
         if (response.data && response.data.length > 0) {
-            // Prefer bank account, fallback to cash
-            const account = response.data.find(acc => acc.attributes.account_type === 'bank') ||
-                           response.data.find(acc => acc.attributes.account_type === 'cash') ||
-                           response.data[0];
-            if (!account) {
-                throw new Error('No suitable bank or cash accounts found in Paraşüt.');
+            // Prefer cash account, fallback to bank
+            const validAccount = response.data.find(acc => acc.attributes.account_type === 'cash') ||
+                                response.data.find(acc => acc.attributes.account_type === 'bank');
+            if (!validAccount) {
+                throw new Error('No cash or bank accounts found in Paraşüt.');
             }
-            console.log('✅ Found default account:', account.id, account.attributes.name);
-            return account.id;
+            console.log('✅ Selected default account:', validAccount.id, validAccount.attributes.name);
+            return validAccount.id.toString();
         }
-        throw new Error('No accounts found in Paraşüt. Please configure an account in the Paraşüt dashboard.');
+        throw new Error('No accounts found in Paraşüt. Please configure an account.');
     } catch (error) {
         console.error('❌ Failed to fetch accounts:', error.response?.data || error.message);
-        throw new Error(
-            'Failed to retrieve default account. Please configure a bank or cash account in Paraşüt: https://uygulama.parasut.com/469071/kasa-ve-bankalar'
-        );
+        throw new Error('Failed to retrieve default account. Please configure a cash or bank account in Paraşüt: https://uygulama.parasut.com/469071/kasa-ve-bankalar');
     }
 }
-
 
 
 
@@ -586,61 +675,238 @@ async getDefaultAccount() {
         }
     }
 
+    // /**
+    //  * Complete Paraşüt invoice workflow
+    //  */
+    // async createCompleteInvoiceWorkflow(customerInfo, order, paymentInfo, description = 'Video Content Services') {
+    //     try {
+    //         if (!this.isEnabled) {
+    //             return { status: 'disabled', message: 'Paraşüt integration is disabled' };
+    //         }
+
+    //         // Verify company access
+    //         await this.makeRequest('GET', '/contacts?page[size]=1');
+    //         console.log('✅ Company access verified');
+
+    //         // Step 1: Create customer
+    //         console.log('📋 Step 1: Creating/Finding Customer...');
+    //         const contactId = await this.createOrFindContact(customerInfo);
+
+    //         // Step 2: Prepare products
+    //         console.log('📋 Step 2: Preparing Products...');
+    //         const invoiceItems = await this.prepareInvoiceItems(order);
+
+    //         // Step 3: Create invoice
+    //         console.log('📋 Step 3: Creating Sales Invoice...');
+    //         const invoice = await this.createSalesInvoice(customerInfo, {
+    //             description,
+    //             orderNo: order._id.toString(),
+    //             items: invoiceItems
+    //         });
+
+    //         const invoiceId = invoice.id;
+    //         console.log('✅ Invoice created:', invoiceId);
+
+    //         // Step 4: Add payment collection
+    //         if (paymentInfo && paymentInfo.isSuccessful) {
+    //             console.log('📋 Step 4: Adding Payment Collection...');
+    //             await this.addPaymentCollection(invoiceId, paymentInfo);
+    //         }
+
+    //         // Step 5: Formalize invoice
+    //         console.log('📋 Step 5: Formalizing Invoice...');
+    //         await this.formalizeInvoice(invoiceId, contactId);
+
+    //         console.log('🎉 Invoice workflow completed!');
+    //         return {
+    //             invoiceId,
+    //             invoiceNumber: invoice.attributes?.invoice_no,
+    //             contactId,
+    //             totalAmount: order.totalPriceForCustomer,
+    //             status: 'completed'
+    //         };
+    //     } catch (error) {
+    //         console.error('❌ Invoice workflow failed:', error.response?.data || error.message);
+    //         throw error;
+    //     }
+    // }
+
     /**
-     * Complete Paraşüt invoice workflow
-     */
-    async createCompleteInvoiceWorkflow(customerInfo, order, paymentInfo, description = 'Video Content Services') {
-        try {
-            if (!this.isEnabled) {
-                return { status: 'disabled', message: 'Paraşüt integration is disabled' };
-            }
+ * Complete Paraşüt invoice workflow
+ */
+// async createCompleteInvoiceWorkflow(customerInfo, order, paymentInfo, description = 'Video Content Services') {
+//     try {
+//         if (!this.isEnabled) {
+//             return { status: 'disabled', message: 'Paraşüt integration is disabled' };
+//         }
 
-            // Verify company access
-            await this.makeRequest('GET', '/contacts?page[size]=1');
-            console.log('✅ Company access verified');
+//         // Step 1: Verify company access
+//         console.log('📋 Step 1: Verifying Company Access...');
+//         await this.makeRequest('GET', '/contacts?page[size]=1');
+//         console.log('✅ Company access verified');
 
-            // Step 1: Create customer
-            console.log('📋 Step 1: Creating/Finding Customer...');
-            const contactId = await this.createOrFindContact(customerInfo);
+//         // Step 2: Create customer
+//         console.log('📋 Step 2: Creating/Finding Customer...');
+//         const contactId = await this.createOrFindContact(customerInfo);
 
-            // Step 2: Prepare products
-            console.log('📋 Step 2: Preparing Products...');
-            const invoiceItems = await this.prepareInvoiceItems(order);
+//         // Step 3: Prepare products
+//         console.log('📋 Step 3: Preparing Products...');
+//         const invoiceItems = await this.prepareInvoiceItems(order);
 
-            // Step 3: Create invoice
-            console.log('📋 Step 3: Creating Sales Invoice...');
-            const invoice = await this.createSalesInvoice(customerInfo, {
-                description,
-                orderNo: order._id.toString(),
-                items: invoiceItems
-            });
+//         // Step 4: Create invoice
+//         console.log('📋 Step 4: Creating Sales Invoice...');
+//         const invoice = await this.createSalesInvoice(customerInfo, {
+//             description,
+//             orderNo: order._id.toString(),
+//             items: invoiceItems
+//         });
 
-            const invoiceId = invoice.id;
-            console.log('✅ Invoice created:', invoiceId);
+//         const invoiceId = invoice.id;
+//         console.log('✅ Invoice created:', invoiceId);
 
-            // Step 4: Add payment collection
-            if (paymentInfo && paymentInfo.isSuccessful) {
-                console.log('📋 Step 4: Adding Payment Collection...');
-                await this.addPaymentCollection(invoiceId, paymentInfo);
-            }
+//         // Step 5: Add payment collection (if payment is successful)
+//         if (paymentInfo && paymentInfo.isSuccessful) {
+//             console.log('📋 Step 5: Adding Payment Collection...');
+//             await this.addPaymentCollection(
+//                 invoiceId,
+//                 order._id.toString(), // Pass orderId
+//                 order.totalPriceForCustomer // Pass total amount
+//             );
+//         } else {
+//             console.log('⚠️ Skipping payment collection: Payment not successful or missing');
+//         }
 
-            // Step 5: Formalize invoice
-            console.log('📋 Step 5: Formalizing Invoice...');
-            await this.formalizeInvoice(invoiceId, contactId);
+//         // Step 6: Formalize invoice
+//         console.log('📋 Step 6: Formalizing Invoice...');
+//         await this.formalizeInvoice(invoiceId, contactId);
 
-            console.log('🎉 Invoice workflow completed!');
-            return {
-                invoiceId,
-                invoiceNumber: invoice.attributes?.invoice_no,
-                contactId,
-                totalAmount: order.totalPriceForCustomer,
-                status: 'completed'
-            };
-        } catch (error) {
-            console.error('❌ Invoice workflow failed:', error.response?.data || error.message);
-            throw error;
+//         console.log('🎉 Invoice workflow completed!');
+//         return {
+//             invoiceId,
+//             invoiceNumber: invoice.attributes?.invoice_no || 'N/A',
+//             contactId,
+//             totalAmount: order.totalPriceForCustomer,
+//             status: 'completed',
+//             invoiceDetails: invoice // Return full invoice details
+//         };
+//     } catch (error) {
+//         console.error('❌ Invoice workflow failed:', error.response?.data || error.message);
+//         throw error;
+//     }
+// }
+
+/**
+ * Complete Paraşüt invoice workflow
+ */
+async createCompleteInvoiceWorkflow(customerInfo, order, paymentInfo, description = 'Video Content Services') {
+    try {
+        if (!this.isEnabled) {
+            return { status: 'disabled', message: 'Paraşüt integration is disabled' };
         }
+
+        console.log('📋 Step 1: Verifying Company Access...');
+        await this.makeRequest('GET', '/contacts?page[size]=1');
+        console.log('✅ Company access verified');
+
+        console.log('📋 Step 2: Creating/Finding Customer...');
+        const contactId = await this.createOrFindContact(customerInfo);
+
+        console.log('📋 Step 3: Preparing Products...');
+        const invoiceItems = await this.prepareInvoiceItems(order);
+
+        console.log('📋 Step 4: Creating Sales Invoice...');
+        const invoice = await this.createSalesInvoice(customerInfo, {
+            description,
+            orderNo: order._id.toString(),
+            items: invoiceItems
+        });
+
+        const invoiceId = invoice.id;
+        console.log('✅ Invoice created:', invoiceId);
+
+        if (paymentInfo && paymentInfo.isSuccessful) {
+            console.log('📋 Step 5: Adding Payment Collection...');
+            await this.addPaymentCollection(
+                invoiceId,
+                order._id.toString(),
+                order.totalPriceForCustomer
+            );
+        } else {
+            console.log('⚠️ Skipping payment collection: Payment not successful or missing');
+        }
+
+        console.log('📋 Step 6: Formalizing Invoice...');
+        await this.formalizeInvoice(invoiceId, contactId);
+
+        console.log('🎉 Invoice workflow completed!');
+        return {
+            invoiceId,
+            invoiceNumber: invoice.attributes?.invoice_no || 'N/A',
+            contactId,
+            totalAmount: order.totalPriceForCustomer,
+            status: 'completed',
+            invoiceDetails: invoice
+        };
+    } catch (error) {
+        console.error('❌ Invoice workflow failed:', error.message);
+        throw error;
     }
+}
+
+// async createCompleteInvoiceWorkflow(customerInfo, order, paymentInfo, description = 'Video Content Services') {
+//     try {
+//         if (!this.isEnabled) {
+//             return { status: 'disabled', message: 'Paraşüt integration is disabled' };
+//         }
+
+//         console.log('📋 Step 1: Verifying Company Access...');
+//         await this.makeRequest('GET', '/contacts?page[size]=1');
+//         console.log('✅ Company access verified');
+
+//         console.log('📋 Step 2: Creating/Finding Customer...');
+//         const contactId = await this.createOrFindContact(customerInfo);
+
+//         console.log('📋 Step 3: Preparing Products...');
+//         const invoiceItems = await this.prepareInvoiceItems(order);
+
+//         console.log('📋 Step 4: Creating Sales Invoice...');
+//         const invoice = await this.createSalesInvoice(customerInfo, {
+//             description,
+//             orderNo: order._id.toString(),
+//             items: invoiceItems
+//         });
+
+//         const invoiceId = invoice.id;
+//         console.log('✅ Invoice created:', invoiceId);
+
+//         if (paymentInfo && paymentInfo.isSuccessful) {
+//             console.log('📋 Step 5: Adding Payment Collection...');
+//             await this.addPaymentCollection(
+//                 invoiceId,
+//                 order._id.toString(),
+//                 order.totalPriceForCustomer
+//             );
+//         } else {
+//             console.log('⚠️ Skipping payment collection: Payment not successful or missing');
+//         }
+
+//         console.log('📋 Step 6: Formalizing Invoice...');
+//         await this.formalizeInvoice(invoiceId, contactId);
+
+//         console.log('🎉 Invoice workflow completed!');
+//         return {
+//             invoiceId,
+//             invoiceNumber: invoice.attributes?.invoice_no || 'N/A',
+//             contactId,
+//             totalAmount: order.totalPriceForCustomer,
+//             status: 'completed',
+//             invoiceDetails: invoice
+//         };
+//     } catch (error) {
+//         console.error('❌ Invoice workflow failed:', error.response?.data || error.message);
+//         throw error;
+//     }
+// }
 
     /**
      * Create invoice from order data
@@ -815,7 +1081,177 @@ async getDefaultAccount() {
     //     }
     // }
 
-    
+
+    /**
+ * Add payment collection to an invoice
+ */
+// async addPaymentCollection(invoiceId, orderId, amount) {
+//     try {
+//         const accountId = await this.getDefaultAccount();
+//         const payload = {
+//             data: {
+//                 type: 'payments',
+//                 attributes: {
+//                     date: new Date().toISOString().split('T')[0],
+//                     amount: amount,
+//                     currency: 'TRY',
+//                     exchange_rate: 1,
+//                     description: `Payment for Order #${orderId}`
+//                 },
+//                 relationships: {
+//                     payable: {
+//                         data: {
+//                             type: 'sales_invoices',
+//                             id: invoiceId.toString()
+//                         }
+//                     },
+//                     account: {
+//                         data: {
+//                             type: 'accounts',
+//                             id: accountId
+//                         }
+//                     }
+//                 }
+//             }
+//         };
+//         console.log('📦 Payment Payload:', JSON.stringify(payload, null, 2));
+//         const response = await this.makeRequest('POST', `/sales_invoices/${invoiceId}/payments`, payload);
+//         console.log('✅ Payment added:', response.data.id);
+//         return response.data;
+//     } catch (error) {
+//         console.error('❌ Payment error:', error.response?.data || error.message);
+//         throw new Error(`Failed to add payment for invoice ${invoiceId}. Please verify the account in Paraşmat: https://uygulama.parasut.com/469071/kasa-ve-bankalar`);
+//     }
+// }
+
+
+/**
+ * Add payment collection to an invoice
+//  */
+// async addPaymentCollection(invoiceId, orderId, amount) {
+//     try {
+//         const accountId = await this.getDefaultAccount();
+//         const payload = {
+//             data: {
+//                 type: 'payments',
+//                 attributes: {
+//                     date: new Date().toISOString().split('T')[0],
+//                     amount: parseFloat(amount), // Ensure amount is a number
+//                     currency: 'TRY',
+//                     exchange_rate: 1,
+//                     description: `Payment for Order #${orderId}`
+//                 },
+//                 relationships: {
+//                     payable: {
+//                         data: {
+//                             type: 'sales_invoices',
+//                             id: invoiceId.toString()
+//                         }
+//                     },
+//                     account: {
+//                         data: {
+//                             type: 'accounts',
+//                             id: accountId
+//                         }
+//                     }
+//                 }
+//             }
+//         };
+//         console.log('📦 Payment Payload:', JSON.stringify(payload, null, 2));
+//         const response = await this.makeRequest('POST', `/sales_invoices/${invoiceId}/payments`, payload);
+//         console.log('✅ Payment added:', response.data.id);
+//         return response.data;
+//     } catch (error) {
+//         console.error('❌ Payment error:', error.response?.data || error.message);
+//         throw new Error(`Failed to add payment for invoice ${invoiceId}. Please verify the account and invoice in Paraşüt: https://uygulama.parasut.com/469071/kasa-ve-bankalar`);
+//     }
+// }
+
+/**
+ * Add payment collection to an invoice
+ */
+async addPaymentCollection(invoiceId, orderId, amount) {
+    try {
+        const accountId = await this.getDefaultAccount();
+        const payload = {
+            data: {
+                type: 'payments',
+                attributes: {
+                    date: new Date().toISOString().split('T')[0],
+                    amount: parseFloat(amount),
+                    currency: 'TRY',
+                    exchange_rate: 1,
+                    description: `Payment for Order #${orderId}`
+                },
+                relationships: {
+                    payable: {
+                        data: {
+                            type: 'sales_invoices',
+                            id: invoiceId.toString()
+                        }
+                    },
+                    account: {
+                        data: {
+                            type: 'accounts',
+                            id: accountId
+                        }
+                    }
+                }
+            }
+        };
+        console.log('📦 Payment Payload:', JSON.stringify(payload, null, 2));
+        const response = await this.makeRequest('POST', `/sales_invoices/${invoiceId}/payments`, payload);
+        console.log('✅ Payment added:', response.data.id);
+        return response.data;
+    } catch (error) {
+        console.error('❌ Payment error:', error.response?.data || error.message);
+        throw new Error(`Failed to add payment for invoice ${invoiceId}. Please verify the account and invoice in Paraşüt: https://uygulama.parasut.com/469071/kasa-ve-bankalar`);
+    }
+}
+
+    /**
+ * Add payment collection to an invoice
+ */
+// async addPaymentCollection(invoiceId, orderId, amount) {
+//     try {
+//         const accountId = await this.getDefaultAccount();
+//         const payload = {
+//             data: {
+//                 type: 'payments',
+//                 attributes: {
+//                     date: new Date().toISOString().split('T')[0], // e.g., "2025-06-25"
+//                     amount: amount,
+//                     currency: 'TRY',
+//                     exchange_rate: 1,
+//                     description: `Payment for Order #${orderId}`
+//                 },
+//                 relationships: {
+//                     payable: {
+//                         data: {
+//                             type: 'sales_invoices',
+//                             id: invoiceId
+//                         }
+//                     },
+//                     account: {
+//                         data: {
+//                             type: 'accounts',
+//                             id: accountId
+//                         }
+//                     }
+//                 }
+//             }
+//         };
+//         console.log('Payment Payload:', JSON.stringify(payload, null, 2));
+//         const response = await this.makeRequest('POST', `/sales_invoices/${invoiceId}/payments`, payload);
+//         console.log('✅ Payment added:', response.data.id);
+//         return response.data;
+//     } catch (error) {
+//         console.error('❌ Payment error:', error.response?.data || error.message);
+//         throw new Error(
+//             `Failed to add payment for invoice ${invoiceId}. Please verify the account and invoice in Paraşüt: https://uygulama.parasut.com/469071/kasa-ve-bankalar`
+//         );
+//     }
+// }
 
 
     /**
@@ -1067,6 +1503,8 @@ async getDefaultAccount() {
         });
     }
 }
+
+
 
 // For CommonJS compatibility (Node.js):
 // module.exports = new ParasutApiService();

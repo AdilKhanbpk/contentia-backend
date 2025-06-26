@@ -2,13 +2,16 @@ import axios from 'axios';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Paraşüt OAuth credentials
-const CLIENT_ID = 'Uc0aXDJ65DRpThWP5BcnL-dXsT9iuMghQC1Pagcmdv8';
-const CLIENT_SECRET = 'j1Ezy7bJjE6WxByKTGVqTiJDkiVifpEA8-zzdjnsyIg';
+// Paraşüt OAuth credentials 
+const CLIENT_ID = process.env.PARASUT_CLIENT_ID  ;
+const CLIENT_SECRET = process.env.PARASUT_CLIENT_SECRET;
 const REDIRECT_URI = 'urn:ietf:wg:oauth:2.0:oob';
 
 async function setupParasutAuth() {
@@ -51,6 +54,8 @@ async function setupParasutAuth() {
         });
 
         const { access_token, refresh_token, expires_in } = tokenResponse.data;
+
+        console.log('✅ Access token obtained successfully!', tokenResponse.data);
         
         console.log('✅ Successfully obtained tokens!');
         console.log(`   Access Token: ${access_token.substring(0, 20)}...`);

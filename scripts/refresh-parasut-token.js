@@ -8,7 +8,7 @@ const CLIENT_ID = process.env.PARASUT_CLIENT_ID;
 const CLIENT_SECRET = process.env.PARASUT_CLIENT_SECRET;
 const REFRESH_TOKEN = process.env.PARASUT_REFRESH_TOKEN;
 
-async function refreshParasutToken() {
+async function refreshParasutToken() { 
     console.log('🔄 Refreshing Paraşüt access token...');
     
     if (!CLIENT_ID || !CLIENT_SECRET) {
@@ -47,7 +47,7 @@ async function refreshParasutToken() {
         
         const __filename = fileURLToPath(import.meta.url);
         const __dirname = path.dirname(__filename);
-        const envPath = path.join(__dirname, '..', '.env');
+        const envPath = path.join(__dirname, '..', '.env');s
         
         let envContent = fs.readFileSync(envPath, 'utf8');
         
