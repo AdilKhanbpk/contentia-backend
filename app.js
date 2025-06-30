@@ -8,7 +8,6 @@ import http from "http";
 import initializeSocketSetup from "./socket/socket.js";
 import morgan from "morgan";
 import logger from "./utils/logger/logger.js";
-
 import passport from "passport";
 import { googleSetup } from "./utils/googleAuthSetup/googleConfiguration.js";
 import googleAuthRoutes from "./utils/googleAuthSetup/googleAuth.routes.js";
@@ -26,6 +25,7 @@ import brandRoute from "./routes/brand.routes.js";
 import revisionRoute from "./routes/revision.routes.js";
 import passwordRoutes from "./routes/password.routes.js";
 import appPasswordRoutes from "./routes/appPassword.routes.js";
+import paymentRoute from "./routes/payment.route.js";
 
 // ADMIN ROUTES
 import adminCustomerRoutes from "./routes/admin/adminCustomer.routes.js";
@@ -156,6 +156,7 @@ app.get("/", (_req, res) => {
     });
 });
 
+
 // Health check endpoint for monitoring
 app.get("/health", (_req, res) => {
     res.status(200).json({
@@ -212,6 +213,10 @@ app.use("/api/v1/brands", brandRoute);
 app.use("/api/v1/page-views", pageViewsRoute);
 app.use("/api/v1/revisions", revisionRoute);
 app.use("/api/v1/analytics-test", analyticsTestRoute); // Test route for Google Analytics
+
+// payment route
+app.use("/api/paytr", paymentRoute);
+
 
 // ADMIN ROUTES
 app.use("/api/v1/admin/customers", adminCustomerRoutes);
