@@ -24,6 +24,42 @@ const additionalServiceSchema = new Schema(
         sixtySecondDurationPrice: {
             type: Number,
         },
+        // Paraşüt item IDs for each service
+        parasut_edit_ID: {
+            type: String,
+            required: false,
+            default: null,
+        },
+        parasut_share_ID: {
+            type: String,
+            required: false,
+            default: null,
+        },
+        parasut_coverPic_ID: {
+            type: String,
+            required: false,
+            default: null,
+        },
+        parasut_creatorType_ID: {
+            type: String,
+            required: false,
+            default: null,
+        },
+        parasut_shipping_ID: {
+            type: String,
+            required: false,
+            default: null,
+        },
+        parasut_thirtySecond_ID: {
+            type: String,
+            required: false,
+            default: null,
+        },
+        parasut_sixtySecond_ID: {
+            type: String,
+            required: false,
+            default: null,
+        },
     },
     {
         timestamps: true,

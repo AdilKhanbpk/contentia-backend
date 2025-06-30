@@ -23,6 +23,11 @@ const pricePlanSchema = new Schema(
             type: Number,
             required: true,
         },
+        parasut_item_ID: {
+            type: String,
+            required: false,
+            default: null,
+        },
     },
     {
         timestamps: true,

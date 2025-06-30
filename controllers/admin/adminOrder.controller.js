@@ -10,6 +10,7 @@ import User from "../../models/user.model.js";
 import { notificationTemplates } from "../../helpers/notificationTemplates.js";
 import BrandModel from "../../models/brand.model.js";
 import { uploadMultipleFilesToCloudinary } from "../../utils/Cloudinary.js";
+import parasutApiService from "../../utils/parasutApi.service.js";
 
 const createOrder = asyncHandler(async (req, res) => {
     const {
@@ -151,9 +152,74 @@ const createOrder = asyncHandler(async (req, res) => {
 
     await Promise.all(notificationPromises);
 
+    // Try to create invoice in Paraşüt automatically
+    let invoiceInfo = null;
+    let invoiceError = null;
+
+    try {
+        if (customerExists && newOrder.totalPriceForCustomer > 0) {
+            // Prepare customer information for Paraşüt
+            const customerName = customerExists.fullName ||
+                                (customerExists.firstName && customerExists.lastName ? `${customerExists.firstName} ${customerExists.lastName}` : null) ||
+                                customerExists.firstName ||
+                                customerExists.lastName ||
+                                customerExists.email?.split('@')[0] ||
+                                'Customer';
+
+            const customerInfo = {
+                name: customerName,
+                email: customerExists.email,
+                phone: customerExists.phoneNumber,
+                address: customerExists.address,
+                city: customerExists.city,
+                taxNumber: customerExists.taxNumber,
+                taxOffice: customerExists.taxOffice,
+                contactType: 'person'
+            };
+
+            // Create complete invoice workflow in Paraşüt (7 steps)
+            const paymentInfo = {
+                isSuccessful: true, // Assuming payment was successful if we reach this point
+                amount: newOrder.totalPriceForCustomer,
+                currency: 'TRY',
+                date: new Date().toISOString().split('T')[0],
+                description: `Payment for Order #${newOrder._id}`
+            };
+
+            const invoice = await parasutApiService.createCompleteInvoiceWorkflow(
+                customerInfo,
+                newOrder,
+                paymentInfo,
+                `Order #${newOrder._id} - Video Content Services (Admin Created)`
+            );
+
+            invoiceInfo = {
+                invoiceId: invoice.id,
+                invoiceNumber: invoice.attributes?.invoice_no,
+                totalAmount: newOrder.totalPriceForCustomer
+            };
+
+            console.log('Invoice created automatically for admin order:', newOrder._id, 'Invoice ID:', invoice.id);
+        }
+    } catch (error) {
+        invoiceError = error.message;
+        console.error('Failed to create invoice automatically for admin order:', newOrder._id, error);
+        // Don't fail the order creation if invoice fails
+    }
+
+    const responseMessage = invoiceError
+        ? `Order created successfully, but invoice creation failed: ${invoiceError}`
+        : invoiceInfo
+        ? `Order created successfully and invoice generated (${invoiceInfo.invoiceNumber})`
+        : "Order created successfully";
+
     return res
         .status(201)
-        .json(new ApiResponse(201, newOrder, "Order created successfully"));
+        .json(new ApiResponse(201, {
+            ...newOrder.toObject(),
+            invoiceInfo: invoiceInfo,
+            invoiceError: invoiceError
+        }, responseMessage));
 });
 
 // const getOrders = asyncHandler(async (req, res) => {

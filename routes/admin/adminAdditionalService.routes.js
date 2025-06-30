@@ -5,6 +5,7 @@ import {
     getAdditionalServiceById,
     updateAdditionalService,
     deleteAdditionalService,
+    syncAdditionalServiceWithParasut,
 } from "../../controllers/admin/adminAdditionalService.controller.js";
 import {
     isAdmin,
@@ -35,6 +36,9 @@ router.patch(
     uploadOnMulter.single("image"),
     updateAdditionalService
 );
+
+// POST Routes for specific actions
+router.post("/:additionalServicesId/sync-parasut", isAuthenticated, isAdmin, syncAdditionalServiceWithParasut);
 
 // DELETE Routes
 router.delete("/:additionalServicesId", isAuthenticated, isAdmin, deleteAdditionalService);
