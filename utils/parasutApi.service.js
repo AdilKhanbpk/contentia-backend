@@ -3,6 +3,7 @@ import axios from 'axios';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import sendEmail from './email.js';
 
 dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
@@ -897,15 +898,13 @@ class ParasutApiService {
     /**
      * Create e-Invoice
      */
-    async createEInvoice(invoiceId, advancedFields = {}) {
+    async createEInvoice(invoiceId, advancedFields = {}, userEmail = null) {
         try {
-            // Build attributes with required fields and merge advanced fields if provided
             const attributes = {
                 scenario: 'basic',
                 to: 'default',
-                ...advancedFields // Spread any extra fields (e.g. vat_withholding_params, excise_duty_codes, etc.)
+                ...advancedFields
             };
-
             const eInvoiceData = {
                 data: {
                     type: 'e_invoices',
@@ -917,10 +916,19 @@ class ParasutApiService {
                     }
                 }
             };
-
             const result = await this.makeRequest('POST', '/e_invoices', eInvoiceData);
             console.log('✅ e-Invoice created:', result.data.id);
-            await this.monitorDocumentProcess(result.data.id, 'e_invoices');
+            const doc = await this.monitorDocumentProcess(result.data.id, 'e_invoices');
+            // Send email if userEmail is provided and document is ready
+            if (userEmail && doc) {
+                const invoiceNo = doc.attributes?.invoice_no || 'N/A';
+                const invoiceUrl = doc.attributes?.print_url || '';
+                await sendEmail({
+                    to: userEmail,
+                    subject: `E-Fatura Oluşturuldu: ${invoiceNo}`,
+                    text: `E-Fatura'nız oluşturuldu. Fatura No: ${invoiceNo}\nFaturayı görüntülemek için: ${invoiceUrl}`
+                });
+            }
             return result.data;
         } catch (error) {
             console.error('❌ Failed to create e-Invoice:', error.response?.data || error.message);
@@ -931,9 +939,8 @@ class ParasutApiService {
     /**
      * Create e-Archive (supports advanced fields)
      */
-    async createEArchive(invoiceId, orderDate, advancedFields = {}) {
+    async createEArchive(invoiceId, orderDate, advancedFields = {}, userEmail = null) {
         try {
-            // Always update the invoice to ensure order_date is set before e-Archive
             if (!orderDate) {
                 orderDate = new Date().toISOString().split('T')[0];
             }
@@ -946,23 +953,17 @@ class ParasutApiService {
                     }
                 }
             });
-
-            // Separate internet_sale from other advanced fields to merge them correctly and robustly.
             const { internet_sale: advancedInternetSale, ...otherAdvancedFields } = advancedFields;
-
             const attributes = {
-                ...otherAdvancedFields, // Spread other advanced fields like vat_withholding_params, shipment, etc.
+                ...otherAdvancedFields,
                 internet_sale: {
-                    // Default values
                     url: 'https://uzmanlio.com',
-                    payment_type: 'KREDIKARTI/BANKAKARTI',
-                    payment_platform: 'Banka',
+                    payment_type: 'CREDIT_CARD',
+                    payment_platform: 'VISA',
                     payment_date: orderDate,
-                    // Override with any advanced internet sale fields provided
                     ...(advancedInternetSale || {})
                 }
             }
-
             const eArchiveData = {
                 data: {
                     type: 'e_archives',
@@ -974,10 +975,19 @@ class ParasutApiService {
                     }
                 }
             };
-
             const result = await this.makeRequest('POST', '/e_archives', eArchiveData);
             console.log('✅ e-Archive created:', result.data.id);
-            await this.monitorDocumentProcess(result.data.id, 'e_archives');
+            const doc = await this.monitorDocumentProcess(result.data.id, 'e_archives');
+            // Send email if userEmail is provided and document is ready
+            if (userEmail && doc) {
+                const invoiceNo = doc.attributes?.invoice_no || 'N/A';
+                const invoiceUrl = doc.attributes?.print_url || '';
+                await sendEmail({
+                    to: userEmail,
+                    subject: `E-Arşiv Fatura Oluşturuldu: ${invoiceNo}`,
+                    text: `E-Arşiv faturanız oluşturuldu. Fatura No: ${invoiceNo}\nFaturayı görüntülemek için: ${invoiceUrl}`
+                });
+            }
             return result.data;
         } catch (error) {
             console.error('❌ Failed to create e-Archive:', error.response?.data || error.message);
