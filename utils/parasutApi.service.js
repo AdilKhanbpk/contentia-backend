@@ -99,9 +99,9 @@ class ParasutApiService {
     }
 
     /**
-     * Clear all stored tokens
+     * Clear all stored tokens (memory, environment, and database)
      */
-    clearTokens() {
+    async clearTokens() {
         console.log('🧹 Clearing all Paraşüt tokens...');
         this.accessToken = null;
         this.refreshToken = null;
@@ -109,6 +109,15 @@ class ParasutApiService {
         delete process.env.PARASUT_ACCESS_TOKEN;
         delete process.env.PARASUT_REFRESH_TOKEN;
         delete process.env.PARASUT_TOKEN_EXPIRY;
+
+        // Also clear from database
+        try {
+            await Token.deleteOne({ service: 'parasut' });
+            console.log('✅ Tokens cleared from database');
+        } catch (error) {
+            console.error('❌ Failed to clear tokens from database:', error.message);
+        }
+
         console.log('✅ All tokens cleared');
     }
 
@@ -156,7 +165,11 @@ class ParasutApiService {
                             console.log('✅ Token refreshed successfully in loadStoredTokens');
                         } catch (err) {
                             console.log('❌ Failed to refresh token in loadStoredTokens:', err.message);
-                            this.clearTokens();
+                            console.log('⚠️ Keeping tokens in database for manual refresh');
+                            // Don't clear database tokens - just clear memory tokens
+                            this.accessToken = null;
+                            this.refreshToken = null;
+                            this.tokenExpiry = null;
                         }
                     } else {
                         this.clearTokens();

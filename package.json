@@ -12,7 +12,8 @@
     "build:js": "parcel watch ./public/js/index.js --out-dir ./public/js --out-file bundle.js",
     "setup:parasut": "node scripts/setup-parasut-auth.js",
     "refresh:parasut": "node scripts/refresh-parasut-token.js",
-    "migrate:tokens": "node scripts/migrate-tokens-to-db.js"
+    "migrate:tokens": "node scripts/migrate-tokens-to-db.js",
+    "save:parasut-tokens": "node scripts/save-parasut-tokens.js"
   },
   "keywords": [],
   "author": "",

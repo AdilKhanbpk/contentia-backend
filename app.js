@@ -26,6 +26,7 @@ import revisionRoute from "./routes/revision.routes.js";
 import passwordRoutes from "./routes/password.routes.js";
 import appPasswordRoutes from "./routes/appPassword.routes.js";
 import paymentRoute from "./routes/payment.route.js";
+import parasutRoute from "./routes/parasut.routes.js";
 
 // ADMIN ROUTES
 import adminCustomerRoutes from "./routes/admin/adminCustomer.routes.js";
@@ -216,6 +217,9 @@ app.use("/api/v1/analytics-test", analyticsTestRoute); // Test route for Google 
 
 // payment route
 app.use("/api/paytr", paymentRoute);
+
+// parasut route
+app.use("/api/v1/parasut", parasutRoute);
 
 
 // ADMIN ROUTES

@@ -250,7 +250,6 @@ const createOrder = asyncHandler(async (req, res) => {
                                     <p style="margin: 0;">You will receive a separate email from Paraşüt with a direct link to view and download your invoice. Please check your inbox.</p>
                                 </div>
 
-                                <p>Thank you for your business!</p>
 
                                 <p>Best regards,<br>
                                 Contentia Team</p>
