@@ -5,10 +5,16 @@ import axios from 'axios';
 import xml2js from 'xml2js';
 
 const NETGSM_USERCODE = process.env.NETGSM_USERCODE || '8503091122';
-const NETGSM_PASSWORD = process.env.NETGSM_PASSWORD || 'X4.M4mp3';
+const NETGSM_PASSWORD = process.env.NETGSM_PASSWORD || 'Contentia_1807*';
 const NETGSM_MSGHEADER = process.env.NETGSM_MSGHEADER || '8503091122';
 const NETGSM_OTP_URL = process.env.NETGSM_OTP_URL || 'https://api.netgsm.com.tr/sms/send/otp';
-console.log('🌐 Using Netgsm URL:', NETGSM_OTP_URL);
+
+// Debug: Log the actual values being used
+console.log('🔧 Netgsm Configuration:');
+console.log('   URL:', NETGSM_OTP_URL);
+console.log('   Usercode:', NETGSM_USERCODE);
+console.log('   Password:', NETGSM_PASSWORD ? NETGSM_PASSWORD.substring(0, 5) + '***' : 'NOT SET');
+console.log('   Msgheader:', NETGSM_MSGHEADER);
 
 export async function sendOtp(phone, otp) {
   // Validate environment variables
@@ -20,7 +26,7 @@ export async function sendOtp(phone, otp) {
     };
   }
 
-  // Validate phone number format
+  // Validate and format phone number
   if (!phone || phone.length < 10) {
     return {
       success: false,
@@ -28,13 +34,69 @@ export async function sendOtp(phone, otp) {
     };
   }
 
-  const xml = `<?xml version="1.0"?>\n<mainbody>\n  <header>\n    <usercode>${NETGSM_USERCODE}</usercode>\n    <password>${NETGSM_PASSWORD}</password>\n    <msgheader>${NETGSM_MSGHEADER}</msgheader>\n  </header>\n  <body>\n    <msg><![CDATA[Contentia Doğrulama Kodu: ${otp}]]></msg>\n    <no>${phone}</no>\n  </body>\n</mainbody>`;
+  // Format phone number for Netgsm (remove leading 0, ensure 10 digits)
+  let formattedPhone = phone.toString().replace(/\D/g, ''); // Remove non-digits
+  if (formattedPhone.startsWith('0')) {
+    formattedPhone = formattedPhone.substring(1); // Remove leading 0
+  }
+  if (formattedPhone.length !== 10) {
+    return {
+      success: false,
+      error: 'Phone number must be 10 digits (without country code)'
+    };
+  }
+
+  console.log('📱 Original phone:', phone);
+  console.log('📱 Formatted phone:', formattedPhone);
+
+  // Create XML with formatted phone number
+    // Smart msgheader handling based on Turkish mobile operators
+    const phonePrefix = formattedPhone.substring(0, 3);
+
+    // Turkish mobile operator prefixes that work with msgheader (mainly Turkcell)
+    const operatorsWithHeader = ['530', '531', '532', '533', '534', '535', '536', '537', '538', '539'];
+    // Operators that need no msgheader or different handling
+    const operatorsWithoutHeader = ['589', '599', '564', '565', '566', '567', '568', '569'];
+
+    let xml;
+
+    if (operatorsWithHeader.includes(phonePrefix)) {
+      console.log('📱 Using msgheader for operator prefix:', phonePrefix);
+      xml = `<?xml version="1.0" encoding="UTF-8"?>
+<mainbody>
+  <header>
+    <usercode>${NETGSM_USERCODE}</usercode>
+    <password>${NETGSM_PASSWORD}</password>
+    <msgheader>${NETGSM_MSGHEADER}</msgheader>
+  </header>
+  <body>
+    <msg><![CDATA[Contentia Doğrulama Kodu: ${otp}]]></msg>
+    <no>${formattedPhone}</no>
+  </body>
+</mainbody>`;
+    } else {
+      console.log('� Using NO msgheader for operator prefix:', phonePrefix);
+      xml = `<?xml version="1.0" encoding="UTF-8"?>
+<mainbody>
+  <header>
+    <usercode>${NETGSM_USERCODE}</usercode>
+    <password>${NETGSM_PASSWORD}</password>
+    <msgheader>${NETGSM_USERCODE}</msgheader>
+  </header>
+  <body>
+    <msg><![CDATA[Contentia Doğrulama Kodu: ${otp}]]></msg>
+    <no>${formattedPhone}</no>
+  </body>
+</mainbody>`;
+    }
+
+
 
   console.log('📤 Sending SMS to Netgsm API...');
   console.log('📱 Phone:', phone);
   console.log('🔑 Using usercode:', NETGSM_USERCODE);
   console.log('🔑 Using password:', NETGSM_PASSWORD ? 'SET' : 'NOT SET');
-  console.log('🔑 Using msgheader:', NETGSM_MSGHEADER);
+  console.log('📋 XML Request:', xml);
   console.log('🌍 Environment variables check:', {
     NETGSM_USERCODE_ENV: process.env.NETGSM_USERCODE ? 'SET' : 'NOT SET',
     NETGSM_PASSWORD_ENV: process.env.NETGSM_PASSWORD ? 'SET' : 'NOT SET',
@@ -42,10 +104,20 @@ export async function sendOtp(phone, otp) {
   });
 
   try {
-    const response = await axios.post(NETGSM_OTP_URL, xml, {
-      headers: { 'Content-Type': 'text/xml' },
+    let response = await axios.post(NETGSM_OTP_URL, xml, {
+      headers: {
+        'Content-Type': 'text/xml',
+        'Accept': 'application/xml-dtd'
+      },
       timeout: 10000,
     });
+
+    // Check for error 32 (operator code error) and provide helpful message
+    const checkResult = await xml2js.parseStringPromise(response.data, { explicitArray: false });
+    if (checkResult.xml?.main?.code === '32') {
+      console.log('⚠️ Error 32: This phone number operator is not supported by your current msgheader');
+      console.log('💡 Contact Netgsm to get msgheader approved for this operator');
+    }
 
     console.log('📥 Netgsm raw response:', response.data);
 
@@ -57,10 +129,11 @@ export async function sendOtp(phone, otp) {
 
     console.log('📊 Parsed response:', { code, jobID, error });
 
-    // Netgsm error codes
+    // Netgsm error codes with user-friendly messages
     const errorMessages = {
       '20': 'Mesaj metninde ki problemden dolayı gönderilemediği durumda alınan hatadır.',
       '30': 'Geçersiz kullanıcı adı, şifre veya kullanıcınızın API erişim izninin olmadığı durumdur.',
+      '32': 'Bu telefon numarası operatörü şu anda desteklenmiyor. Lütfen farklı bir numara deneyin.',
       '40': 'Mesaj başlığınızın (Gönderici Adınızın) sistemde tanımlı olmadığı durumdur.',
       '50': 'Abone hesabınızda yeterli kredinin olmadığı durumdur.',
       '60': 'Kota aşımı. Günlük gönderim limitinizi aştığınız durumdur.',
@@ -72,6 +145,17 @@ export async function sendOtp(phone, otp) {
     } else {
       const detailedError = errorMessages[code] || error || 'Unknown error';
       console.error(`❌ Netgsm Error Code ${code}: ${detailedError}`);
+
+      // For error 32, provide a user-friendly message
+      if (code === '32') {
+        return {
+          success: false,
+          error: 'Bu telefon numarası operatörü şu anda desteklenmiyor. Lütfen farklı bir numara deneyin veya destek ile iletişime geçin.',
+          code,
+          technical_error: error
+        };
+      }
+
       return { success: false, error: detailedError, code };
     }
   } catch (err) {
@@ -80,28 +164,28 @@ export async function sendOtp(phone, otp) {
   }
 }
 
-// export async function resendOtpfunction(phone , verificationCode) {
+export async function resendOtpfunction(phone , verificationCode) {
 
-//   const xml = `<?xml version="1.0"?>\n<mainbody>\n  <header>\n    <usercode>${NETGSM_USERCODE}</usercode>\n    <password>${NETGSM_PASSWORD}</password>\n    <msgheader>${NETGSM_MSGHEADER}</msgheader>\n  </header>\n  <body>\n    <msg><![CDATA[Contentia Doğrulama Kodu: ${verificationCode}]]></msg>\n    <no>${phone}</no>\n  </body>\n</mainbody>`;
+  const xml = `<?xml version="1.0"?>\n<mainbody>\n  <header>\n    <usercode>${NETGSM_USERCODE}</usercode>\n    <password>${NETGSM_PASSWORD}</password>\n    <msgheader>${NETGSM_MSGHEADER}</msgheader>\n  </header>\n  <body>\n    <msg><![CDATA[Contentia Doğrulama Kodu: ${verificationCode}]]></msg>\n    <no>${phone}</no>\n  </body>\n</mainbody>`;
 
-//   try {
-//     const response = await axios.post(NETGSM_OTP_URL, xml, {
-//       headers: { 'Content-Type': 'text/xml' },
-//       timeout: 10000,
-//     });
-//     // Parse XML response
-//     const result = await xml2js.parseStringPromise(response.data, { explicitArray: false });
-//     const code = result.xml.main.code;
-//     const jobID = result.xml.main.jobID;
-//     if (code === '0') {
-//       return { success: true, jobID };
-//     } else {
-//       return { success: false, error: result.xml.main.error || 'Unknown error', code };
-//     }
-//   } catch (err) {
-//     return { success: false, error: err.message };
-//   }
-// }
+  try {
+    const response = await axios.post(NETGSM_OTP_URL, xml, {
+      headers: { 'Content-Type': 'text/xml' },
+      timeout: 10000,
+    });
+    // Parse XML response
+    const result = await xml2js.parseStringPromise(response.data, { explicitArray: false });
+    const code = result.xml.main.code;
+    const jobID = result.xml.main.jobID;
+    if (code === '0') {
+      return { success: true, jobID };
+    } else {
+      return { success: false, error: result.xml.main.error || 'Unknown error', code };
+    }
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+}
 
 export async function validateNetgsmAccount() {
   console.log('🔍 Validating Netgsm account...');

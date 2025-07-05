@@ -62,6 +62,9 @@ export const signup = asyncHandler(async (req, res) => {
 
   // Send OTP using Netgsm
   console.log('📱 Attempting to send OTP to:', phoneNumber);
+  console.log('📱 Phone number type:', typeof phoneNumber);
+  console.log('📱 Phone number length:', phoneNumber?.length);
+  console.log('📱 Phone number raw:', JSON.stringify(phoneNumber));
   console.log('🔧 Environment check:', {
     NODE_ENV: process.env.NODE_ENV,
     NETGSM_USERCODE: process.env.NETGSM_USERCODE ? 'SET' : 'NOT SET',
@@ -71,7 +74,7 @@ export const signup = asyncHandler(async (req, res) => {
 
   const smsResult = await sendOtp(phoneNumber, verificationCode);
   console.log('📱 SMS Result:', smsResult);
-
+ 
   if (!smsResult.success) {
     console.error('❌ SMS sending failed:', {
       error: smsResult.error,
