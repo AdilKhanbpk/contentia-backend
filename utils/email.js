@@ -34,6 +34,7 @@
 
 // // New SendGrid implementation
 import sgMail from '@sendgrid/mail';
+import { retryEmailCall } from './retryHelper.js';
 
 // Set SendGrid API key
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
@@ -83,9 +84,12 @@ const sendEmail = ({ email, subject, text = null, html = null }) => {
                 msg.to = { email: email };
             }
 
-            // Send email using SendGrid
+            // Send email using SendGrid with retry logic
             console.log('Sending email via SendGrid...');
-            const response = await sgMail.send(msg);
+
+            const response = await retryEmailCall(async () => {
+                return await sgMail.send(msg);
+            });
 
             console.log('Email sent successfully via SendGrid');
             console.log('Response status:', response[0].statusCode);

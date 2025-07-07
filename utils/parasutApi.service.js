@@ -147,9 +147,7 @@ class ParasutApiService {
                 this.refreshToken = tokenDoc.refreshToken;
                 this.tokenExpiry = tokenDoc.tokenExpiry.getTime();
 
-                console.log('✅ Loaded Paraşüt tokens from database');
-                console.log('   Token preview:', this.accessToken.substring(0, 10) + '...');
-                console.log('   Expires:', new Date(this.tokenExpiry).toISOString());
+                // Tokens loaded from database
 
                 if (tokenDoc.isExpired()) {
                     console.log('⚠️ Database token is expired, will be refreshed by ensureValidToken');
@@ -395,30 +393,38 @@ class ParasutApiService {
                 'Authorization': `Bearer ${this.accessToken}`,
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
-            }
+            },
+            timeout: 60000 // 60 seconds for slow connections
         };
 
         if (data) {
             config.data = data;
         }
 
-        console.log('\n' + '='.repeat(80));
-        console.log(`🚀 PARAŞÜT API REQUEST: ${method} ${endpoint}`);
-        console.log('📍 URL:', config.url);
-        console.log('🔑 Headers:', { ...config.headers, Authorization: 'Bearer [REDACTED]' });
-        if (data) {
-            console.log('📦 Request Body:', JSON.stringify(data, null, 2));
-        }
-        console.log('='.repeat(80));
-
         try {
             const response = await axios(config);
-            console.log('✅ PARAŞÜT API SUCCESS RESPONSE:');
-            console.log('📊 Status:', response.status, response.statusText);
-            console.log('📥 Response Data:', JSON.stringify(response.data, null, 2));
-            console.log('='.repeat(80) + '\n');
+            // Only log essential API calls for invoice creation
+            if (endpoint.includes('/contacts') || endpoint.includes('/products') || endpoint.includes('/sales_invoices') || endpoint.includes('/e_invoice') || endpoint.includes('/e_archive')) {
+                console.log(`✅ ${method} ${endpoint} - Status: ${response.status}`);
+            }
             return response.data;
         } catch (error) {
+            // Handle timeout errors
+            if (error.code === 'ECONNABORTED' && retryCount < 3) {
+                const delay = 3000 * (retryCount + 1); // 3s, 6s, 9s
+                console.warn(`⚠️ Request timeout. Retrying after ${delay / 1000} seconds... (Attempt ${retryCount + 1})`);
+                await new Promise(resolve => setTimeout(resolve, delay));
+                return this.makeRequest(method, endpoint, data, retryCount + 1);
+            }
+
+            // Handle network errors (ENOTFOUND, ECONNRESET, etc.)
+            if ((error.code === 'ENOTFOUND' || error.code === 'ECONNRESET' || error.code === 'ETIMEDOUT') && retryCount < 3) {
+                const delay = 5000 * (retryCount + 1); // 5s, 10s, 15s for network issues
+                console.warn(`⚠️ Network error (${error.code}). Retrying after ${delay / 1000} seconds... (Attempt ${retryCount + 1})`);
+                await new Promise(resolve => setTimeout(resolve, delay));
+                return this.makeRequest(method, endpoint, data, retryCount + 1);
+            }
+
             // Handle token expiration (401 Unauthorized)
             if (error.response && error.response.status === 401 && retryCount === 0) {
                 console.warn('⚠️ 401 Unauthorized - Token may be expired, refreshing and retrying...');
@@ -440,19 +446,16 @@ class ParasutApiService {
                 await new Promise(resolve => setTimeout(resolve, delay));
                 return this.makeRequest(method, endpoint, data, retryCount + 1);
             }
-            console.log('❌ PARAŞÜT API ERROR RESPONSE:');
-            console.log('📊 Status:', error.response?.status, error.response?.statusText);
-            console.log('📥 Response Data:', JSON.stringify(error.response?.data, null, 2));
-            if (error.response?.data?.errors) {
-                console.log('🔍 VALIDATION ERRORS:');
-                error.response.data.errors.forEach((err, index) => {
-                    console.log(`  ${index + 1}. Error: ${err.title || 'N/A'}, Detail: ${err.detail || 'N/A'}, Code: ${err.code || 'N/A'}`);
-                });
+
+            // Retry on 500/502/503/504 server errors
+            if (error.response && [500, 502, 503, 504].includes(error.response.status) && retryCount < 2) {
+                const delay = 4000 * (retryCount + 1); // 4s, 8s for server errors
+                console.warn(`⚠️ Server error (${error.response.status}). Retrying after ${delay / 1000} seconds... (Attempt ${retryCount + 1})`);
+                await new Promise(resolve => setTimeout(resolve, delay));
+                return this.makeRequest(method, endpoint, data, retryCount + 1);
             }
-            if (error.response?.status === 404) {
-                console.error('404 Error Details:', error.response.data.errors);
-            }
-            console.log('='.repeat(80) + '\n');
+            // Only log essential error information
+            console.log(`❌ ${method} ${endpoint} - Status: ${error.response?.status} - ${error.response?.statusText || error.message}`);
             throw error;
         }
     }
@@ -870,7 +873,7 @@ class ParasutApiService {
                 throw new Error('Invoice must have at least one detail item.');
             }
 
-            console.log('📋 Creating sales invoice with payload:', JSON.stringify(invoiceData, null, 2));
+            // Creating sales invoice
 
             const result = await this.makeRequest('POST', '/sales_invoices', invoiceData);
             console.log('✅ Sales invoice created:', result.data.id);
@@ -907,17 +910,12 @@ class ParasutApiService {
                 return { status: 'disabled', message: 'Paraşüt integration is disabled' };
             }
 
-            console.log('📋 Step 1: Verifying Company Access...');
+            // Step 1: Verify access and create/find customer
             await this.makeRequest('GET', '/contacts?page[size]=1');
-            console.log('✅ Company access verified');
-
-            console.log('📋 Step 2: Creating/Finding Customer...');
             const contactId = await this.createOrFindContact(customerInfo);
 
-            console.log('📋 Step 3: Preparing Products...');
+            // Step 2: Prepare products and create invoice
             const invoiceItems = await this.prepareInvoiceItems(order);
-
-            console.log('📋 Step 4: Creating Sales Invoice (without automatic payment)...');
             const invoice = await this.createSalesInvoiceWithoutPayment(customerInfo, {
                 description,
                 orderNo: order._id.toString(),
@@ -927,38 +925,29 @@ class ParasutApiService {
             const invoiceId = invoice.id;
             console.log('✅ Invoice created:', invoiceId);
 
+            // Step 3: Add payment if successful
             if (paymentInfo && paymentInfo.isSuccessful) {
-                console.log('📋 Step 5: Adding Payment Collection...');
                 try {
                     await this.addPaymentCollection(
                         invoiceId,
                         order._id.toString(),
                         paymentInfo.amount || order.totalPriceForCustomer
                     );
-                    console.log('✅ Payment collection added successfully');
+                    console.log('✅ Payment added');
                 } catch (paymentError) {
-                    console.error('❌ Payment collection failed:', paymentError.message);
+                    console.error('❌ Payment failed:', paymentError.message);
                     // Continue with workflow even if payment fails
                 }
-            } else {
-                console.log('⚠️ Skipping payment collection: Payment not successful or missing');
             }
 
-            console.log('📋 Step 6: Formalizing Invoice...');
+            // Step 4: Formalize and share invoice
             await this.formalizeInvoice(invoiceId, contactId, customerInfo, userEmail);
 
-            console.log('📋 Step 7: Setting up Invoice Sharing...');
-
-            // Create sharing notification (Paraşüt will send email with public link to customer)
             try {
-                const sharingCreated = await this.createPublicSharingLink(invoiceId, customerInfo.email);
-                if (sharingCreated) {
-                    console.log('✅ Sharing notification sent to customer via Paraşüt');
-                } else {
-                    console.log('⚠️ Sharing creation returned false');
-                }
+                await this.createPublicSharingLink(invoiceId, customerInfo.email);
+                console.log('✅ Invoice sharing enabled');
             } catch (error) {
-                console.log('⚠️ Sharing notification failed:', error.message);
+                console.log('⚠️ Sharing failed:', error.message);
             }
 
             console.log('🎉 Invoice workflow completed!');
@@ -1129,7 +1118,7 @@ class ParasutApiService {
                 }
             };
 
-            console.log('📦 Payment Payload:', JSON.stringify(payload, null, 2));
+            // Adding payment
             const response = await this.makeRequest('POST', `/sales_invoices/${invoiceId}/payments`, payload);
             console.log('✅ Payment added:', response.data.id);
             return response.data;
@@ -1238,7 +1227,7 @@ class ParasutApiService {
                 }
             };
 
-            console.log('📤 e-Invoice payload:', JSON.stringify(eInvoiceData, null, 2));
+            // Creating e-Invoice
             const result = await this.makeRequest('POST', '/e_invoices', eInvoiceData);
             console.log('✅ e-Invoice creation request successful:', result.data.id);
             console.log('📊 Status:', result.status, 'Accepted - e-Invoice processing started');
@@ -1489,7 +1478,7 @@ class ParasutApiService {
             }
         }
 
-        console.log('📦 Prepared invoice items:', JSON.stringify(invoiceItems, null, 2));
+        // Invoice items prepared
         return invoiceItems;
     }
 

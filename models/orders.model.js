@@ -73,6 +73,23 @@ const ordersProfileSchema = new Schema(
             enum: ["paid", "pending", "refunded", "cancelled"],
             default: "pending",
         },
+        invoiceInfo: {
+            status: {
+                type: String,
+                enum: ["processing", "completed", "failed"],
+                default: "processing"
+            },
+            invoiceId: String,
+            invoiceNumber: String,
+            totalAmount: Number,
+            sharingUrl: String,
+            sharingPath: String,
+            error: String,
+            createdAt: {
+                type: Date,
+                default: Date.now
+            }
+        },
         contentsDelivered: {
             type: Number,
         },

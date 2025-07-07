@@ -180,48 +180,71 @@ const createOrder = asyncHandler(async (req, res) => {
 
             console.log('📋 Final customer info for Paraşüt:', parasutCustomerInfo);
 
-            // Create complete invoice workflow in Paraşüt (7 steps)
-            const paymentInfo = {
-                isSuccessful: true, // Assuming payment was successful if we reach this point
-                amount: newOrder.totalPriceForCustomer,
-                currency: 'TRY',
-                date: new Date().toISOString().split('T')[0],
-                description: `Payment for Order #${newOrder._id}`
-            };
+            // Return order immediately and process invoice in background
+            const responseMessage = "Order created successfully - invoice is being processed";
 
-            const invoice = await parasutApiService.createCompleteInvoiceWorkflow(
-                parasutCustomerInfo,
-                newOrder,
-                paymentInfo,
-                `Order #${newOrder._id} - Video Content Services`,
-                parasutCustomerInfo.email // Pass user email for invoice email
-            );
+            // Send immediate response to frontend
+            const immediateResponse = res.status(201).json(new ApiResponse(201, {
+                ...newOrder.toObject(),
+                invoiceInfo: { status: 'processing', message: 'Invoice is being created in background' },
+                invoiceError: null
+            }, responseMessage));
 
-            if (invoice.status === 'disabled') {
-                console.log('⚠️ Paraşüt integration is disabled - skipping invoice creation');
-            } else if (invoice.status === 'access_denied') {
-                console.log('⚠️ Paraşüt access denied - skipping invoice creation');
-                console.log('💡 Please verify Paraşüt credentials and company ID');
-                invoiceError = 'Paraşüt access denied - please verify credentials';
-            } else if (invoice.invoiceId) {
-                invoiceInfo = {
-                    invoiceId: invoice.invoiceId,
-                    invoiceNumber: invoice.invoiceNumber,
-                    totalAmount: newOrder.totalPriceForCustomer,
-                    sharingUrl: invoice.sharingUrl,
-                    sharingPath: invoice.sharingPath
-                };
-                console.log('✅ Invoice created automatically for order:', newOrder._id, 'Invoice ID:', invoice.invoiceId);
-            } else {
-                invoiceInfo = {
-                    invoiceId: invoice.id,
-                    invoiceNumber: invoice.attributes?.invoice_no,
-                    totalAmount: newOrder.totalPriceForCustomer,
-                    sharingUrl: invoice.attributes?.sharing_preview_url,
-                    sharingPath: invoice.attributes?.sharing_preview_path
-                };
-                console.log('✅ Invoice created automatically for order:', newOrder._id, 'Invoice ID:', invoice.id);
-            }
+            // Process invoice creation in background (don't await)
+            setImmediate(async () => {
+                try {
+                    console.log('🔄 Starting background invoice creation for order:', newOrder._id);
+
+                    const paymentInfo = {
+                        isSuccessful: true,
+                        amount: newOrder.totalPriceForCustomer,
+                        currency: 'TRY',
+                        date: new Date().toISOString().split('T')[0],
+                        description: `Payment for Order #${newOrder._id}`
+                    };
+
+                    const invoice = await parasutApiService.createCompleteInvoiceWorkflow(
+                        parasutCustomerInfo,
+                        newOrder,
+                        paymentInfo,
+                        `Order #${newOrder._id} - Video Content Services`,
+                        parasutCustomerInfo.email
+                    );
+
+                    if (invoice.status === 'disabled') {
+                        console.log('⚠️ Paraşüt integration is disabled - skipping invoice creation');
+                    } else if (invoice.status === 'access_denied') {
+                        console.log('⚠️ Paraşüt access denied - skipping invoice creation');
+                        console.log('💡 Please verify Paraşüt credentials and company ID');
+                    } else if (invoice.invoiceId) {
+                        console.log('✅ Invoice created automatically for order:', newOrder._id, 'Invoice ID:', invoice.invoiceId);
+
+                        // Update order with invoice info in database
+                        await Orders.findByIdAndUpdate(newOrder._id, {
+                            $set: {
+                                'invoiceInfo.invoiceId': invoice.invoiceId,
+                                'invoiceInfo.invoiceNumber': invoice.invoiceNumber,
+                                'invoiceInfo.totalAmount': newOrder.totalPriceForCustomer,
+                                'invoiceInfo.sharingUrl': invoice.sharingUrl,
+                                'invoiceInfo.sharingPath': invoice.sharingPath,
+                                'invoiceInfo.status': 'completed'
+                            }
+                        });
+                    } else if (invoice.id) {
+                        console.log('✅ Invoice created automatically for order:', newOrder._id, 'Invoice ID:', invoice.id);
+
+                        // Update order with invoice info in database
+                        await Orders.findByIdAndUpdate(newOrder._id, {
+                            $set: {
+                                'invoiceInfo.invoiceId': invoice.id,
+                                'invoiceInfo.invoiceNumber': invoice.attributes?.invoice_no,
+                                'invoiceInfo.totalAmount': newOrder.totalPriceForCustomer,
+                                'invoiceInfo.sharingUrl': invoice.attributes?.sharing_preview_url,
+                                'invoiceInfo.sharingPath': invoice.attributes?.sharing_preview_path,
+                                'invoiceInfo.status': 'completed'
+                            }
+                        });
+                    }
 
             // Send simple invoice creation notification
             if (invoiceInfo && parasutCustomerInfo.email) {
@@ -269,31 +292,33 @@ const createOrder = asyncHandler(async (req, res) => {
                         html: emailHTML
                     });
 
-                    console.log('📧 Invoice creation notification sent successfully to:', parasutCustomerInfo.email);
-                } catch (emailError) {
-                    console.error('❌ Failed to send invoice creation notification:', emailError.message);
+                            console.log('📧 Invoice creation notification sent successfully to:', parasutCustomerInfo.email);
+                        } catch (emailError) {
+                            console.error('❌ Failed to send invoice creation notification:', emailError.message);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Failed to create invoice automatically for order:', newOrder._id, error.message);
+
+                    // Update order with error info
+                    await Orders.findByIdAndUpdate(newOrder._id, {
+                        $set: {
+                            'invoiceInfo.status': 'failed',
+                            'invoiceInfo.error': error.message
+                        }
+                    });
                 }
-            }
+            });
+
+            return immediateResponse;
+        } else {
+            // If no customer info, just return the order
+            return res.status(201).json(new ApiResponse(201, newOrder.toObject(), "Order created successfully"));
         }
     } catch (error) {
-        invoiceError = error.message;
-        console.error('Failed to create invoice automatically for order:', newOrder._id, error);
-        // Don't fail the order creation if invoice fails
+        console.error('Order creation error:', error);
+        throw error;
     }
-
-    const responseMessage = invoiceError
-        ? `Order created successfully, but invoice creation failed: ${invoiceError}`
-        : invoiceInfo
-        ? `Order created successfully and invoice generated (${invoiceInfo.invoiceNumber})`
-        : "Order created successfully";
-
-    return res
-        .status(201)
-        .json(new ApiResponse(201, {
-            ...newOrder.toObject(),
-            invoiceInfo: invoiceInfo,
-            invoiceError: invoiceError
-        }, responseMessage));
 });
 
 const getMyOrders = asyncHandler(async (req, res) => {

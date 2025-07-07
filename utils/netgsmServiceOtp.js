@@ -55,8 +55,6 @@ export async function sendOtp(phone, otp) {
 
     // Turkish mobile operator prefixes that work with msgheader (mainly Turkcell)
     const operatorsWithHeader = ['530', '531', '532', '533', '534', '535', '536', '537', '538', '539'];
-    // Operators that need no msgheader or different handling
-    const operatorsWithoutHeader = ['589', '599', '564', '565', '566', '567', '568', '569'];
 
     let xml;
 
@@ -109,7 +107,7 @@ export async function sendOtp(phone, otp) {
         'Content-Type': 'text/xml',
         'Accept': 'application/xml-dtd'
       },
-      timeout: 10000,
+      timeout: 30000, // Increased to 30 seconds
     });
 
     // Check for error 32 (operator code error) and provide helpful message
