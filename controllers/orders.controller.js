@@ -136,8 +136,10 @@ const createOrder = asyncHandler(async (req, res) => {
         associatedBrands: brand?._id,
     });
 
-    brand.associatedOrders.push(newOrder._id);
-    await brand.save();
+    if (brand) {
+        brand.associatedOrders.push(newOrder._id);
+        await brand.save();
+    }
 
     // Try to create invoice in Paraşüt automatically
     let invoiceInfo = null;

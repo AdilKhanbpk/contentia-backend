@@ -41,6 +41,16 @@ sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 const sendEmail = ({ email, subject, text = null, html = null }) => {
     return new Promise(async (resolve, reject) => {
         try {
+            // Check if email sending is disabled
+            if (process.env.DISABLE_EMAILS === 'true') {
+                console.log('📧 Email sending is disabled via DISABLE_EMAILS environment variable');
+                return resolve({
+                    message: "Email sending disabled",
+                    statusCode: 200,
+                    disabled: true
+                });
+            }
+
             // Validate required environment variables
             if (!process.env.SENDGRID_API_KEY) {
                 throw new Error('SENDGRID_API_KEY is not configured in environment variables');
@@ -92,6 +102,18 @@ const sendEmail = ({ email, subject, text = null, html = null }) => {
             // Handle SendGrid specific errors
             if (error.response) {
                 console.error('SendGrid error response:', error.response.body);
+
+                // Check for quota exceeded error
+                const errorBody = error.response.body;
+                if (errorBody?.errors?.some(err => err.message?.includes('Maximum credits exceeded'))) {
+                    console.warn('⚠️ SendGrid quota exceeded - email not sent but continuing operation');
+                    return resolve({
+                        message: "Email quota exceeded - notification skipped",
+                        statusCode: 429,
+                        quotaExceeded: true
+                    });
+                }
+
                 return reject({
                     message: `SendGrid Error: ${error.message}`,
                     details: error.response.body

@@ -99,13 +99,26 @@ class ParasutApiService {
     }
 
     /**
-     * Clear all stored tokens (memory, environment, and database)
+     * Clear tokens from memory only (keep database tokens for recovery)
      */
-    async clearTokens() {
-        console.log('🧹 Clearing all Paraşüt tokens...');
+    clearMemoryTokens() {
+        console.log('🧹 Clearing Paraşüt tokens from memory...');
         this.accessToken = null;
         this.refreshToken = null;
         this.tokenExpiry = null;
+        this.tokensLoaded = false; // Force reload from database next time
+        console.log('✅ Memory tokens cleared (database tokens preserved)');
+    }
+
+    /**
+     * Clear all stored tokens (memory, environment, and database) - USE WITH CAUTION
+     */
+    async clearAllTokens() {
+        console.log('🧹 Clearing ALL Paraşüt tokens...');
+        this.accessToken = null;
+        this.refreshToken = null;
+        this.tokenExpiry = null;
+        this.tokensLoaded = false;
         delete process.env.PARASUT_ACCESS_TOKEN;
         delete process.env.PARASUT_REFRESH_TOKEN;
         delete process.env.PARASUT_TOKEN_EXPIRY;
@@ -129,14 +142,18 @@ class ParasutApiService {
             // Try to load from database first
             const tokenDoc = await Token.findOne({ service: 'parasut' });
 
-            if (tokenDoc && !tokenDoc.isExpired()) {
+            if (tokenDoc) {
                 this.accessToken = tokenDoc.accessToken;
                 this.refreshToken = tokenDoc.refreshToken;
                 this.tokenExpiry = tokenDoc.tokenExpiry.getTime();
 
-                console.log('✅ Loaded stored Paraşüt tokens from database');
+                console.log('✅ Loaded Paraşüt tokens from database');
                 console.log('   Token preview:', this.accessToken.substring(0, 10) + '...');
                 console.log('   Expires:', new Date(this.tokenExpiry).toISOString());
+
+                if (tokenDoc.isExpired()) {
+                    console.log('⚠️ Database token is expired, will be refreshed by ensureValidToken');
+                }
                 return;
             }
 
@@ -161,7 +178,7 @@ class ParasutApiService {
 
                     if (this.refreshToken) {
                         try {
-                            const tokenData = await this.refreshAccessToken();
+                            await this.refreshAccessToken();
                             console.log('✅ Token refreshed successfully in loadStoredTokens');
                         } catch (err) {
                             console.log('❌ Failed to refresh token in loadStoredTokens:', err.message);
@@ -172,7 +189,7 @@ class ParasutApiService {
                             this.tokenExpiry = null;
                         }
                     } else {
-                        this.clearTokens();
+                        this.clearMemoryTokens();
                     }
                 }
             } else {
@@ -319,8 +336,8 @@ class ParasutApiService {
         } catch (error) {
             console.error('❌ Token refresh failed:', error.response || error.message);
             if (error.response?.status === 401 || error.response?.data?.error === 'invalid_grant') {
-                console.log('🔄 Invalid refresh token, clearing tokens...');
-                this.clearTokens();
+                console.log('🔄 Invalid refresh token, clearing memory tokens...');
+                this.clearMemoryTokens();
                 throw new Error('Refresh token invalid. Please re-authenticate: ' + this.getAuthorizationUrl());
             }
             throw error;
@@ -331,11 +348,10 @@ class ParasutApiService {
      * Ensure a valid token is available
      */
     async ensureValidToken() {
-        // Load tokens from database if not already loaded
-        if (!this.tokensLoaded) {
-            await this.loadStoredTokens();
-            this.tokensLoaded = true;
-        }
+        // Always reload tokens from database to get the latest state
+        console.log('🔄 Loading latest tokens from database...');
+        await this.loadStoredTokens();
+        this.tokensLoaded = true;
 
         if (!this.accessToken || !this.tokenExpiry) {
             throw new Error(`No valid access token. Please authenticate: ${this.getAuthorizationUrl()}`);
@@ -348,7 +364,15 @@ class ParasutApiService {
 
         if (timeUntilExpiry <= fiveMinutes) {
             console.log('🔄 Token expired or expiring soon, refreshing...');
-            await this.refreshAccessToken();
+            try {
+                await this.refreshAccessToken();
+                console.log('✅ Token refreshed successfully');
+            } catch (error) {
+                console.error('❌ Token refresh failed:', error.message);
+                // Clear invalid tokens and throw error
+                this.clearMemoryTokens();
+                throw new Error(`Token refresh failed. Please re-authenticate: ${this.getAuthorizationUrl()}`);
+            }
         } else {
             console.log('✅ Access token is valid');
         }
@@ -395,6 +419,20 @@ class ParasutApiService {
             console.log('='.repeat(80) + '\n');
             return response.data;
         } catch (error) {
+            // Handle token expiration (401 Unauthorized)
+            if (error.response && error.response.status === 401 && retryCount === 0) {
+                console.warn('⚠️ 401 Unauthorized - Token may be expired, refreshing and retrying...');
+                try {
+                    // Force token refresh
+                    this.tokensLoaded = false; // Force reload from database
+                    await this.ensureValidToken();
+                    return this.makeRequest(method, endpoint, data, retryCount + 1);
+                } catch (refreshError) {
+                    console.error('❌ Token refresh failed during 401 retry:', refreshError.message);
+                    throw new Error(`Authentication failed. Please re-authenticate: ${this.getAuthorizationUrl()}`);
+                }
+            }
+
             // Retry on 429 Too Many Requests
             if (error.response && error.response.status === 429 && retryCount < 3) {
                 const delay = 2000 * (retryCount + 1); // Exponential backoff: 2s, 4s, 6s
