@@ -352,7 +352,7 @@ const sendCreatorOtp = asyncHandler(async (req, res) => {
                 "Verification code sent successfully"
             )
         );
-});
+}); 
 
 // Creator OTP Verification
 const verifyCreatorOtp = asyncHandler(async (req, res) => {

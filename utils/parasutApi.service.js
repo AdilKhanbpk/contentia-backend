@@ -427,11 +427,12 @@ class ParasutApiService {
 
             // Handle token expiration (401 Unauthorized)
             if (error.response && error.response.status === 401 && retryCount === 0) {
-                console.warn('⚠️ 401 Unauthorized - Token may be expired, refreshing and retrying...');
+                console.warn('⚠️ 401 Unauthorized - Token is invalid, forcing refresh...');
                 try {
-                    // Force token refresh
-                    this.tokensLoaded = false; // Force reload from database
-                    await this.ensureValidToken();
+                    // Force token refresh regardless of expiry time
+                    console.log('🔄 Forcing token refresh due to 401 error...');
+                    await this.refreshAccessToken();
+                    console.log('✅ Token force-refreshed successfully');
                     return this.makeRequest(method, endpoint, data, retryCount + 1);
                 } catch (refreshError) {
                     console.error('❌ Token refresh failed during 401 retry:', refreshError.message);
