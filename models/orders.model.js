@@ -34,6 +34,8 @@ const ordersProfileSchema = new Schema(
                 ref: "Creator",
             },
         ],
+
+        //paytr order id
         orderId: {
             type: String,
             required: true,
