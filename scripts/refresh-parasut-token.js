@@ -63,7 +63,6 @@ async function refreshParasutToken() {
         });
 
         const { access_token, refresh_token, expires_in } = response.data;
-
         console.log('✅ Token refreshed successfully!');
         console.log(`New Access Token: ${access_token.substring(0, 20)}...`);
         console.log(`Expires in: ${expires_in} seconds`);

@@ -35,6 +35,12 @@ const ordersProfileSchema = new Schema(
             },
         ],
 
+        //paytr order id
+        orderId: {
+            type: String,
+            required: true,
+            unique: true,
+        },
         noOfUgc: {
             type: Number,
         },
@@ -213,7 +219,7 @@ const ordersProfileSchema = new Schema(
             },
         ],
     },
-    { 
+    {
         timestamps: true,
         toJSON: { virtuals: true },
         toObject: { virtuals: true }

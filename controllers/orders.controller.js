@@ -14,6 +14,8 @@ import parasutApiService from "../utils/parasutApi.service.js";
 import sendEmail from "../utils/email.js";
 
 const createOrder = asyncHandler(async (req, res) => {
+
+    console.log(req.body)
     console.log("📥 RECEIVED ORDER DATA:", {
         customerInfo: req.body.customerInfo,
         paymentInfo: req.body.paymentInfo,
@@ -134,6 +136,7 @@ const createOrder = asyncHandler(async (req, res) => {
         orderQuota,
         numberOfRequests,
         associatedBrands: brand?._id,
+        orderId:paymentInfo.orderId
     });
 
     if (brand) {
@@ -152,12 +155,12 @@ const createOrder = asyncHandler(async (req, res) => {
         if (customer && newOrder.totalPriceForCustomer > 0) {
             // Prepare customer information for Paraşüt
             const customerName = customerInfo?.companyName ||
-                                customer.fullName ||
-                                (customer.firstName && customer.lastName ? `${customer.firstName} ${customer.lastName}` : null) ||
-                                customer.firstName ||
-                                customer.lastName ||
-                                customer.email?.split('@')[0] ||
-                                'Customer';
+                customer.fullName ||
+                (customer.firstName && customer.lastName ? `${customer.firstName} ${customer.lastName}` : null) ||
+                customer.firstName ||
+                customer.lastName ||
+                customer.email?.split('@')[0] ||
+                'Customer';
 
             console.log('📋 Customer info from order form:', customerInfo);
             console.log('📋 Customer info from user profile:', {
@@ -246,12 +249,12 @@ const createOrder = asyncHandler(async (req, res) => {
                         });
                     }
 
-            // Send simple invoice creation notification
-            if (invoiceInfo && parasutCustomerInfo.email) {
-                try {
-                    console.log('📧 Sending invoice creation notification...');
+                    // Send simple invoice creation notification
+                    if (invoiceInfo && parasutCustomerInfo.email) {
+                        try {
+                            console.log('📧 Sending invoice creation notification...');
 
-                    const emailHTML = `
+                            const emailHTML = `
                         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
                             <div style="background-color: #f8f9fa; padding: 20px; text-align: center; border-radius: 8px;">
                                 <h1>Contentia</h1>
@@ -286,11 +289,11 @@ const createOrder = asyncHandler(async (req, res) => {
                         </div>
                     `;
 
-                    await sendEmail({
-                        email: parasutCustomerInfo.email,
-                        subject: `Invoice Created - Order #${newOrder._id}`,
-                        html: emailHTML
-                    });
+                            await sendEmail({
+                                email: parasutCustomerInfo.email,
+                                subject: `Invoice Created - Order #${newOrder._id}`,
+                                html: emailHTML
+                            });
 
                             console.log('📧 Invoice creation notification sent successfully to:', parasutCustomerInfo.email);
                         } catch (emailError) {
