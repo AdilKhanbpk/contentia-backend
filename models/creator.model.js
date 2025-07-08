@@ -77,6 +77,16 @@ const CreatorFormSchema = new mongoose.Schema(
         verificationCode: {
             type: String,
         },
+        otpExpiresAt: {
+            type: Date,
+        },
+        isPhoneVerified: {
+            type: Boolean,
+            default: false,
+        },
+        otpJobID: {
+            type: String,
+        },
         isVerified: {
             type: String,
             enum: ["pending", "approved", "rejected"],

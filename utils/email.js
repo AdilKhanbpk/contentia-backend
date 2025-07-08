@@ -34,6 +34,7 @@
 
 // // New SendGrid implementation
 import sgMail from '@sendgrid/mail';
+import { retryEmailCall } from './retryHelper.js';
 
 // Set SendGrid API key
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
@@ -41,6 +42,16 @@ sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 const sendEmail = ({ email, subject, text = null, html = null }) => {
     return new Promise(async (resolve, reject) => {
         try {
+            // Check if email sending is disabled
+            if (process.env.DISABLE_EMAILS === 'true') {
+                console.log('📧 Email sending is disabled via DISABLE_EMAILS environment variable');
+                return resolve({
+                    message: "Email sending disabled",
+                    statusCode: 200,
+                    disabled: true
+                });
+            }
+
             // Validate required environment variables
             if (!process.env.SENDGRID_API_KEY) {
                 throw new Error('SENDGRID_API_KEY is not configured in environment variables');
@@ -73,9 +84,12 @@ const sendEmail = ({ email, subject, text = null, html = null }) => {
                 msg.to = { email: email };
             }
 
-            // Send email using SendGrid
+            // Send email using SendGrid with retry logic
             console.log('Sending email via SendGrid...');
-            const response = await sgMail.send(msg);
+
+            const response = await retryEmailCall(async () => {
+                return await sgMail.send(msg);
+            });
 
             console.log('Email sent successfully via SendGrid');
             console.log('Response status:', response[0].statusCode);
@@ -92,6 +106,18 @@ const sendEmail = ({ email, subject, text = null, html = null }) => {
             // Handle SendGrid specific errors
             if (error.response) {
                 console.error('SendGrid error response:', error.response.body);
+
+                // Check for quota exceeded error
+                const errorBody = error.response.body;
+                if (errorBody?.errors?.some(err => err.message?.includes('Maximum credits exceeded'))) {
+                    console.warn('⚠️ SendGrid quota exceeded - email not sent but continuing operation');
+                    return resolve({
+                        message: "Email quota exceeded - notification skipped",
+                        statusCode: 429,
+                        quotaExceeded: true
+                    });
+                }
+
                 return reject({
                     message: `SendGrid Error: ${error.message}`,
                     details: error.response.body

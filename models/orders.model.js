@@ -34,7 +34,11 @@ const ordersProfileSchema = new Schema(
                 ref: "Creator",
             },
         ],
-
+        orderId: {
+            type: String,
+            required: true,
+            unique: true,
+        },
         noOfUgc: {
             type: Number,
         },
@@ -72,6 +76,23 @@ const ordersProfileSchema = new Schema(
             type: String,
             enum: ["paid", "pending", "refunded", "cancelled"],
             default: "pending",
+        },
+        invoiceInfo: {
+            status: {
+                type: String,
+                enum: ["processing", "completed", "failed"],
+                default: "processing"
+            },
+            invoiceId: String,
+            invoiceNumber: String,
+            totalAmount: Number,
+            sharingUrl: String,
+            sharingPath: String,
+            error: String,
+            createdAt: {
+                type: Date,
+                default: Date.now
+            }
         },
         contentsDelivered: {
             type: Number,
@@ -196,7 +217,7 @@ const ordersProfileSchema = new Schema(
             },
         ],
     },
-    { 
+    {
         timestamps: true,
         toJSON: { virtuals: true },
         toObject: { virtuals: true }

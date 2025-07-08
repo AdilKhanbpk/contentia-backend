@@ -26,6 +26,7 @@ import revisionRoute from "./routes/revision.routes.js";
 import passwordRoutes from "./routes/password.routes.js";
 import appPasswordRoutes from "./routes/appPassword.routes.js";
 import paymentRoute from "./routes/payment.route.js";
+import parasutRoute from "./routes/parasut.routes.js";
 
 // ADMIN ROUTES
 import adminCustomerRoutes from "./routes/admin/adminCustomer.routes.js";
@@ -48,9 +49,9 @@ import adminClaimsRoute from "./routes/admin/adminClaim.routes.js";
 import adminNotificationRoute from "./routes/admin/adminNotification.routes.js";
 import adminEmailNotificationRoute from "./routes/admin/adminEmailNotification.routes.js";
 import adminDashboardRoute from "./routes/admin/adminDashboard.routes.js";
-import adminIncomingPayments from "./routes/admin/adminIncomingPayment.routes.js"
-import adminTermsAndConditionsRoute from "./routes/admin/adminT&C.route.js"
-import adminFilesRoutes from "./routes/admin/adminFiles.routes.js"
+import adminIncomingPayments from "./routes/admin/adminIncomingPayment.routes.js";
+import adminTermsAndConditionsRoute from "./routes/admin/adminT&C.route.js";
+import adminFilesRoutes from "./routes/admin/adminFiles.routes.js";
 import pageViewsRoute from "./routes/pageViews.route.js";
 import analyticsTestRoute from "./routes/analytics-test.route.js";
 
@@ -145,7 +146,6 @@ app.use(express.static(path.join(__dirname, "")));
 
 app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10kb" }));
-app.use(cookieParser());
 
 // Add routes for the root path and health check to confirm the server is running
 app.get("/", (_req, res) => {
@@ -218,6 +218,9 @@ app.use("/api/v1/analytics-test", analyticsTestRoute); // Test route for Google 
 // payment route
 app.use("/api/paytr", paymentRoute);
 
+// parasut route
+app.use("/api/v1/parasut", parasutRoute);
+
 
 // ADMIN ROUTES
 app.use("/api/v1/admin/customers", adminCustomerRoutes);
@@ -241,9 +244,9 @@ app.use("/api/v1/admin/claims", adminClaimsRoute);
 app.use("/api/v1/admin/notifications", adminNotificationRoute);
 app.use("/api/v1/admin/emailNotifications", adminEmailNotificationRoute);
 app.use("/api/v1/admin/dashboard", adminDashboardRoute);
-app.use("/api/v1/admin/incomingPayment", adminIncomingPayments)
-app.use("/api/v1/admin/terms", adminTermsAndConditionsRoute)
-app.use("/api/v1/admin/files", adminFilesRoutes)
+app.use("/api/v1/admin/incomingPayment", adminIncomingPayments);
+app.use("/api/v1/admin/terms", adminTermsAndConditionsRoute);
+app.use("/api/v1/admin/files", adminFilesRoutes);
 app.all("*", (req, res) => {
     const message = `Can't find ${req.originalUrl} on this server!`;
     logger.warn(message);

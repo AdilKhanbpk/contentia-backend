@@ -31,11 +31,11 @@ export const signup = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Please provide email and password");
   }
 
-  // Check for existing verified user
+  // Check for existing verified user (these emails/phones are truly taken)
   const existingVerifiedUser = await User.findOne({
     $or: [
-      { email, isPhoneVerified: true },
-      ...(phoneNumber ? [{ phoneNumber, isPhoneVerified: true }] : []),
+      { email, verified: true }, // Use 'verified' field instead of 'isPhoneVerified'
+      ...(phoneNumber ? [{ phoneNumber, verified: true }] : []),
     ],
   });
 
@@ -48,11 +48,11 @@ export const signup = asyncHandler(async (req, res) => {
     }
   }
 
-  // Check for existing unverified user
+  // Check for existing unverified user (these can be reused/updated)
   const existingUnverifiedUser = await User.findOne({
     $or: [
-      { email, isPhoneVerified: false },
-      ...(phoneNumber ? [{ phoneNumber, isPhoneVerified: false }] : []),
+      { email, verified: false },
+      ...(phoneNumber ? [{ phoneNumber, verified: false }] : []),
     ],
   });
 
@@ -61,9 +61,30 @@ export const signup = asyncHandler(async (req, res) => {
   const otpExpiresAt = new Date(Date.now() + 40 * 5 * 60 * 1000);
 
   // Send OTP using Netgsm
+  console.log('📱 Attempting to send OTP to:', phoneNumber);
+  console.log('📱 Phone number type:', typeof phoneNumber);
+  console.log('📱 Phone number length:', phoneNumber?.length);
+  console.log('📱 Phone number raw:', JSON.stringify(phoneNumber));
+  console.log('🔧 Environment check:', {
+    NODE_ENV: process.env.NODE_ENV,
+    NETGSM_USERCODE: process.env.NETGSM_USERCODE ? 'SET' : 'NOT SET',
+    NETGSM_PASSWORD: process.env.NETGSM_PASSWORD ? 'SET' : 'NOT SET',
+    NETGSM_MSGHEADER: process.env.NETGSM_MSGHEADER ? 'SET' : 'NOT SET'
+  });
+
   const smsResult = await sendOtp(phoneNumber, verificationCode);
+  console.log('📱 SMS Result:', smsResult);
+ 
   if (!smsResult.success) {
-    throw new ApiError(500, smsResult.error || "Failed to send OTP");
+    console.error('❌ SMS sending failed:', {
+      error: smsResult.error,
+      code: smsResult.code,
+      phoneNumber: phoneNumber,
+      environment: process.env.NODE_ENV
+    });
+
+    const { statusCode, errorMessage } = handleSmsError(smsResult);
+    throw new ApiError(statusCode, errorMessage);
   }
 
   let user;
@@ -164,11 +185,12 @@ console.log("phoneNumber, verificationCode", phoneNumber, verificationCode)
   // }
 
   // Verify the OTP code
-  console.log("user.verificationCode", user);
-  
-if (Number(user.verificationCode) !== Number(verificationCode)) {
-  throw new ApiError(400, "Invalid verification code");
-}
+  console.log("user.verificationCode", user.verificationCode);
+  console.log("provided verificationCode", verificationCode);
+
+  if (Number(user.verificationCode) !== Number(verificationCode)) {
+    throw new ApiError(400, "Invalid verification code");
+  }
 
   // Update user verification status
   user.isPhoneVerified = true;

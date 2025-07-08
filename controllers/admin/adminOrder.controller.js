@@ -11,6 +11,7 @@ import { notificationTemplates } from "../../helpers/notificationTemplates.js";
 import BrandModel from "../../models/brand.model.js";
 import { uploadMultipleFilesToCloudinary } from "../../utils/Cloudinary.js";
 import parasutApiService from "../../utils/parasutApi.service.js";
+import sendEmail from "../../utils/email.js";
 
 const createOrder = asyncHandler(async (req, res) => {
     const {
@@ -194,12 +195,66 @@ const createOrder = asyncHandler(async (req, res) => {
             );
 
             invoiceInfo = {
-                invoiceId: invoice.id,
-                invoiceNumber: invoice.attributes?.invoice_no,
-                totalAmount: newOrder.totalPriceForCustomer
+                invoiceId: invoice.invoiceId || invoice.id,
+                invoiceNumber: invoice.invoiceNumber || invoice.attributes?.invoice_no,
+                totalAmount: newOrder.totalPriceForCustomer,
+                sharingUrl: invoice.sharingUrl || invoice.attributes?.sharing_preview_url,
+                sharingPath: invoice.sharingPath || invoice.attributes?.sharing_preview_path
             };
 
-            console.log('Invoice created automatically for admin order:', newOrder._id, 'Invoice ID:', invoice.id);
+            console.log('Invoice created automatically for admin order:', newOrder._id, 'Invoice ID:', invoiceInfo.invoiceId);
+
+            // Send simple invoice creation notification
+            if (invoiceInfo && customerInfo.email) {
+                try {
+                    console.log('📧 Sending invoice creation notification...');
+
+                    const emailHTML = `
+                        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                            <div style="background-color: #f8f9fa; padding: 20px; text-align: center; border-radius: 8px;">
+                                <h1>Contentia</h1>
+                                <h2>Invoice Creation Completed</h2>
+                            </div>
+
+                            <div style="padding: 20px 0;">
+                                <p>Dear ${customerInfo.name},</p>
+
+                                <p>Your invoice has been successfully created and is now ready.</p>
+
+                                <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 15px 0;">
+                                    <h3>Invoice Details:</h3>
+                                    <p><strong>Order Number:</strong> ${newOrder._id}</p>
+                                    <p><strong>Invoice Number:</strong> ${invoiceInfo.invoiceNumber || invoiceInfo.invoiceId}</p>
+                                    <p><strong>Total Amount:</strong> ${invoiceInfo.totalAmount} TL</p>
+                                </div>
+
+                                <div style="background-color: #e8f5e8; padding: 15px; border-radius: 5px; margin: 15px 0; border-left: 4px solid #28a745;">
+                                    <h4 style="margin: 0 0 10px 0; color: #28a745;">📧 Invoice Access:</h4>
+                                    <p style="margin: 0;">You will receive a separate email from Paraşüt with a direct link to view and download your invoice. Please check your inbox.</p>
+                                </div>
+
+
+                                <p>Best regards,<br>
+                                Contentia Team</p>
+                            </div>
+
+                            <div style="background-color: #f8f9fa; padding: 15px; text-align: center; font-size: 12px; color: #666;">
+                                <p>This is an automated email. Please do not reply to this email.</p>
+                            </div>
+                        </div>
+                    `;
+
+                    await sendEmail({
+                        email: customerInfo.email,
+                        subject: `Invoice Created - Order #${newOrder._id}`,
+                        html: emailHTML
+                    });
+
+                    console.log('📧 Invoice creation notification sent successfully to:', customerInfo.email);
+                } catch (emailError) {
+                    console.error('❌ Failed to send invoice creation notification:', emailError.message);
+                }
+            }
         }
     } catch (error) {
         invoiceError = error.message;

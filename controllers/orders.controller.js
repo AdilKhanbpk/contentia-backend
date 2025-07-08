@@ -11,8 +11,18 @@ import User from "../models/user.model.js";
 import { notificationTemplates } from "../helpers/notificationTemplates.js";
 import Revision from "../models/revision.model.js";
 import parasutApiService from "../utils/parasutApi.service.js";
+import sendEmail from "../utils/email.js";
 
 const createOrder = asyncHandler(async (req, res) => {
+
+    console.log(req.body)
+    console.log("📥 RECEIVED ORDER DATA:", {
+        customerInfo: req.body.customerInfo,
+        paymentInfo: req.body.paymentInfo,
+        hasCustomerInfo: !!req.body.customerInfo,
+        customerInfoKeys: req.body.customerInfo ? Object.keys(req.body.customerInfo) : 'none'
+    });
+
     let {
         noOfUgc,
         totalPrice,
@@ -25,6 +35,8 @@ const createOrder = asyncHandler(async (req, res) => {
         briefContent,
         orderQuota,
         numberOfRequests,
+        customerInfo, // Customer info from order form
+        paymentInfo,  // Payment info from order form
     } = req.body;
 
     // Calculate total price if not provided
@@ -124,10 +136,13 @@ const createOrder = asyncHandler(async (req, res) => {
         orderQuota,
         numberOfRequests,
         associatedBrands: brand?._id,
+        orderId:paymentInfo.orderId
     });
 
-    brand.associatedOrders.push(newOrder._id);
-    await brand.save();
+    if (brand) {
+        brand.associatedOrders.push(newOrder._id);
+        await brand.save();
+    }
 
     // Try to create invoice in Paraşüt automatically
     let invoiceInfo = null;
@@ -139,81 +154,174 @@ const createOrder = asyncHandler(async (req, res) => {
 
         if (customer && newOrder.totalPriceForCustomer > 0) {
             // Prepare customer information for Paraşüt
-            const customerName = customer.fullName ||
-                                (customer.firstName && customer.lastName ? `${customer.firstName} ${customer.lastName}` : null) ||
-                                customer.firstName ||
-                                customer.lastName ||
-                                customer.email?.split('@')[0] ||
-                                'Customer';
+            const customerName = customerInfo?.companyName ||
+                customer.fullName ||
+                (customer.firstName && customer.lastName ? `${customer.firstName} ${customer.lastName}` : null) ||
+                customer.firstName ||
+                customer.lastName ||
+                customer.email?.split('@')[0] ||
+                'Customer';
 
-            const customerInfo = {
-                name: customerName,
-                email: customer.email,
-                phone: customer.phoneNumber,
-                address: customer.address,
-                city: customer.city,
+            console.log('📋 Customer info from order form:', customerInfo);
+            console.log('📋 Customer info from user profile:', {
                 taxNumber: customer.taxNumber,
-                taxOffice: customer.taxOffice,
-                contactType: 'person'
+                email: customer.email,
+                phone: customer.phoneNumber
+            });
+
+            const parasutCustomerInfo = {
+                name: customerName,
+                companyName: customerInfo?.companyName,
+                email: customerInfo?.email || customer.email,
+                phone: customerInfo?.phoneNumber || customer.phoneNumber,
+                address: customerInfo?.address || customer.address,
+                city: customer.city,
+                taxNumber: customerInfo?.taxNumber || customer.taxNumber, // Use order form tax number first
+                taxOffice: customerInfo?.taxOffice || customer.taxOffice,
+                contactType: customerInfo?.companyName ? 'company' : 'person'
             };
 
-            // Create complete invoice workflow in Paraşüt (7 steps)
-            const paymentInfo = {
-                isSuccessful: true, // Assuming payment was successful if we reach this point
-                amount: newOrder.totalPriceForCustomer,
-                currency: 'TRY',
-                date: new Date().toISOString().split('T')[0],
-                description: `Payment for Order #${newOrder._id}`
-            };
+            console.log('📋 Final customer info for Paraşüt:', parasutCustomerInfo);
 
-            const invoice = await parasutApiService.createCompleteInvoiceWorkflow(
-                customerInfo,
-                newOrder,
-                paymentInfo,
-                `Order #${newOrder._id} - Video Content Services`
-            );
+            // Return order immediately and process invoice in background
+            const responseMessage = "Order created successfully - invoice is being processed";
 
-            if (invoice.status === 'disabled') {
-                console.log('⚠️ Paraşüt integration is disabled - skipping invoice creation');
-            } else if (invoice.status === 'access_denied') {
-                console.log('⚠️ Paraşüt access denied - skipping invoice creation');
-                console.log('💡 Please verify Paraşüt credentials and company ID');
-                invoiceError = 'Paraşüt access denied - please verify credentials';
-            } else if (invoice.invoiceId) {
-                invoiceInfo = {
-                    invoiceId: invoice.invoiceId,
-                    invoiceNumber: invoice.invoiceNumber,
-                    totalAmount: newOrder.totalPriceForCustomer
-                };
-                console.log('✅ Invoice created automatically for order:', newOrder._id, 'Invoice ID:', invoice.invoiceId);
-            } else {
-                invoiceInfo = {
-                    invoiceId: invoice.id,
-                    invoiceNumber: invoice.attributes?.invoice_no,
-                    totalAmount: newOrder.totalPriceForCustomer
-                };
-                console.log('✅ Invoice created automatically for order:', newOrder._id, 'Invoice ID:', invoice.id);
-            }
+            // Send immediate response to frontend
+            const immediateResponse = res.status(201).json(new ApiResponse(201, {
+                ...newOrder.toObject(),
+                invoiceInfo: { status: 'processing', message: 'Invoice is being created in background' },
+                invoiceError: null
+            }, responseMessage));
+
+            // Process invoice creation in background (don't await)
+            setImmediate(async () => {
+                try {
+                    console.log('🔄 Starting background invoice creation for order:', newOrder._id);
+
+                    const paymentInfo = {
+                        isSuccessful: true,
+                        amount: newOrder.totalPriceForCustomer,
+                        currency: 'TRY',
+                        date: new Date().toISOString().split('T')[0],
+                        description: `Payment for Order #${newOrder._id}`
+                    };
+
+                    const invoice = await parasutApiService.createCompleteInvoiceWorkflow(
+                        parasutCustomerInfo,
+                        newOrder,
+                        paymentInfo,
+                        `Order #${newOrder._id} - Video Content Services`,
+                        parasutCustomerInfo.email
+                    );
+
+                    if (invoice.status === 'disabled') {
+                        console.log('⚠️ Paraşüt integration is disabled - skipping invoice creation');
+                    } else if (invoice.status === 'access_denied') {
+                        console.log('⚠️ Paraşüt access denied - skipping invoice creation');
+                        console.log('💡 Please verify Paraşüt credentials and company ID');
+                    } else if (invoice.invoiceId) {
+                        console.log('✅ Invoice created automatically for order:', newOrder._id, 'Invoice ID:', invoice.invoiceId);
+
+                        // Update order with invoice info in database
+                        await Orders.findByIdAndUpdate(newOrder._id, {
+                            $set: {
+                                'invoiceInfo.invoiceId': invoice.invoiceId,
+                                'invoiceInfo.invoiceNumber': invoice.invoiceNumber,
+                                'invoiceInfo.totalAmount': newOrder.totalPriceForCustomer,
+                                'invoiceInfo.sharingUrl': invoice.sharingUrl,
+                                'invoiceInfo.sharingPath': invoice.sharingPath,
+                                'invoiceInfo.status': 'completed'
+                            }
+                        });
+                    } else if (invoice.id) {
+                        console.log('✅ Invoice created automatically for order:', newOrder._id, 'Invoice ID:', invoice.id);
+
+                        // Update order with invoice info in database
+                        await Orders.findByIdAndUpdate(newOrder._id, {
+                            $set: {
+                                'invoiceInfo.invoiceId': invoice.id,
+                                'invoiceInfo.invoiceNumber': invoice.attributes?.invoice_no,
+                                'invoiceInfo.totalAmount': newOrder.totalPriceForCustomer,
+                                'invoiceInfo.sharingUrl': invoice.attributes?.sharing_preview_url,
+                                'invoiceInfo.sharingPath': invoice.attributes?.sharing_preview_path,
+                                'invoiceInfo.status': 'completed'
+                            }
+                        });
+                    }
+
+                    // Send simple invoice creation notification
+                    if (invoiceInfo && parasutCustomerInfo.email) {
+                        try {
+                            console.log('📧 Sending invoice creation notification...');
+
+                            const emailHTML = `
+                        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                            <div style="background-color: #f8f9fa; padding: 20px; text-align: center; border-radius: 8px;">
+                                <h1>Contentia</h1>
+                                <h2>Invoice Creation Completed</h2>
+                            </div>
+
+                            <div style="padding: 20px 0;">
+                                <p>Dear ${parasutCustomerInfo.name},</p>
+
+                                <p>Your invoice has been successfully created and is now ready.</p>
+
+                                <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 15px 0;">
+                                    <h3>Invoice Details:</h3>
+                                    <p><strong>Order Number:</strong> ${newOrder._id}</p>
+                                    <p><strong>Invoice Number:</strong> ${invoiceInfo.invoiceNumber || invoiceInfo.invoiceId}</p>
+                                    <p><strong>Total Amount:</strong> ${invoiceInfo.totalAmount} TL</p>
+                                </div>
+
+                                <div style="background-color: #e8f5e8; padding: 15px; border-radius: 5px; margin: 15px 0; border-left: 4px solid #28a745;">
+                                    <h4 style="margin: 0 0 10px 0; color: #28a745;">📧 Invoice Access:</h4>
+                                    <p style="margin: 0;">You will receive a separate email from Paraşüt with a direct link to view and download your invoice. Please check your inbox.</p>
+                                </div>
+
+
+                                <p>Best regards,<br>
+                                Contentia Team</p>
+                            </div>
+
+                            <div style="background-color: #f8f9fa; padding: 15px; text-align: center; font-size: 12px; color: #666;">
+                                <p>This is an automated email. Please do not reply to this email.</p>
+                            </div>
+                        </div>
+                    `;
+
+                            await sendEmail({
+                                email: parasutCustomerInfo.email,
+                                subject: `Invoice Created - Order #${newOrder._id}`,
+                                html: emailHTML
+                            });
+
+                            console.log('📧 Invoice creation notification sent successfully to:', parasutCustomerInfo.email);
+                        } catch (emailError) {
+                            console.error('❌ Failed to send invoice creation notification:', emailError.message);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Failed to create invoice automatically for order:', newOrder._id, error.message);
+
+                    // Update order with error info
+                    await Orders.findByIdAndUpdate(newOrder._id, {
+                        $set: {
+                            'invoiceInfo.status': 'failed',
+                            'invoiceInfo.error': error.message
+                        }
+                    });
+                }
+            });
+
+            return immediateResponse;
+        } else {
+            // If no customer info, just return the order
+            return res.status(201).json(new ApiResponse(201, newOrder.toObject(), "Order created successfully"));
         }
     } catch (error) {
-        invoiceError = error.message;
-        console.error('Failed to create invoice automatically for order:', newOrder._id, error);
-        // Don't fail the order creation if invoice fails
+        console.error('Order creation error:', error);
+        throw error;
     }
-
-    const responseMessage = invoiceError
-        ? `Order created successfully, but invoice creation failed: ${invoiceError}`
-        : invoiceInfo
-        ? `Order created successfully and invoice generated (${invoiceInfo.invoiceNumber})`
-        : "Order created successfully";
-
-    return res
-        .status(201)
-        .json(new ApiResponse(201, {
-            ...newOrder.toObject(),
-            invoiceInfo: invoiceInfo,
-            invoiceError: invoiceError
-        }, responseMessage));
 });
 
 const getMyOrders = asyncHandler(async (req, res) => {

@@ -24,6 +24,8 @@ import User from "../models/user.model.js";
 import { notificationTemplates } from "../helpers/notificationTemplates.js";
 import Order from "../models/orders.model.js";
 import mongoose from "mongoose";
+import { generateOtp } from "../utils/generateOtp.js";
+import { sendOtp, handleSmsError } from "../utils/netgsmServiceOtp.js";
 
 /**
  * Generates and returns a new access token for the given creator user ID
@@ -60,8 +62,14 @@ const loginCreator = asyncHandler(async (req, res) => {
         throw new ApiError(401, "Either email or password is incorrect");
     }
 
+    // Check if creator has completed OTP verification
+    if (!user.isPhoneVerified) {
+        throw new ApiError(403, "Creator is not verified. Please complete OTP verification.");
+    }
+
+    // Check admin approval status
     if (user.isVerified === "pending" || user.isVerified === "rejected") {
-        throw new ApiError(401, "Your account is not verified yet");
+        throw new ApiError(401, "Your account is not approved yet by admin");
     }
 
     const { accessToken } = await generateTokens(user._id);
@@ -83,7 +91,7 @@ const loginCreator = asyncHandler(async (req, res) => {
 });
 
 const createCreator = asyncHandler(async (req, res) => {
-    const {
+    let {
         fullName,
         password,
         tckn,
@@ -100,6 +108,11 @@ const createCreator = asyncHandler(async (req, res) => {
         ...rest
     } = req.body;
 
+    // Set default invoiceType if not provided
+    if (!invoiceType) {
+        invoiceType = accountType || "individual";
+    }
+
     if (
         !fullName ||
         !password ||
@@ -111,14 +124,52 @@ const createCreator = asyncHandler(async (req, res) => {
         !accountType ||
         !invoiceType
     ) {
+        console.log("❌ Missing required fields:", {
+            fullName: !!fullName,
+            password: !!password,
+            tckn: !!tckn,
+            email: !!email,
+            dateOfBirth: !!dateOfBirth,
+            phoneNumber: !!phoneNumber,
+            userAgreement: !!userAgreement,
+            accountType: !!accountType,
+            invoiceType: !!invoiceType
+        });
         throw new ApiError(400, "Please fill all the required fields");
     }
 
-    const checkEmail = await Creator.findOne({ email });
+    // Check for existing phone-verified creator (email/phone truly taken)
+    const existingVerifiedCreator = await Creator.findOne({
+        $or: [
+            { email, isPhoneVerified: true },
+            { phoneNumber, isPhoneVerified: true }
+        ]
+    });
 
-    if (checkEmail) {
-        throw new ApiError(400, "Email address is already in use.");
+    if (existingVerifiedCreator) {
+        if (existingVerifiedCreator.email === email) {
+            throw new ApiError(400, "Email address is already in use.");
+        }
+        if (existingVerifiedCreator.phoneNumber === phoneNumber) {
+            throw new ApiError(400, "Phone number is already in use.");
+        }
     }
+
+    // Check for existing unverified creator by email first (primary check)
+    let existingUnverifiedCreator = await Creator.findOne({
+        email,
+        isPhoneVerified: false
+    });
+
+    // If not found by email, check by phone number
+    if (!existingUnverifiedCreator) {
+        existingUnverifiedCreator = await Creator.findOne({
+            phoneNumber,
+            isPhoneVerified: false
+        });
+    }
+
+    console.log('🔍 Existing unverified creator found:', !!existingUnverifiedCreator);
 
     if (accountType === "individual") {
 
@@ -173,22 +224,56 @@ const createCreator = asyncHandler(async (req, res) => {
 
     const allAdminIds = await User.find({ role: "admin" }).select("_id");
 
-    const newUser = await Creator.create({
-        fullName,
-        password,
-        tckn,
-        email: email.trim().toLowerCase(),
-        dateOfBirth,
-        phoneNumber,
-        userAgreement,
-        addressDetails,
-        accountType,
-        invoiceType,
-        paymentInformation,
-        billingInformation,
-        preferences,
-        ...rest,
-    });
+    let newUser;
+    if (existingUnverifiedCreator) {
+        console.log('🔄 Updating existing unverified creator:', existingUnverifiedCreator._id);
+        // Update existing unverified creator
+        newUser = await Creator.findByIdAndUpdate(
+            existingUnverifiedCreator._id,
+            {
+                fullName,
+                password,
+                tckn,
+                email: email.trim().toLowerCase(),
+                dateOfBirth,
+                phoneNumber,
+                userAgreement,
+                addressDetails,
+                accountType,
+                invoiceType,
+                paymentInformation,
+                billingInformation,
+                preferences,
+                isVerified: "pending", // Admin approval status
+                isPhoneVerified: false, // OTP verification status
+                verified: false, // Keep this field as well
+                ...rest,
+            },
+            { new: true }
+        );
+    } else {
+        console.log('✨ Creating new creator');
+        // Create new creator
+        newUser = await Creator.create({
+            fullName,
+            password,
+            tckn,
+            email: email.trim().toLowerCase(),
+            dateOfBirth,
+            phoneNumber,
+            userAgreement,
+            addressDetails,
+            accountType,
+            invoiceType,
+            paymentInformation,
+            billingInformation,
+            preferences,
+            isVerified: "pending", // Admin approval status
+            isPhoneVerified: false, // OTP verification status
+            verified: false, // Keep this field as well
+            ...rest,
+        });
+    }
 
     const notificationData = notificationTemplates.creatorRegistration({
         targetUsers: allAdminIds.map((admin) => admin._id),
@@ -205,9 +290,167 @@ const createCreator = asyncHandler(async (req, res) => {
 
     return res.status(201).json({
         status: 201,
-        data: newUser,
-        message: "Creator user created successfully",
+        data: {
+            creator: {
+                ...newUser.toObject(),
+                password: undefined,
+                verificationCode: undefined
+            },
+            phoneNumber: newUser.phoneNumber,
+            requiresOtpVerification: true
+        },
+        message: "Creator registration successful. Please proceed to phone verification.",
     });
+});
+
+// Send Initial OTP to Creator (called when creator reaches OTP page)
+const sendCreatorOtp = asyncHandler(async (req, res) => {
+    const { phoneNumber } = req.body;
+
+    if (!phoneNumber) {
+        throw new ApiError(400, "Phone number is required");
+    }
+
+    // Find creator by phone number
+    const creator = await Creator.findOne({ phoneNumber });
+
+    if (!creator) {
+        throw new ApiError(404, "Creator not found");
+    }
+
+    // Check if creator is already verified
+    if (creator.isPhoneVerified) {
+        throw new ApiError(400, "Creator is already verified");
+    }
+
+    // Generate OTP
+    const verificationCode = generateOtp();
+    const otpExpiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
+
+    // Send OTP using Netgsm
+    const smsResult = await sendOtp(phoneNumber, verificationCode);
+    if (!smsResult.success) {
+        console.error('SMS send failed:', smsResult);
+        const { statusCode, errorMessage } = handleSmsError(smsResult);
+        throw new ApiError(statusCode, errorMessage);
+    }
+
+    console.log('SMS sent successfully:', smsResult);
+
+    // Update creator with OTP details
+    creator.verificationCode = verificationCode;
+    creator.otpExpiresAt = otpExpiresAt;
+    creator.otpJobID = smsResult.jobID;
+    await creator.save({ validateBeforeSave: false });
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                { phoneNumber },
+                "Verification code sent successfully"
+            )
+        );
+});
+
+// Creator OTP Verification
+const verifyCreatorOtp = asyncHandler(async (req, res) => {
+    const { phoneNumber, verificationCode } = req.body;
+    console.log("phoneNumber, verificationCode", phoneNumber, verificationCode);
+
+    if (!phoneNumber || !verificationCode) {
+        throw new ApiError(400, "Phone number and verification code are required");
+    }
+
+    // Find creator by phone number
+    const creator = await Creator.findOne({ phoneNumber });
+
+    if (!creator) {
+        throw new ApiError(404, "Creator not found");
+    }
+
+    // Check if OTP has expired (optional - you can uncomment if needed)
+    // if (creator.otpExpiresAt && new Date() > creator.otpExpiresAt) {
+    //     throw new ApiError(400, "Verification code has expired. Please request a new one");
+    // }
+
+    // Verify the OTP code
+    console.log("creator.verificationCode", creator.verificationCode);
+
+    if (Number(creator.verificationCode) !== Number(verificationCode)) {
+        throw new ApiError(400, "Invalid verification code");
+    }
+
+    // Update creator verification status
+    creator.isPhoneVerified = true; // Mark phone as verified
+    creator.verified = true; // Also set verified field for compatibility
+    creator.verificationCode = undefined; // Clear the verification code
+    creator.otpExpiresAt = undefined; // Clear the expiration time
+    await creator.save({ validateBeforeSave: false });
+
+    // Get creator without password
+    const creatorWithoutPassword = await Creator.findById(creator._id).select("-password");
+
+    // Generate new tokens
+    const { accessToken } = await generateTokens(creator._id);
+
+    return res
+        .status(200)
+        .cookie("accessToken", accessToken, cookieOptions)
+        .json(
+            new ApiResponse(
+                200,
+                { creator: creatorWithoutPassword, accessToken },
+                "Phone number verified successfully"
+            )
+        );
+});
+
+// Creator Resend OTP
+const resendCreatorOtp = asyncHandler(async (req, res) => {
+    const { phoneNumber } = req.body;
+
+    if (!phoneNumber) {
+        throw new ApiError(400, "Phone number is required");
+    }
+
+    // Find creator
+    const creator = await Creator.findOne({ phoneNumber });
+
+    if (!creator) {
+        throw new ApiError(404, "Creator not found");
+    }
+
+    // Generate new OTP
+    const verificationCode = generateOtp();
+    const otpExpiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
+
+    const smsResult = await sendOtp(creator.phoneNumber, verificationCode);
+
+    if (!smsResult.success) {
+        console.error('SMS resend failed:', smsResult);
+        const { statusCode, errorMessage } = handleSmsError(smsResult);
+        throw new ApiError(statusCode, errorMessage);
+    }
+
+    console.log('SMS resent successfully:', smsResult);
+
+    // Update creator with new OTP
+    creator.verificationCode = verificationCode;
+    creator.otpExpiresAt = otpExpiresAt;
+    creator.otpJobID = smsResult.jobID;
+    await creator.save({ validateBeforeSave: false });
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                {},
+                "Verification code sent successfully"
+            )
+        );
 });
 
 const updateCreator = asyncHandler(async (req, res) => {
@@ -1309,6 +1552,9 @@ const getTotalOrdersOfCreator = asyncHandler(async (req, res) => {
 export {
     loginCreator,
     createCreator,
+    sendCreatorOtp,
+    verifyCreatorOtp,
+    resendCreatorOtp,
     updateCreator,
     applyForOrder,
     changePassword,

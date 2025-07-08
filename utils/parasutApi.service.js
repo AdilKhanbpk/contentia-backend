@@ -4,6 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import sendEmail from './email.js';
+import Token from '../models/token.model.js';
 
 dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
@@ -16,8 +17,9 @@ const REFRESH_TOKEN = process.env.PARASUT_REFRESH_TOKEN;
 class ParasutApiService {
     constructor() {
         // Official Paraşüt API endpoints
-        this.baseURL = process.env.PARASUT_API_BASE_URL || 'https://api.parasut.com/v4';
-        this.testURL = process.env.PARASUT_TEST_URL || 'https://api.parasut.com/v4';
+        this.baseURL = process.env.PARASUT_API_BASE_URL;
+        this.testURL = process.env.PARASUT_TEST_URL ;
+        this.oauthBaseURL = process.env.PARASUT_OAUTH_BASE_URL;
 
         // OAuth 2.0 credentials for Paraşüt
         this.clientId = process.env.PARASUT_CLIENT_ID;
@@ -32,8 +34,8 @@ class ParasutApiService {
         this.refreshToken = null;
         this.tokenExpiry = null;
 
-        // Load stored tokens
-        this.loadStoredTokens();
+        // Load stored tokens (async - will be called when needed)
+        this.tokensLoaded = false;
         
         // Company information for invoice creation
         this.companyInfo = {
@@ -49,6 +51,33 @@ class ParasutApiService {
     }
 
     /**
+     * Save tokens to database
+     */
+    async saveTokensToDatabase() {
+        try {
+            if (!this.accessToken || !this.refreshToken || !this.tokenExpiry) {
+                console.log('⚠️ Cannot save tokens - missing token data');
+                return;
+            }
+
+            await Token.saveToken('parasut', {
+                accessToken: this.accessToken,
+                refreshToken: this.refreshToken,
+                tokenExpiry: this.tokenExpiry,
+                companyId: this.companyId,
+                metadata: {
+                    lastUpdated: new Date(),
+                    source: 'parasut_api_service'
+                }
+            });
+
+            console.log('✅ Tokens saved to database successfully');
+        } catch (error) {
+            console.error('❌ Failed to save tokens to database:', error.message);
+        }
+    }
+
+    /**
      * Get authorization URL for Paraşüt OAuth 2.0 Authorization Code Grant
      */
     getAuthorizationUrl() {
@@ -59,7 +88,7 @@ class ParasutApiService {
             scope: 'read+write',
             company_id: this.companyId
         });
-        return `https://api.parasut.com/oauth/authorize?${params.toString()}`;
+        return `${this.oauthBaseURL}/oauth/authorize?${params.toString()}`;
     }
 
     /**
@@ -70,54 +99,110 @@ class ParasutApiService {
     }
 
     /**
-     * Clear all stored tokens
+     * Clear tokens from memory only (keep database tokens for recovery)
      */
-    clearTokens() {
-        console.log('🧹 Clearing all Paraşüt tokens...');
+    clearMemoryTokens() {
+        console.log('🧹 Clearing Paraşüt tokens from memory...');
         this.accessToken = null;
         this.refreshToken = null;
         this.tokenExpiry = null;
+        this.tokensLoaded = false; // Force reload from database next time
+        console.log('✅ Memory tokens cleared (database tokens preserved)');
+    }
+
+    /**
+     * Clear all stored tokens (memory, environment, and database) - USE WITH CAUTION
+     */
+    async clearAllTokens() {
+        console.log('🧹 Clearing ALL Paraşüt tokens...');
+        this.accessToken = null;
+        this.refreshToken = null;
+        this.tokenExpiry = null;
+        this.tokensLoaded = false;
         delete process.env.PARASUT_ACCESS_TOKEN;
         delete process.env.PARASUT_REFRESH_TOKEN;
         delete process.env.PARASUT_TOKEN_EXPIRY;
+
+        // Also clear from database
+        try {
+            await Token.deleteOne({ service: 'parasut' });
+            console.log('✅ Tokens cleared from database');
+        } catch (error) {
+            console.error('❌ Failed to clear tokens from database:', error.message);
+        }
+
         console.log('✅ All tokens cleared');
     }
 
     /**
-     * Load stored tokens from environment variables
+     * Load stored tokens from database (fallback to environment variables)
      */
-    loadStoredTokens() {
-        if (process.env.PARASUT_ACCESS_TOKEN && process.env.PARASUT_TOKEN_EXPIRY) {
-            const expiry = parseInt(process.env.PARASUT_TOKEN_EXPIRY);
-            if (Date.now() < expiry) {
-                this.accessToken = process.env.PARASUT_ACCESS_TOKEN;
-                this.refreshToken = process.env.PARASUT_REFRESH_TOKEN;
-                this.tokenExpiry = expiry;
-                console.log('✅ Loaded stored Paraşüt tokens from environment');
-                console.log(`   Token preview: ${this.accessToken.substring(0, 10)}...`);
-                console.log(`   Expires: ${new Date(this.tokenExpiry).toISOString()}`);
-            } else {
-                console.log('❌ Stored tokens are expired, attempting to refresh...');
-                this.accessToken = process.env.PARASUT_ACCESS_TOKEN;
-                this.refreshToken = process.env.PARASUT_REFRESH_TOKEN;
-                this.tokenExpiry = expiry;
-                console.log('   Token accessToken:', this.accessToken + '...');
+    async loadStoredTokens() {
+        try {
+            // Try to load from database first
+            const tokenDoc = await Token.findOne({ service: 'parasut' });
 
-                if (this.refreshToken) {
-                    this.refreshAccessToken()
-                        .then((tokenData) => {
-                            console.log('✅ Token refreshed successfully in loadStoredTokens', tokenData);
-                        })
-                        .catch((err) => {
-                            console.log('❌ Failed to refresh token in loadStoredTokens:', err.message);
-                            this.clearTokens();
-                        });
-                } else {
-                    this.clearTokens();
+            if (tokenDoc) {
+                this.accessToken = tokenDoc.accessToken;
+                this.refreshToken = tokenDoc.refreshToken;
+                this.tokenExpiry = tokenDoc.tokenExpiry.getTime();
+
+                // Tokens loaded from database
+
+                if (tokenDoc.isExpired()) {
+                    console.log('⚠️ Database token is expired, will be refreshed by ensureValidToken');
                 }
+                return;
             }
-        } else {
-            console.log('❌ No stored tokens found in environment');
+
+            // Fallback to environment variables
+            if (process.env.PARASUT_ACCESS_TOKEN && process.env.PARASUT_TOKEN_EXPIRY) {
+                const expiry = parseInt(process.env.PARASUT_TOKEN_EXPIRY);
+                if (Date.now() < expiry) {
+                    this.accessToken = process.env.PARASUT_ACCESS_TOKEN;
+                    this.refreshToken = process.env.PARASUT_REFRESH_TOKEN;
+                    this.tokenExpiry = expiry;
+                    console.log('✅ Loaded stored Paraşüt tokens from environment (fallback)');
+                    console.log(`   Token preview: ${this.accessToken.substring(0, 10)}...`);
+                    console.log(`   Expires: ${new Date(this.tokenExpiry).toISOString()}`);
+
+                    // Save to database for future use
+                    await this.saveTokensToDatabase();
+                } else {
+                    console.log('❌ Stored tokens are expired, attempting to refresh...');
+                    this.accessToken = process.env.PARASUT_ACCESS_TOKEN;
+                    this.refreshToken = process.env.PARASUT_REFRESH_TOKEN;
+                    this.tokenExpiry = expiry;
+
+                    if (this.refreshToken) {
+                        try {
+                            await this.refreshAccessToken();
+                            console.log('✅ Token refreshed successfully in loadStoredTokens');
+                        } catch (err) {
+                            console.log('❌ Failed to refresh token in loadStoredTokens:', err.message);
+                            console.log('⚠️ Keeping tokens in database for manual refresh');
+                            // Don't clear database tokens - just clear memory tokens
+                            this.accessToken = null;
+                            this.refreshToken = null;
+                            this.tokenExpiry = null;
+                        }
+                    } else {
+                        this.clearMemoryTokens();
+                    }
+                }
+            } else {
+                console.log('❌ No stored tokens found in database or environment');
+            }
+        } catch (error) {
+            console.error('❌ Error loading tokens from database:', error.message);
+            // Fallback to environment variables only
+            if (process.env.PARASUT_ACCESS_TOKEN && process.env.PARASUT_TOKEN_EXPIRY) {
+                const expiry = parseInt(process.env.PARASUT_TOKEN_EXPIRY);
+                this.accessToken = process.env.PARASUT_ACCESS_TOKEN;
+                this.refreshToken = process.env.PARASUT_REFRESH_TOKEN;
+                this.tokenExpiry = expiry;
+                console.log('✅ Loaded tokens from environment (database error fallback)');
+            }
         }
     }
 
@@ -161,7 +246,10 @@ class ParasutApiService {
                 redirect_uri: this.redirectUri
             });
 
-            const response = await axios.post('https://api.parasut.com/oauth/token', formData, {
+            const tokenUrl = `${this.oauthBaseURL}/oauth/token`;
+            console.log(`🔗 Using OAuth token endpoint: ${tokenUrl}`);
+
+            const response = await axios.post(tokenUrl, formData, {
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
                     'Accept': 'application/json'
@@ -190,7 +278,10 @@ class ParasutApiService {
                 grant_type: 'refresh_token'
             });
 
-            const response = await axios.post('https://api.parasut.com/oauth/token', formData, {
+            const tokenUrl = `${this.oauthBaseURL}/oauth/token`;
+            console.log(`🔗 Using OAuth token endpoint: ${tokenUrl}`);
+
+            const response = await axios.post(tokenUrl, formData, {
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
                     'Accept': 'application/json'
@@ -204,41 +295,47 @@ class ParasutApiService {
 
             // Calculate expiry timestamp
             const expiryTimestamp = Date.now() + (expires_in * 1000);
-            
-            // Read current .env file
-            const envPath = path.join(__dirname, '..', '.env');
-            let envContent = '';
-            
-            if (fs.existsSync(envPath)) {
-                envContent = fs.readFileSync(envPath, 'utf8');
+
+            // Save to database
+            await this.saveTokensToDatabase();
+
+            // Also update .env file for local development (if file exists)
+            try {
+                const envPath = path.join(__dirname, '..', '.env');
+                if (fs.existsSync(envPath)) {
+                    let envContent = fs.readFileSync(envPath, 'utf8');
+
+                    // Update or add Paraşüt tokens
+                    const tokenLines = [
+                        `PARASUT_ACCESS_TOKEN=${access_token}`,
+                        `PARASUT_REFRESH_TOKEN=${refresh_token}`,
+                        `PARASUT_TOKEN_EXPIRY=${expiryTimestamp}`
+                    ];
+
+                    // Remove existing Paraşüt token lines
+                    const lines = envContent.split('\n').filter(line =>
+                        !line.startsWith('PARASUT_ACCESS_TOKEN=') &&
+                        !line.startsWith('PARASUT_REFRESH_TOKEN=') &&
+                        !line.startsWith('PARASUT_TOKEN_EXPIRY=')
+                    );
+
+                    // Add new token lines
+                    const newEnvContent = [...lines, ...tokenLines].join('\n');
+
+                    // Write back to .env file
+                    fs.writeFileSync(envPath, newEnvContent);
+                    console.log('✅ Tokens also updated in .env file for local development');
+                }
+            } catch (envError) {
+                console.log('⚠️ Could not update .env file (normal in production):', envError.message);
             }
-            
-            // Update or add Paraşüt tokens
-            const tokenLines = [
-                `PARASUT_ACCESS_TOKEN=${access_token}`,
-                `PARASUT_REFRESH_TOKEN=${refresh_token}`,
-                `PARASUT_TOKEN_EXPIRY=${expiryTimestamp}`
-            ];
-            
-            // Remove existing Paraşüt token lines
-            const lines = envContent.split('\n').filter(line => 
-                !line.startsWith('PARASUT_ACCESS_TOKEN=') &&
-                !line.startsWith('PARASUT_REFRESH_TOKEN=') &&
-                !line.startsWith('PARASUT_TOKEN_EXPIRY=')
-            );
-            
-            // Add new token lines
-            const newEnvContent = [...lines, ...tokenLines].join('\n');
-            
-            // Write back to .env file
-            fs.writeFileSync(envPath, newEnvContent);
             
             return response.data;
         } catch (error) {
             console.error('❌ Token refresh failed:', error.response || error.message);
             if (error.response?.status === 401 || error.response?.data?.error === 'invalid_grant') {
-                console.log('🔄 Invalid refresh token, clearing tokens...');
-                this.clearTokens();
+                console.log('🔄 Invalid refresh token, clearing memory tokens...');
+                this.clearMemoryTokens();
                 throw new Error('Refresh token invalid. Please re-authenticate: ' + this.getAuthorizationUrl());
             }
             throw error;
@@ -249,7 +346,10 @@ class ParasutApiService {
      * Ensure a valid token is available
      */
     async ensureValidToken() {
-        this.loadStoredTokens();
+        // Always reload tokens from database to get the latest state
+        console.log('🔄 Loading latest tokens from database...');
+        await this.loadStoredTokens();
+        this.tokensLoaded = true;
 
         if (!this.accessToken || !this.tokenExpiry) {
             throw new Error(`No valid access token. Please authenticate: ${this.getAuthorizationUrl()}`);
@@ -262,7 +362,15 @@ class ParasutApiService {
 
         if (timeUntilExpiry <= fiveMinutes) {
             console.log('🔄 Token expired or expiring soon, refreshing...');
-            await this.refreshAccessToken();
+            try {
+                await this.refreshAccessToken();
+                console.log('✅ Token refreshed successfully');
+            } catch (error) {
+                console.error('❌ Token refresh failed:', error.message);
+                // Clear invalid tokens and throw error
+                this.clearMemoryTokens();
+                throw new Error(`Token refresh failed. Please re-authenticate: ${this.getAuthorizationUrl()}`);
+            }
         } else {
             console.log('✅ Access token is valid');
         }
@@ -285,30 +393,52 @@ class ParasutApiService {
                 'Authorization': `Bearer ${this.accessToken}`,
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
-            }
+            },
+            timeout: 60000 // 60 seconds for slow connections
         };
 
         if (data) {
             config.data = data;
         }
 
-        console.log('\n' + '='.repeat(80));
-        console.log(`🚀 PARAŞÜT API REQUEST: ${method} ${endpoint}`);
-        console.log('📍 URL:', config.url);
-        console.log('🔑 Headers:', { ...config.headers, Authorization: 'Bearer [REDACTED]' });
-        if (data) {
-            console.log('📦 Request Body:', JSON.stringify(data, null, 2));
-        }
-        console.log('='.repeat(80));
-
         try {
             const response = await axios(config);
-            console.log('✅ PARAŞÜT API SUCCESS RESPONSE:');
-            console.log('📊 Status:', response.status, response.statusText);
-            console.log('📥 Response Data:', JSON.stringify(response.data, null, 2));
-            console.log('='.repeat(80) + '\n');
+            // Only log essential API calls for invoice creation
+            if (endpoint.includes('/contacts') || endpoint.includes('/products') || endpoint.includes('/sales_invoices') || endpoint.includes('/e_invoice') || endpoint.includes('/e_archive')) {
+                console.log(`✅ ${method} ${endpoint} - Status: ${response.status}`);
+            }
             return response.data;
         } catch (error) {
+            // Handle timeout errors
+            if (error.code === 'ECONNABORTED' && retryCount < 3) {
+                const delay = 3000 * (retryCount + 1); // 3s, 6s, 9s
+                console.warn(`⚠️ Request timeout. Retrying after ${delay / 1000} seconds... (Attempt ${retryCount + 1})`);
+                await new Promise(resolve => setTimeout(resolve, delay));
+                return this.makeRequest(method, endpoint, data, retryCount + 1);
+            }
+
+            // Handle network errors (ENOTFOUND, ECONNRESET, etc.)
+            if ((error.code === 'ENOTFOUND' || error.code === 'ECONNRESET' || error.code === 'ETIMEDOUT') && retryCount < 3) {
+                const delay = 5000 * (retryCount + 1); // 5s, 10s, 15s for network issues
+                console.warn(`⚠️ Network error (${error.code}). Retrying after ${delay / 1000} seconds... (Attempt ${retryCount + 1})`);
+                await new Promise(resolve => setTimeout(resolve, delay));
+                return this.makeRequest(method, endpoint, data, retryCount + 1);
+            }
+
+            // Handle token expiration (401 Unauthorized)
+            if (error.response && error.response.status === 401 && retryCount === 0) {
+                console.warn('⚠️ 401 Unauthorized - Token may be expired, refreshing and retrying...');
+                try {
+                    // Force token refresh
+                    this.tokensLoaded = false; // Force reload from database
+                    await this.ensureValidToken();
+                    return this.makeRequest(method, endpoint, data, retryCount + 1);
+                } catch (refreshError) {
+                    console.error('❌ Token refresh failed during 401 retry:', refreshError.message);
+                    throw new Error(`Authentication failed. Please re-authenticate: ${this.getAuthorizationUrl()}`);
+                }
+            }
+
             // Retry on 429 Too Many Requests
             if (error.response && error.response.status === 429 && retryCount < 3) {
                 const delay = 2000 * (retryCount + 1); // Exponential backoff: 2s, 4s, 6s
@@ -316,19 +446,16 @@ class ParasutApiService {
                 await new Promise(resolve => setTimeout(resolve, delay));
                 return this.makeRequest(method, endpoint, data, retryCount + 1);
             }
-            console.log('❌ PARAŞÜT API ERROR RESPONSE:');
-            console.log('📊 Status:', error.response?.status, error.response?.statusText);
-            console.log('📥 Response Data:', JSON.stringify(error.response?.data, null, 2));
-            if (error.response?.data?.errors) {
-                console.log('🔍 VALIDATION ERRORS:');
-                error.response.data.errors.forEach((err, index) => {
-                    console.log(`  ${index + 1}. Error: ${err.title || 'N/A'}, Detail: ${err.detail || 'N/A'}, Code: ${err.code || 'N/A'}`);
-                });
+
+            // Retry on 500/502/503/504 server errors
+            if (error.response && [500, 502, 503, 504].includes(error.response.status) && retryCount < 2) {
+                const delay = 4000 * (retryCount + 1); // 4s, 8s for server errors
+                console.warn(`⚠️ Server error (${error.response.status}). Retrying after ${delay / 1000} seconds... (Attempt ${retryCount + 1})`);
+                await new Promise(resolve => setTimeout(resolve, delay));
+                return this.makeRequest(method, endpoint, data, retryCount + 1);
             }
-            if (error.response?.status === 404) {
-                console.error('404 Error Details:', error.response.data.errors);
-            }
-            console.log('='.repeat(80) + '\n');
+            // Only log essential error information
+            console.log(`❌ ${method} ${endpoint} - Status: ${error.response?.status} - ${error.response?.statusText || error.message}`);
             throw error;
         }
     }
@@ -465,7 +592,7 @@ class ParasutApiService {
     }
 
     /**
-     * Create or find a contact in Paraşüt
+     * Create or find a contact in Paraşüt (with update capability)
      */
     async createOrFindContact(customerInfo) {
         try {
@@ -478,8 +605,18 @@ class ParasutApiService {
                 try {
                     const response = await this.makeRequest('GET', `/contacts?filter[email]=${encodeURIComponent(customerInfo.email)}`);
                     if (response.data && response.data.length > 0) {
-                        console.log('✅ Found existing contact:', response.data[0].id);
-                        return response.data[0].id;
+                        const existingContact = response.data[0];
+                        console.log('✅ Found existing contact:', existingContact.id);
+
+                        // ALWAYS update contact when found to ensure latest information
+                        console.log('🔄 Updating existing contact with latest information...');
+                        console.log('📋 Current contact tax number:', existingContact.attributes?.tax_number);
+                        console.log('� New tax number to set:', customerInfo.taxNumber);
+
+                        await this.updateContact(existingContact.id, customerInfo);
+                        console.log('✅ Contact updated successfully with latest information');
+
+                        return existingContact.id;
                     }
                 } catch (error) {
                     console.log('⚠️ Contact search failed, creating new contact:', error.message);
@@ -501,7 +638,7 @@ class ParasutApiService {
                 district: customerInfo.district || undefined,
                 phone: customerInfo.phone || undefined,
                 fax: customerInfo.fax || undefined,
-                earcive_payment_type: "KREDIKARTI"
+                earcive_payment_type: "KREDIKARTI/BANKAKARTI"
                 // "payment_type": "KREDIKARTI/BANKAKARTI",
 
             };
@@ -528,6 +665,120 @@ class ParasutApiService {
                     - Check user permissions for company ${this.companyId}
                     - Contact Paraşüt support: destek@parasut.com`);
             }
+            throw error;
+        }
+    }
+
+    /**
+     * Check if existing contact needs updating
+     */
+    shouldUpdateContact(existingContact, newCustomerInfo) {
+        const existing = existingContact.attributes;
+
+        // Key fields that should trigger an update
+        const fieldsToCheck = [
+            { existing: existing.tax_number, new: newCustomerInfo.taxNumber, field: 'tax_number' },
+            { existing: existing.tax_office, new: newCustomerInfo.taxOffice, field: 'tax_office' },
+            { existing: existing.name, new: (newCustomerInfo.name || newCustomerInfo.companyName), field: 'name' },
+            { existing: existing.phone, new: newCustomerInfo.phone, field: 'phone' },
+            { existing: existing.address, new: newCustomerInfo.address, field: 'address' },
+            { existing: existing.city, new: newCustomerInfo.city, field: 'city' },
+            { existing: existing.district, new: newCustomerInfo.district, field: 'district' }
+        ];
+
+        for (const field of fieldsToCheck) {
+            // If new value exists and is different from existing (or existing is empty)
+            if (field.new && field.new !== field.existing) {
+                console.log(`🔄 Field '${field.field}' needs update: '${field.existing}' → '${field.new}'`);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Update existing contact in Paraşüt
+     */
+    async updateContact(contactId, customerInfo) {
+        try {
+            // Handle both taxNumber and taxId field names
+            const taxNumber = customerInfo.taxNumber || customerInfo.taxId;
+
+            console.log('🔄 Updating contact with new customer info:', {
+                contactId,
+                newTaxNumber: taxNumber,
+                newName: customerInfo.name || customerInfo.companyName,
+                newCity: customerInfo.city,
+                newDistrict: customerInfo.district,
+                originalCustomerInfo: customerInfo
+            });
+
+            // Build attributes object - only include fields that have values
+            const attributes = {};
+
+            // Always include these if provided
+            if (customerInfo.name || customerInfo.companyName) {
+                attributes.name = customerInfo.name || customerInfo.companyName;
+            }
+            if (customerInfo.email) {
+                attributes.email = customerInfo.email;
+            }
+            if (taxNumber) {
+                attributes.tax_number = taxNumber;
+                console.log('🏷️ Setting tax_number to:', taxNumber);
+            }
+            if (customerInfo.taxOffice) {
+                attributes.tax_office = customerInfo.taxOffice;
+            }
+            if (customerInfo.address) {
+                attributes.address = customerInfo.address;
+            }
+            if (customerInfo.city) {
+                attributes.city = customerInfo.city;
+            }
+            if (customerInfo.district) {
+                attributes.district = customerInfo.district;
+            } else {
+                // Default district for e-Invoice compliance
+                attributes.district = 'Merkez';
+            }
+            if (customerInfo.phone) {
+                attributes.phone = customerInfo.phone;
+            }
+            if (customerInfo.contactType) {
+                attributes.contact_type = customerInfo.contactType;
+            }
+
+            // Ensure we have at least the tax number to update
+            if (!attributes.tax_number && taxNumber) {
+                attributes.tax_number = taxNumber;
+                console.log('🔧 Force setting tax_number:', taxNumber);
+            }
+
+            const contactData = {
+                data: {
+                    id: contactId,
+                    type: 'contacts',
+                    attributes
+                }
+            };
+
+            console.log('📤 Sending contact update request:', JSON.stringify(contactData, null, 2));
+            const result = await this.makeRequest('PUT', `/contacts/${contactId}`, contactData);
+            console.log('✅ Contact updated:', contactId);
+            console.log('📥 Updated contact response tax_number:', result.data.attributes?.tax_number);
+            return result.data;
+        } catch (error) {
+            console.error('❌ Failed to update contact:', error.response?.data || error.message);
+            console.error('❌ Update payload was:', JSON.stringify({
+                contactId,
+                customerInfo: {
+                    taxNumber: customerInfo.taxNumber,
+                    name: customerInfo.name || customerInfo.companyName,
+                    email: customerInfo.email
+                }
+            }, null, 2));
             throw error;
         }
     }
@@ -622,7 +873,7 @@ class ParasutApiService {
                 throw new Error('Invoice must have at least one detail item.');
             }
 
-            console.log('📋 Creating sales invoice with payload:', JSON.stringify(invoiceData, null, 2));
+            // Creating sales invoice
 
             const result = await this.makeRequest('POST', '/sales_invoices', invoiceData);
             console.log('✅ Sales invoice created:', result.data.id);
@@ -653,24 +904,19 @@ class ParasutApiService {
     /**
      * Complete Paraşüt invoice workflow
      */
-    async createCompleteInvoiceWorkflow(customerInfo, order, paymentInfo, description = 'Video Content Services') {
+    async createCompleteInvoiceWorkflow(customerInfo, order, paymentInfo, description = 'Video Content Services', userEmail = null) {
         try {
             if (!this.isEnabled) {
                 return { status: 'disabled', message: 'Paraşüt integration is disabled' };
             }
 
-            console.log('📋 Step 1: Verifying Company Access...');
+            // Step 1: Verify access and create/find customer
             await this.makeRequest('GET', '/contacts?page[size]=1');
-            console.log('✅ Company access verified');
-
-            console.log('📋 Step 2: Creating/Finding Customer...');
             const contactId = await this.createOrFindContact(customerInfo);
 
-            console.log('📋 Step 3: Preparing Products...');
+            // Step 2: Prepare products and create invoice
             const invoiceItems = await this.prepareInvoiceItems(order);
-
-            console.log('📋 Step 4: Creating Sales Invoice...');
-            const invoice = await this.createSalesInvoice(customerInfo, {
+            const invoice = await this.createSalesInvoiceWithoutPayment(customerInfo, {
                 description,
                 orderNo: order._id.toString(),
                 items: invoiceItems
@@ -679,21 +925,33 @@ class ParasutApiService {
             const invoiceId = invoice.id;
             console.log('✅ Invoice created:', invoiceId);
 
+            // Step 3: Add payment if successful
             if (paymentInfo && paymentInfo.isSuccessful) {
-                console.log('📋 Step 5: Adding Payment Collection...');
-                await this.addPaymentCollection(
-                    invoiceId,
-                    order._id.toString(),
-                    order.totalPriceForCustomer
-                );
-            } else {
-                console.log('⚠️ Skipping payment collection: Payment not successful or missing');
+                try {
+                    await this.addPaymentCollection(
+                        invoiceId,
+                        order._id.toString(),
+                        paymentInfo.amount || order.totalPriceForCustomer
+                    );
+                    console.log('✅ Payment added');
+                } catch (paymentError) {
+                    console.error('❌ Payment failed:', paymentError.message);
+                    // Continue with workflow even if payment fails
+                }
             }
 
-            console.log('📋 Step 6: Formalizing Invoice...');
-            await this.formalizeInvoice(invoiceId, contactId);
+            // Step 4: Formalize and share invoice
+            await this.formalizeInvoice(invoiceId, contactId, customerInfo, userEmail);
+
+            try {
+                await this.createPublicSharingLink(invoiceId, customerInfo.email);
+                console.log('✅ Invoice sharing enabled');
+            } catch (error) {
+                console.log('⚠️ Sharing failed:', error.message);
+            }
 
             console.log('🎉 Invoice workflow completed!');
+
             return {
                 invoiceId,
                 invoiceNumber: invoice.attributes?.invoice_no || 'N/A',
@@ -816,12 +1074,36 @@ class ParasutApiService {
         try {
             // Use hardcoded account ID from env if available, otherwise fallback to default account logic
             const accountId = process.env.PARASUT_PAYMENT_ACCOUNT_ID || await this.getDefaultAccount();
+
             // Fetch invoice to get remaining amount
             const invoice = await this.makeRequest('GET', `/sales_invoices/${invoiceId}`);
             const remaining = parseFloat(invoice.data.attributes.remaining);
-            if (amount > remaining) {
-                throw new Error(`Payment amount (${amount}) exceeds invoice remaining (${remaining})`);
+            const paymentStatus = invoice.data.attributes.payment_status;
+
+            console.log('📊 Invoice Payment Status:', {
+                invoiceId,
+                remaining,
+                paymentStatus,
+                requestedAmount: amount
+            });
+
+            // Check if invoice is already fully paid
+            if (remaining === 0 || paymentStatus === 'paid') {
+                console.log('⚠️ Invoice is already fully paid. Skipping payment addition.');
+                return {
+                    id: 'already_paid',
+                    message: 'Invoice is already fully paid',
+                    remaining: remaining,
+                    paymentStatus: paymentStatus
+                };
             }
+
+            // Check if requested amount exceeds remaining
+            if (amount > remaining) {
+                console.log(`⚠️ Payment amount (${amount}) exceeds invoice remaining (${remaining}). Using remaining amount.`);
+                amount = remaining;
+            }
+
             // Use the correct payload structure for Paraşüt /payments endpoint
             const payload = {
                 data: {
@@ -830,18 +1112,24 @@ class ParasutApiService {
                         description: `Payment for Order #${orderId}`,
                         account_id: parseInt(accountId, 10),
                         date: new Date().toISOString().split('T')[0],
-                        amount: parseFloat(Math.min(amount, remaining)),
+                        amount: parseFloat(amount),
                         exchange_rate: 1
                     }
                 }
             };
 
-            console.log('📦 Payment Payload:', JSON.stringify(payload, null, 2));
+            // Adding payment
             const response = await this.makeRequest('POST', `/sales_invoices/${invoiceId}/payments`, payload);
             console.log('✅ Payment added:', response.data.id);
             return response.data;
         } catch (error) {
             console.error('❌ Payment error:', error.response?.data || error.message);
+
+            // If the error is about exceeding remaining amount, provide more context
+            if (error.message.includes('exceeds invoice remaining')) {
+                throw new Error(`Payment failed: ${error.message}. This usually happens when the invoice is already paid or partially paid. Please check the invoice status in Paraşüt: https://uygulama.parasut.com/469071/satislar/${invoiceId}`);
+            }
+
             throw new Error(`Failed to add payment for invoice ${invoiceId}. Please verify the account and invoice in Paraşüt: https://uygulama.parasut.com/469071/kasa-ve-bankalar`);
         }
     }
@@ -849,12 +1137,14 @@ class ParasutApiService {
     /**
      * Formalize invoice (e-Invoice or e-Archive)
      */
-    async formalizeInvoice(invoiceId, contactId) {
+    async formalizeInvoice(invoiceId, contactId, customerInfo = null, userEmail = null) {
         try {
-            const isEInvoiceUser = await this.checkEInvoiceUser(contactId);
+            const isEInvoiceUser = await this.checkEInvoiceUser(contactId, customerInfo);
             if (isEInvoiceUser) {
-                return await this.createEInvoice(invoiceId);
+                console.log('✅ Customer is e-Invoice user - creating e-Invoice');
+                return await this.createEInvoice(invoiceId, userEmail);
             } else {
+                console.log('✅ Customer is e-Archive user - creating e-Archive');
                 // Fetch the invoice to get order_date
                 const invoiceResp = await this.makeRequest('GET', `/sales_invoices/${invoiceId}`);
                 let orderDate = invoiceResp.data.attributes?.order_date;
@@ -862,7 +1152,7 @@ class ParasutApiService {
                 if (!orderDate) {
                     orderDate = invoiceResp.data.attributes?.issue_date || new Date().toISOString().split('T')[0];
                 }
-                return await this.createEArchive(invoiceId, orderDate);
+                return await this.createEArchive(invoiceId, orderDate, userEmail);
             }
         } catch (error) {
             console.error('❌ Failed to formalize invoice:', error.response?.data || error.message);
@@ -871,18 +1161,35 @@ class ParasutApiService {
     }
 
     /**
-     * Check if customer is e-Invoice user
+     * Check if customer is e-Invoice user (with contact update)
      */
-    async checkEInvoiceUser(contactId) {
+    async checkEInvoiceUser(contactId, customerInfo = null) {
         try {
+            // If customer info is provided, update the contact first
+            if (customerInfo) {
+                console.log('🔄 Updating contact before e-Invoice check...');
+                await this.updateContact(contactId, customerInfo);
+            }
+
             const contact = await this.makeRequest('GET', `/contacts/${contactId}`);
             const taxNumber = contact.data.attributes?.tax_number;
+
+            console.log('🔍 Checking e-Invoice status for tax number:', taxNumber);
+
             if (!taxNumber) {
                 console.log('⚠️ No tax number, defaulting to e-Archive');
                 return false;
             }
 
             const inboxes = await this.makeRequest('GET', `/e_invoice_inboxes?filter[vkn]=${taxNumber}`);
+            console.log('📧 e-Invoice inbox query result:', {
+                taxNumber,
+                inboxCount: inboxes.data?.length || 0,
+                inboxes: inboxes.data
+            });
+
+            // Removed forced e-Invoice logic - let Parasut API response determine naturally
+
             if (inboxes.data && inboxes.data.length > 0) {
                 console.log('✅ Customer is e-Invoice user');
                 return true;
@@ -898,7 +1205,7 @@ class ParasutApiService {
     /**
      * Create e-Invoice
      */
-    async createEInvoice(invoiceId, advancedFields = {}, userEmail = null) {
+    async createEInvoice(invoiceId, userEmail = null, advancedFields = {}) {
         try {
             const attributes = {
                 scenario: 'basic',
@@ -910,25 +1217,48 @@ class ParasutApiService {
                     type: 'e_invoices',
                     attributes,
                     relationships: {
-                        sales_invoice: {
-                            data: { type: 'sales_invoices', id: invoiceId }
+                        invoice: {
+                            data: {
+                                id: invoiceId,
+                                type: 'sales_invoices'
+                            }
                         }
                     }
                 }
             };
+
+            // Creating e-Invoice
             const result = await this.makeRequest('POST', '/e_invoices', eInvoiceData);
-            console.log('✅ e-Invoice created:', result.data.id);
-            const doc = await this.monitorDocumentProcess(result.data.id, 'e_invoices');
-            // Send email if userEmail is provided and document is ready
-            if (userEmail && doc) {
-                const invoiceNo = doc.attributes?.invoice_no || 'N/A';
-                const invoiceUrl = doc.attributes?.print_url || '';
-                await sendEmail({
-                    to: userEmail,
-                    subject: `E-Fatura Oluşturuldu: ${invoiceNo}`,
-                    text: `E-Fatura'nız oluşturuldu. Fatura No: ${invoiceNo}\nFaturayı görüntülemek için: ${invoiceUrl}`
-                });
+            console.log('✅ e-Invoice creation request successful:', result.data.id);
+            console.log('📊 Status:', result.status, 'Accepted - e-Invoice processing started');
+
+            // Send email immediately after successful response (202 Accepted)
+            if (userEmail) {
+                try {
+                    console.log('📧 Sending e-Invoice notification email to:', userEmail);
+                    await sendEmail({
+                        email: userEmail,
+                        subject: `E-Fatura İşlemi Başlatıldı`,
+                        text: `E-Fatura oluşturma işleminiz başarıyla başlatılmıştır. İşlem tamamlandığında faturanız hazır olacaktır.`,
+                        html: `
+                            <h2>E-Fatura İşlemi Başlatıldı</h2>
+                            <p>Merhaba,</p>
+                            <p>E-Fatura oluşturma işleminiz başarıyla başlatılmıştır.</p>
+                            <p>İşlem tamamlandığında faturanız Paraşüt sisteminde hazır olacaktır.</p>
+                            <p>İşlem ID: <strong>${result.data.id}</strong></p>
+                            <br>
+                            <p>Teşekkürler,<br>Contentia Ekibi</p>
+                        `
+                    });
+                    console.log('✅ e-Invoice notification email sent successfully');
+                } catch (emailError) {
+                    console.error('❌ Failed to send e-Invoice email:', emailError);
+                }
             }
+
+            // Comment out document monitoring - send email immediately instead
+            // const doc = await this.monitorDocumentProcess(result.data.id, 'e_invoices');
+
             return result.data;
         } catch (error) {
             console.error('❌ Failed to create e-Invoice:', error.response?.data || error.message);
@@ -939,7 +1269,7 @@ class ParasutApiService {
     /**
      * Create e-Archive (supports advanced fields)
      */
-    async createEArchive(invoiceId, orderDate, advancedFields = {}, userEmail = null) {
+    async createEArchive(invoiceId, orderDate, userEmail = null, advancedFields = {}) {
         try {
             if (!orderDate) {
                 orderDate = new Date().toISOString().split('T')[0];
@@ -958,7 +1288,7 @@ class ParasutApiService {
                 ...otherAdvancedFields,
                 internet_sale: {
                     url: 'https://uzmanlio.com',
-                    payment_type: 'CREDIT_CARD',
+                    payment_type: 'KREDIKARTI/BANKAKARTI',
                     payment_platform: 'VISA',
                     payment_date: orderDate,
                     ...(advancedInternetSale || {})
@@ -976,18 +1306,36 @@ class ParasutApiService {
                 }
             };
             const result = await this.makeRequest('POST', '/e_archives', eArchiveData);
-            console.log('✅ e-Archive created:', result.data.id);
-            const doc = await this.monitorDocumentProcess(result.data.id, 'e_archives');
-            // Send email if userEmail is provided and document is ready
-            if (userEmail && doc) {
-                const invoiceNo = doc.attributes?.invoice_no || 'N/A';
-                const invoiceUrl = doc.attributes?.print_url || '';
-                await sendEmail({
-                    to: userEmail,
-                    subject: `E-Arşiv Fatura Oluşturuldu: ${invoiceNo}`,
-                    text: `E-Arşiv faturanız oluşturuldu. Fatura No: ${invoiceNo}\nFaturayı görüntülemek için: ${invoiceUrl}`
-                });
+            console.log('✅ e-Archive creation request successful:', result.data.id);
+            console.log('📊 Status:', result.status, 'Accepted - e-Archive processing started');
+
+            // Send email immediately after successful response (202 Accepted)
+            if (userEmail) {
+                try {
+                    console.log('📧 Sending e-Archive notification email to:', userEmail);
+                    await sendEmail({
+                        email: userEmail,
+                        subject: `E-Arşiv Fatura İşlemi Başlatıldı`,
+                        text: `E-Arşiv fatura oluşturma işleminiz başarıyla başlatılmıştır. İşlem tamamlandığında faturanız hazır olacaktır.`,
+                        html: `
+                            <h2>E-Arşiv Fatura İşlemi Başlatıldı</h2>
+                            <p>Merhaba,</p>
+                            <p>E-Arşiv fatura oluşturma işleminiz başarıyla başlatılmıştır.</p>
+                            <p>İşlem tamamlandığında faturanız Paraşüt sisteminde hazır olacaktır.</p>
+                            <p>İşlem ID: <strong>${result.data.id}</strong></p>
+                            <br>
+                            <p>Teşekkürler,<br>Contentia Ekibi</p>
+                        `
+                    });
+                    console.log('✅ e-Archive notification email sent successfully');
+                } catch (emailError) {
+                    console.error('❌ Failed to send e-Archive email:', emailError);
+                }
             }
+
+            // Comment out document monitoring - send email immediately instead
+            // const doc = await this.monitorDocumentProcess(result.data.id, 'e_archives');
+
             return result.data;
         } catch (error) {
             console.error('❌ Failed to create e-Archive:', error.response?.data || error.message);
@@ -998,40 +1346,50 @@ class ParasutApiService {
     /**
      * Monitor e-Invoice/e-Archive creation process (fixed: poll /trackable_jobs/{id} and fetch real document)
      */
-    async monitorDocumentProcess(processId, documentType) {
-        const maxAttempts = 15; // Increased attempts for longer processes
-        const delayMs = 4000;   // Increased delay for processing
+    // async monitorDocumentProcess(processId, documentType) {
+    //     const maxAttempts = 15; // Increased attempts for longer processes
+    //     const delayMs = 4000;   // Increased delay for processing
 
-        for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-            try {
-                // Always poll the trackable_jobs endpoint
-                const job = await this.makeRequest('GET', `/trackable_jobs/${processId}`);
-                const status = job.data.attributes?.status;
-                console.log(`📊 trackable_job status (${attempt}/${maxAttempts}): ${status}`);
+    //     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    //         try {
+    //             // Always poll the trackable_jobs endpoint
+    //             const job = await this.makeRequest('GET', `/trackable_jobs/${processId}`);
+    //             const status = job.data.attributes?.status;
+    //             console.log(`📊 trackable_job status (${attempt}/${maxAttempts}): ${status}`);
 
-                if (status === 'done') {
-                    const result = job.data.attributes?.result;
-                    if (result && result.id) {
-                        const doc = await this.makeRequest('GET', `/${documentType}/${result.id}`);
-                        console.log(`✅ ${documentType} completed, document id: ${result.id}`);
-                        return doc.data;
-                    } else {
-                        // This is a definitive failure. The job is 'done' but didn't produce the expected document.
-                        throw new Error(`Paraşüt job finished successfully but did not return a result ID. Please check the invoice in the Paraşüt UI for potential issues.`);
-                    }
-                } else if (status === 'error') {
-                    const errorDetails = job.data.attributes?.errors?.join(', ') || 'Unknown error';
-                    throw new Error(`${documentType} job failed with errors: ${errorDetails}`);
-                }
-                await new Promise(resolve => setTimeout(resolve, delayMs));
-            } catch (error) {
-                // Re-throw the error to stop the workflow immediately instead of timing out.
-                console.error(`❌ Error during document monitoring (attempt ${attempt}/${maxAttempts}):`, error.message);
-                throw error; // This will be caught by the calling function (e.g., createCompleteInvoiceWorkflow)
-            }
-        }
-        throw new Error(`${documentType} monitoring timed out`);
-    }
+    //             if (status === 'done') {
+    //                 const result = job.data.attributes?.result;
+    //                 console.log('📋 Job result details:', JSON.stringify(job.data.attributes, null, 2));
+
+    //                 if (result && result.id) {
+    //                     const doc = await this.makeRequest('GET', `/${documentType}/${result.id}`);
+    //                     console.log(`✅ ${documentType} completed, document id: ${result.id}`);
+    //                     return doc.data;
+    //                 } else {
+    //                     // For e-Archive, sometimes the document is created successfully even without result.id
+    //                     // Let's consider this a success and return the job data
+    //                     console.log(`⚠️ ${documentType} job completed but no result.id found. Considering as success.`);
+    //                     console.log(`✅ ${documentType} process completed successfully (job id: ${processId})`);
+    //                     return {
+    //                         id: processId,
+    //                         type: 'trackable_jobs',
+    //                         attributes: job.data.attributes,
+    //                         status: 'completed_without_result_id'
+    //                     };
+    //                 }
+    //             } else if (status === 'error') {
+    //                 const errorDetails = job.data.attributes?.errors?.join(', ') || 'Unknown error';
+    //                 throw new Error(`${documentType} job failed with errors: ${errorDetails}`);
+    //             }
+    //             await new Promise(resolve => setTimeout(resolve, delayMs));
+    //         } catch (error) {
+    //             // Re-throw the error to stop the workflow immediately instead of timing out.
+    //             console.error(`❌ Error during document monitoring (attempt ${attempt}/${maxAttempts}):`, error.message);
+    //             throw error; // This will be caught by the calling function (e.g., createCompleteInvoiceWorkflow)
+    //         }
+    //     }
+    //     throw new Error(`${documentType} monitoring timed out`);
+    // }
 
     /**
      * Prepare invoice items from order data
@@ -1112,7 +1470,7 @@ class ParasutApiService {
             } else if (services.duration === "60s" && additionalService.parasut_sixtySecond_ID) {
                 invoiceItems.push({
                     description: `60 Second Duration Service (${order.noOfUgc} UGC)`,
-                    quantity: mainInvoiceItem.quantity,
+                    quantity: order.noOfUgc,
                     unitPrice: additionalService.sixtySecondDurationPrice,
                     vatRate: 18,
                     parasutProductId: additionalService.parasut_sixtySecond_ID
@@ -1120,7 +1478,7 @@ class ParasutApiService {
             }
         }
 
-        console.log('📦 Prepared invoice items:', JSON.stringify(invoiceItems, null, 2));
+        // Invoice items prepared
         return invoiceItems;
     }
 
@@ -1141,6 +1499,150 @@ class ParasutApiService {
             description,
             items: invoiceItems
         });
+    }
+
+    /**
+     * Create sales invoice without automatic payment (for manual payment handling)
+     */
+    async createSalesInvoiceWithoutPayment(customerInfo, invoiceDetails) {
+        // Ensure paymentInfo is null to prevent automatic payment
+        const invoiceDetailsWithoutPayment = {
+            ...invoiceDetails,
+            paymentInfo: null
+        };
+        return await this.createSalesInvoice(customerInfo, invoiceDetailsWithoutPayment);
+    }
+
+    /**
+     * Get invoice sharing URL for customer access
+     */
+    getInvoiceSharingUrl(invoice) {
+        if (invoice.attributes?.sharing_preview_url) {
+            return invoice.attributes.sharing_preview_url;
+        }
+
+        // Fallback: construct URL manually if not provided
+        if (invoice.id && this.companyId) {
+            const contactId = invoice.relationships?.contact?.data?.id;
+            if (contactId) {
+                return `${this.baseURL.replace('/v4', '')}/portal/preview/${contactId}/satislar/${invoice.id}`;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Get or create a public sharing link for invoice
+     * First tries to get existing sharing links, then creates one if needed
+     */
+    async createPublicSharingLink(invoiceId, customerEmail = null) {
+        try {
+            console.log('🔗 Checking for existing sharing links for invoice:', invoiceId);
+
+            // First, try to get the invoice with included sharings
+            const invoiceWithSharings = await this.makeRequest('GET', `/sales_invoices/${invoiceId}?include=sharings`);
+
+            // Check if there are existing sharings
+            const existingSharings = invoiceWithSharings.included?.filter(item => item.type === 'sharings');
+            if (existingSharings && existingSharings.length > 0) {
+                const sharing = existingSharings[0];
+                const publicUrl = sharing.attributes?.url || sharing.attributes?.public_url;
+                if (publicUrl) {
+                    console.log('✅ Found existing public sharing URL:', publicUrl);
+                    return publicUrl;
+                }
+            }
+
+            console.log('🔗 No existing sharing found, attempting to create new one...');
+
+            // Try to create a new sharing using the correct format
+            const emailAddresses = customerEmail || "customer@example.com"; // Fallback email if none provided
+
+            const sharingData = {
+                data: {
+                    type: 'sharing_forms',
+                    attributes: {
+                        email: {
+                            addresses: emailAddresses,
+                            subject: "Your Invoice is Ready",
+                            body: "Please find your invoice link below. You can view and download your invoice online."
+                        },
+                        portal: {
+                            has_online_collection: true,
+                            has_online_payment_reminder: false,
+                            has_referral_link: false
+                        },
+                        properties: {}
+                    },
+                    relationships: {
+                        shareable: {
+                            data: {
+                                id: invoiceId.toString(),
+                                type: 'sales_invoices'
+                            }
+                        }
+                    }
+                }
+            };
+
+            const response = await this.makeRequest('POST', '/sharings', sharingData);
+
+            // Handle array response (Paraşüt returns array of sharings)
+            const sharingData_response = Array.isArray(response.data) ? response.data[0] : response.data;
+
+            console.log('✅ Public sharing created:', sharingData_response.id);
+            console.log('📋 Sharing response attributes:', JSON.stringify(sharingData_response.attributes, null, 2));
+
+            // Extract the public URL from response
+            const publicUrl = sharingData_response.attributes?.url ||
+                             sharingData_response.attributes?.portal_url ||
+                             sharingData_response.attributes?.public_url ||
+                             sharingData_response.attributes?.sharing_url;
+
+            if (publicUrl) {
+                console.log('📋 Public sharing URL:', publicUrl);
+                return publicUrl;
+            }
+
+            // Sharing created successfully - Paraşüt will send email with public link
+            const sharingId = sharingData_response.id;
+            if (sharingId) {
+                console.log('✅ Sharing created with ID:', sharingId);
+                console.log('📧 Paraşüt will send email with public link to customer');
+                return true; // Just return success, don't try to construct URLs
+            }
+
+            console.log('⚠️ No sharing ID found in response');
+            return false;
+
+        } catch (error) {
+            console.error('❌ Failed to create public sharing link:', error.response?.data || error.message);
+            console.log('⚠️ Falling back to preview URL - public sharing may not be available in test environment');
+            return null;
+        }
+    }
+
+    /**
+     * Generate email-friendly invoice link with description
+     */
+    generateInvoiceEmailLink(invoice, customerName = 'Valued Customer') {
+        const sharingUrl = this.getInvoiceSharingUrl(invoice);
+        if (!sharingUrl) {
+            return null;
+        }
+
+        const invoiceNumber = invoice.attributes?.invoice_no || invoice.id;
+        const totalAmount = invoice.attributes?.gross_total || invoice.attributes?.net_total;
+
+        return {
+            url: sharingUrl,
+            linkText: `View Invoice #${invoiceNumber}`,
+            description: `Click here to view your invoice online`,
+            invoiceNumber: invoiceNumber,
+            totalAmount: totalAmount,
+            customerName: customerName
+        };
     }
 }
 

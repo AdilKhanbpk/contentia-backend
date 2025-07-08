@@ -2,6 +2,9 @@ import express from "express";
 import {
     changePassword,
     createCreator,
+    sendCreatorOtp,
+    verifyCreatorOtp,
+    resendCreatorOtp,
     loginCreator,
     updateCreator,
     applyForOrder,
@@ -69,6 +72,9 @@ router.get("/get-all-orders", isAuthenticated, getTotalOrdersOfCreator);
 // POST Routes
 router.post("/create", createCreator);
 router.post("/login", loginCreator);
+router.post("/send-otp", sendCreatorOtp);
+router.post("/verify-otp", verifyCreatorOtp);
+router.post("/resend-otp", resendCreatorOtp);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password/:token", resetPassword);
 
