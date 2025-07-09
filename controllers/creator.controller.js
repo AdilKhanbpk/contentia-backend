@@ -116,10 +116,10 @@ const createCreator = asyncHandler(async (req, res) => {
     if (
         !fullName ||
         !password ||
-        !tckn ||
+        // !tckn ||
         !email ||
-        !dateOfBirth ||
-        !phoneNumber ||
+        // !dateOfBirth ||
+        // !phoneNumber ||
         !userAgreement ||
         !accountType ||
         !invoiceType
@@ -127,10 +127,10 @@ const createCreator = asyncHandler(async (req, res) => {
         console.log("❌ Missing required fields:", {
             fullName: !!fullName,
             password: !!password,
-            tckn: !!tckn,
+            // tckn: !!tckn,
             email: !!email,
-            dateOfBirth: !!dateOfBirth,
-            phoneNumber: !!phoneNumber,
+            // dateOfBirth: !!dateOfBirth,
+            // phoneNumber: !!phoneNumber,
             userAgreement: !!userAgreement,
             accountType: !!accountType,
             invoiceType: !!invoiceType
