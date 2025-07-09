@@ -1,13 +1,7 @@
 # Ignore node_modules directory
 node_modules/
 GoogleDrive-serviceAccount.json
-
-<<<<<<< HEAD
-=======
-# Google Cloud Service Account files (contain secrets)
-analyticsConfig.json
-serviceAccountConfig.json
->>>>>>> 97f5fb230668b99a7cacce110e6df563e1cb7853
+analyticsConfig.md
 
 # Ignore package-lock.json file
 package-lock.json

@@ -288,6 +288,38 @@ const createCreator = asyncHandler(async (req, res) => {
 
     await sendNotification(notificationData);
 
+    // Automatically send OTP after successful registration
+    let otpSent = false;
+    let otpError = null;
+
+    try {
+        console.log('📱 Automatically sending OTP to:', newUser.phoneNumber);
+
+        // Generate OTP
+        const verificationCode = generateOtp();
+        const otpExpiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
+
+        // Send OTP using Netgsm
+        const smsResult = await sendOtp(newUser.phoneNumber, verificationCode);
+
+        if (smsResult.success) {
+            // Update creator with OTP details
+            newUser.verificationCode = verificationCode;
+            newUser.otpExpiresAt = otpExpiresAt;
+            newUser.otpJobID = smsResult.jobID;
+            await newUser.save({ validateBeforeSave: false });
+
+            otpSent = true;
+            console.log('✅ OTP sent automatically during registration');
+        } else {
+            console.error('❌ Failed to send OTP during registration:', smsResult);
+            otpError = smsResult.error || 'Failed to send verification code';
+        }
+    } catch (error) {
+        console.error('❌ Error sending OTP during registration:', error.message);
+        otpError = 'Failed to send verification code';
+    }
+
     return res.status(201).json({
         status: 201,
         data: {
@@ -297,9 +329,13 @@ const createCreator = asyncHandler(async (req, res) => {
                 verificationCode: undefined
             },
             phoneNumber: newUser.phoneNumber,
-            requiresOtpVerification: true
+            requiresOtpVerification: true,
+            otpSent: otpSent,
+            otpError: otpError
         },
-        message: "Creator registration successful. Please proceed to phone verification.",
+        message: otpSent
+            ? "Creator registration successful. Verification code sent to your phone."
+            : "Creator registration successful. Please request verification code manually.",
     });
 });
 
@@ -1508,7 +1544,7 @@ const getCreatorStats = asyncHandler(async (req, res) => {
     const creatorCompletedOrderTotalPriceValue = await Order.aggregate([
         {
             $match: {
-                assignedCreators: new mongoose.Types.ObjectId(creatorId),
+                assignedCreators: new mongoose.Types.ObjectId(String(creatorId)),
                 orderStatus: "completed",
             },
         },

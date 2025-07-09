@@ -191,7 +191,7 @@ const createOrder = asyncHandler(async (req, res) => {
                 customerInfo,
                 newOrder,
                 paymentInfo,
-                `Order #${newOrder._id} - Video Content Services (Admin Created)`
+                `Order #${newOrder._id} - Video İçerik (Admin Created)`
             );
 
             invoiceInfo = {

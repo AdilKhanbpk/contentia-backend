@@ -7,14 +7,49 @@ import { resolvePath } from "./commonHelpers.js";
 
 dotenv.config();
 
-const SERVICE_ACCOUNT_FILE = resolvePath("../serviceAccountConfig.json");
+// Use environment variables instead of JSON file for better security
+const formatPrivateKey = (key) => {
+    if (!key) return '';
+    return key.replace(/\\n/g, '\n');
+};
 
-const auth = new google.auth.GoogleAuth({
-    keyFile: SERVICE_ACCOUNT_FILE,
-    scopes: ["https://www.googleapis.com/auth/drive"],
-});
+// Check if Google Drive credentials are available
+const hasGoogleDriveCredentials =
+    process.env.GOOGLE_DRIVE_CLIENT_EMAIL &&
+    process.env.GOOGLE_DRIVE_PRIVATE_KEY;
 
-const drive = google.drive({ version: "v3", auth });
+let auth;
+
+if (hasGoogleDriveCredentials) {
+    auth = new google.auth.GoogleAuth({
+        credentials: {
+            client_email: process.env.GOOGLE_DRIVE_CLIENT_EMAIL,
+            private_key: formatPrivateKey(process.env.GOOGLE_DRIVE_PRIVATE_KEY),
+        },
+        scopes: ["https://www.googleapis.com/auth/drive"],
+    });
+    console.log('✅ Google Drive initialized with environment variables');
+} else {
+    // Fallback to JSON file if environment variables are not set
+    try {
+        const SERVICE_ACCOUNT_FILE = resolvePath("../serviceAccountConfig.json");
+        if (fs.existsSync(SERVICE_ACCOUNT_FILE)) {
+            auth = new google.auth.GoogleAuth({
+                keyFile: SERVICE_ACCOUNT_FILE,
+                scopes: ["https://www.googleapis.com/auth/drive"],
+            });
+            console.log('⚠️ Google Drive using JSON file (consider using environment variables)');
+        } else {
+            console.warn('❌ Google Drive credentials not found (neither env vars nor JSON file)');
+            auth = null;
+        }
+    } catch (error) {
+        console.error('❌ Failed to initialize Google Drive:', error.message);
+        auth = null;
+    }
+}
+
+const drive = auth ? google.drive({ version: "v3", auth }) : null;
 
 /**
  * Returns the mime type for the given file path based on its extension.

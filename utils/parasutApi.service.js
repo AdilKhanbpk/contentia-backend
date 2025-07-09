@@ -820,7 +820,7 @@ class ParasutApiService {
                     attributes: {
                         quantity: item.quantity || 1,
                         unit_price: item.unitPrice,
-                        vat_rate: item.vatRate || 18,
+                        // vat_rate: item.vatRate || 18,
                         discount_type: 'percentage',
                         discount: item.discount || 0,
                         description: item.description
@@ -841,7 +841,7 @@ class ParasutApiService {
                     type: 'sales_invoices',
                     attributes: {
                         item_type: 'invoice',
-                        description: invoiceDetails.description || 'Video Content Services',
+                        description: invoiceDetails.description || 'Video İçerik',
                         issue_date: invoiceDetails.issueDate || new Date().toISOString().split('T')[0],
                         due_date: invoiceDetails.dueDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
                         invoice_series: invoiceDetails.invoiceSeries || '',
@@ -905,7 +905,7 @@ class ParasutApiService {
     /**
      * Complete Paraşüt invoice workflow
      */
-    async createCompleteInvoiceWorkflow(customerInfo, order, paymentInfo, description = 'Video Content Services', userEmail = null) {
+    async createCompleteInvoiceWorkflow(customerInfo, order, paymentInfo, description = 'Video İçerik', userEmail = null) {
         try {
             if (!this.isEnabled) {
                 return { status: 'disabled', message: 'Paraşüt integration is disabled' };
@@ -970,7 +970,7 @@ class ParasutApiService {
     /**
      * Create invoice from order data
      */
-    async createInvoiceFromOrder(customerInfo, order, description = 'Video Content Services') {
+    async createInvoiceFromOrder(customerInfo, order, description = 'Video İçerik') {
         try {
             const { default: AdditionalServiceModel } = await import('../models/admin/adminAdditionalService.model.js');
             const additionalService = await AdditionalServiceModel.findOne({});
@@ -981,7 +981,7 @@ class ParasutApiService {
             const invoiceItems = [];
             if (order.basePrice && order.noOfUgc) {
                 invoiceItems.push({
-                    description: `Video Content Services (${order.noOfUgc} UGC)`,
+                    description: `Video İçerik (${order.noOfUgc} UGC)`,
                     quantity: order.noOfUgc,
                     unitPrice: order.basePrice / order.noOfUgc, // Adjusted to per-unit price
                     vatRate: 18,
@@ -1405,7 +1405,7 @@ class ParasutApiService {
         const invoiceItems = [];
         if (order.basePrice && order.noOfUgc) {
             invoiceItems.push({
-                description: `Video Content Services (${order.noOfUgc} UGC)`,
+                description: `Video İçerik (${order.noOfUgc} UGC)`,
                 quantity: order.noOfUgc,
                 unitPrice: order.basePrice / order.noOfUgc, // Adjusted to per-unit price
                 vatRate: 18,
@@ -1486,7 +1486,7 @@ class ParasutApiService {
     /**
      * Create simple invoice with total price
      */
-    async createSimpleInvoice(customerInfo, totalPriceForCustomer, description = 'Video Content Services') {
+    async createSimpleInvoice(customerInfo, totalPriceForCustomer, description = 'Video İçerik') {
         const invoiceItems = [
             {
                 description,

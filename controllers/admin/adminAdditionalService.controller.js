@@ -11,12 +11,12 @@ import parasutApiService from "../../utils/parasutApi.service.js";
 async function syncServicesWithParasut(services, existingIds = {}) {
     const serviceDefinitions = [
         { key: 'editPrice', name: 'Video Düzenleme Hizmeti', parasutKey: 'parasut_edit_ID' },
-        { key: 'sharePrice', name: 'Video Paylaşım Hizmeti', parasutKey: 'parasut_share_ID' },
-        { key: 'coverPicPrice', name: 'Kapak Fotoğrafı Hizmeti', parasutKey: 'parasut_coverPic_ID' },
-        { key: 'creatorTypePrice', name: 'İçerik Üreticisi Tipi Hizmeti', parasutKey: 'parasut_creatorType_ID' },
-        { key: 'shippingPrice', name: 'Kargo Hizmeti', parasutKey: 'parasut_shipping_ID' },
-        { key: 'thirtySecondDurationPrice', name: '30 Saniye Video Süresi', parasutKey: 'parasut_thirtySecond_ID' },
-        { key: 'sixtySecondDurationPrice', name: '60 Saniye Video Süresi', parasutKey: 'parasut_sixtySecond_ID' }
+        { key: 'sharePrice', name: 'İçerik Paylaşım Hizmeti', parasutKey: 'parasut_share_ID' },
+        { key: 'coverPicPrice', name: 'Kapak Görseli', parasutKey: 'parasut_coverPic_ID' },
+        { key: 'creatorTypePrice', name: 'İçerik Üreticisi Tercihi', parasutKey: 'parasut_creatorType_ID' },
+        { key: 'shippingPrice', name: 'Teslimat Ücreti', parasutKey: 'parasut_shipping_ID' },
+        { key: 'thirtySecondDurationPrice', name: 'Video İçerik 30 sn', parasutKey: 'parasut_thirtySecond_ID' },
+        { key: 'sixtySecondDurationPrice', name: 'Video İçerik 60 sn', parasutKey: 'parasut_sixtySecond_ID' }
     ];
 
     const results = {};
